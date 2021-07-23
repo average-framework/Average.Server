@@ -28,7 +28,7 @@ namespace Average.Plugins
 
         IEnumerable<string> GetPluginsPath()
         {
-            var pluginsDirectoryPath = string.Join("/", BASE_RESOURCE_PATH, SDK.Shared.Constant.BASE_PLUGINS_DIRECTORY_NAME);
+            var pluginsDirectoryPath = string.Join("/", BASE_RESOURCE_PATH, SDK.Shared.Constant.BASE_PLUGIN_DIRECTORY_NAME);
             return Directory.GetDirectories(pluginsDirectoryPath);
         }
 
@@ -61,7 +61,7 @@ namespace Average.Plugins
 
                     switch (fileInfo.Name)
                     {
-                        case Constant.BASE_PLUGINS_MANIFEST_FILENAME:
+                        case Constant.BASE_PLUGIN_MANIFEST_FILENAME:
                             var pluginInfo = GetPluginInfo(fileInfo);
 
                             if (pluginInfo != null)
@@ -116,7 +116,7 @@ namespace Average.Plugins
             }
             catch
             {
-                throw new FormatException($"[ERROR][{fileInfo.Name.ToUpper()}] {Constant.BASE_PLUGINS_MANIFEST_FILENAME} have an invalid format.");
+                throw new FormatException($"[ERROR][{fileInfo.Name.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} have an invalid format.");
             }
         }
 
@@ -211,7 +211,7 @@ namespace Average.Plugins
                     }
                     else
                     {
-                        Main.logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGINS_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                        Main.logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
                     }
                 }
             }
