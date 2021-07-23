@@ -16,6 +16,7 @@ namespace Average
     internal class Main : BaseScript
     {
         internal static EventHandlerDictionary Events { get; private set; }
+        internal static ExportDictionary ScriptExports { get; private set; }
         internal static PlayerList PlayerList { get; set; }
 
         internal static Logger logger;
@@ -28,12 +29,13 @@ namespace Average
         public Main()
         {
             Events = EventHandlers;
+            ScriptExports = Exports;
             PlayerList = Players;
 
             logger = new Logger();
             commandManager = new CommandManager(logger);
             threadManager = new ThreadManager(this);
-            framework = new Framework(EventHandlers, threadManager, Players, logger, commandManager);
+            framework = new Framework(EventHandlers, ScriptExports, threadManager, Players, logger, commandManager);
             plugin = new PluginLoader();
 
             logger.Clear();
