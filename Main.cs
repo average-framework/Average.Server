@@ -1,4 +1,5 @@
 ﻿using Average.Plugins;
+using Average.Threading;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using SDK.Server;
@@ -7,17 +8,20 @@ using SDK.Server.Rpc;
 using SDK.Shared.Rpc;
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Average
 {
     internal class Main : BaseScript
     {
-        public static EventHandlerDictionary Events { get; private set; }
-        private static PlayerList PlayerList { get; set; }
+        internal static EventHandlerDictionary Events { get; private set; }
+        internal static PlayerList PlayerList { get; set; }
 
-        private PluginLoader plugin;
-        public static Logger logger;
-        public static Framework framework;
+        internal static Logger logger;
+        internal static Framework framework;
+        internal static ThreadManager threadManager;
+
+        PluginLoader plugin;
 
         public Main()
         {
@@ -25,7 +29,8 @@ namespace Average
             PlayerList = Players;
 
             logger = new Logger();
-            framework = new Framework(EventHandlers, Players, logger);
+            threadManager = new ThreadManager(this);
+            framework = new Framework(EventHandlers, threadManager, Players, logger);
             plugin = new PluginLoader();
 
             logger.Clear();
@@ -33,9 +38,27 @@ namespace Average
             plugin.Load();
         }
 
-        public static RpcRequest Event(string @event)
+        internal static RpcRequest Event(string @event)
         {
             return new RpcRequest(@event, new RpcHandler(Events), new RpcTrigger(PlayerList), new RpcSerializer());
+        }
+
+        /// <summary>
+        /// Create new thread at runtime
+        /// </summary>
+        /// <param name="task"></param>
+        internal void RegisterTick(Func<Task> func)
+        {
+            Tick += func;
+        }
+
+        /// <summary>
+        /// Delete thread at runtime
+        /// </summary>
+        /// <param name="task"></param>
+        internal void UnregisterTick(Func<Task> func)
+        {
+            Tick -= func;
         }
 
         void Watermark()
