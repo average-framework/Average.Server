@@ -17,20 +17,7 @@ namespace Average.Plugins
 {
     internal class PluginLoader
     {
-        string BASE_RESOURCE_PATH = GetResourcePath(Constant.RESOURCE_NAME);
-
-        string[] pluginFileKeys = new string[]
-        {
-            "Author",
-            "Name",
-            "Description",
-            "Version",
-            "ReleaseType",
-            "GithubUrl",
-            "Client",
-            "Server",
-            "Dependencies"
-        };
+        string BASE_RESOURCE_PATH = GetResourcePath(SDK.Shared.Constant.RESOURCE_NAME);
 
         List<Plugin> plugins = new List<Plugin>();
 
@@ -41,7 +28,7 @@ namespace Average.Plugins
 
         IEnumerable<string> GetPluginsPath()
         {
-            var pluginsDirectoryPath = string.Join("/", BASE_RESOURCE_PATH, Constant.BASE_PLUGINS_DIRECTORY_NAME);
+            var pluginsDirectoryPath = string.Join("/", BASE_RESOURCE_PATH, SDK.Shared.Constant.BASE_PLUGINS_DIRECTORY_NAME);
             return Directory.GetDirectories(pluginsDirectoryPath);
         }
 
@@ -109,7 +96,7 @@ namespace Average.Plugins
             var json = File.ReadAllText(filePath);
             var obj = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
 
-            foreach (var key in pluginFileKeys)
+            foreach (var key in Configuration.pluginFileFormatKeys)
             {
                 if (!obj.ContainsKey(key))
                 {
