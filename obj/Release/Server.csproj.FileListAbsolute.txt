@@ -1,0 +1,6 @@
+C:\Users\Administrateur\Documents\GitHub\redmdev\resources\avg\avgs.net.dll.config
+C:\Users\Administrateur\Documents\GitHub\redmdev\resources\avg\avgs.net.dll
+C:\Users\Administrateur\Documents\GitHub\AverageDev\Average.Server\obj\Release\Server.csproj.CoreCompileInputs.cache
+C:\Users\Administrateur\Documents\GitHub\AverageDev\Average.Server\obj\Release\Server.csproj.CopyComplete
+C:\Users\Administrateur\Documents\GitHub\AverageDev\Average.Server\obj\Release\avgs.net.dll
+C:\Users\Administrateur\Documents\GitHub\AverageDev\Average.Server\obj\Release\Server.csprojAssemblyReference.cache
