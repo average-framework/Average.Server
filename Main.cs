@@ -1,4 +1,4 @@
-﻿using Average.Server.Plugins;
+﻿using Average.Plugins;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using SDK.Server;
@@ -8,9 +8,9 @@ using SDK.Shared.Rpc;
 using System;
 using System.Reflection;
 
-namespace Average.Server
+namespace Average
 {
-    public class Main : BaseScript
+    internal class Main : BaseScript
     {
         public static EventHandlerDictionary Events { get; private set; }
         private static PlayerList PlayerList { get; set; }

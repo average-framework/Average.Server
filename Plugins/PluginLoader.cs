@@ -13,9 +13,9 @@ using System.Reflection;
 using static CitizenFX.Core.Native.API;
 using static SDK.Server.Rpc.IRpcRequest;
 
-namespace Average.Server.Plugins
+namespace Average.Plugins
 {
-    public class PluginLoader
+    internal class PluginLoader
     {
         string BASE_RESOURCE_PATH = GetResourcePath(Constant.RESOURCE_NAME);
 
