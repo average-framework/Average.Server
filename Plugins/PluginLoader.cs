@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using SDK.Server;
 using SDK.Server.Commands;
-using SDK.Server.Exports;
 using SDK.Server.Plugins;
 using SDK.Shared;
 using SDK.Shared.Plugins;
@@ -25,6 +24,7 @@ namespace Average.Plugins
         string BASE_RESOURCE_PATH = GetResourcePath(SDK.Shared.Constant.RESOURCE_NAME);
 
         List<Plugin> plugins = new List<Plugin>();
+        List<PluginInfo> clientPlugins = new List<PluginInfo>();
 
         public PluginLoader(CommandManager commandManager)
         {
@@ -154,6 +154,16 @@ namespace Average.Plugins
 
                 if (pluginInfo != null)
                 {
+                    if (!string.IsNullOrEmpty(pluginInfo.Client))
+                    {
+                        // Is client only
+                        clientPlugins.Add(pluginInfo);
+                    }
+                    else
+                    {
+                        Main.logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                    }
+
                     if (!string.IsNullOrEmpty(pluginInfo.Server))
                     {
                         var serverFile = Path.Combine(currentDirPath, pluginInfo.Server);
@@ -193,17 +203,16 @@ namespace Average.Plugins
 
                             foreach (var type in types)
                             {
-                                object classObj = null;
+                                Plugin script = null;
 
                                 if (type.GetCustomAttribute<MainScriptAttribute>() != null)
                                 {
                                     try
                                     {
                                         // Activate asm instance
-                                        classObj = Activator.CreateInstance(type, Main.framework, pluginInfo);
-                                        var plugin = classObj as Plugin;
-                                        plugin.PluginInfo = pluginInfo;
-                                        RegisterPlugin(plugin);
+                                        script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
+                                        script.PluginInfo = pluginInfo;
+                                        RegisterPlugin(script);
 
                                         Main.logger.Info($"{asmName} Successfully loaded.");
                                     }
@@ -213,15 +222,15 @@ namespace Average.Plugins
                                     }
                                 }
 
-                                if(classObj == null)
+                                if (script == null)
                                 {
                                     continue;
                                 }
 
-                                RegisterCommands(type, classObj);
-                                RegisterThreads(type, classObj);
-                                RegisterEvents(asm, type, classObj);
-                                RegisterExports(asm, type, classObj);
+                                RegisterCommands(type, script);
+                                RegisterThreads(type, script);
+                                RegisterEvents(asm, type, script);
+                                RegisterExports(asm, type, script);
                             }
                         }
                         else
@@ -231,7 +240,15 @@ namespace Average.Plugins
                     }
                     else
                     {
-                        Main.logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                        if (!string.IsNullOrEmpty(pluginInfo.Client))
+                        {
+                            // Is client only
+                            clientPlugins.Add(pluginInfo);
+                        }
+                        else
+                        {
+                            Main.logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                        }
                     }
                 }
             }
@@ -312,9 +329,9 @@ namespace Average.Plugins
 
             Main.logger.Warn("Get plugins for client");
 
-            foreach (var plugin in plugins)
+            foreach (var plugin in clientPlugins)
             {
-                pluginsInfo.Add(plugin.PluginInfo);
+                pluginsInfo.Add(plugin);
             }
 
             callback(pluginsInfo);
