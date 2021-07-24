@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using SDK.Server;
 using SDK.Server.Commands;
+using SDK.Server.Exports;
 using SDK.Server.Plugins;
 using SDK.Shared;
 using SDK.Shared.Plugins;
@@ -220,6 +221,7 @@ namespace Average.Plugins
                                 RegisterCommands(type, classObj);
                                 RegisterThreads(type, classObj);
                                 RegisterEvents(asm, type, classObj);
+                                RegisterExports(asm, type, classObj);
                             }
                         }
                         else
@@ -273,6 +275,19 @@ namespace Average.Plugins
                     //var action = method.Invoke(classObj, new object[] { "test1", "action2"});
                     Main.eventManager.RegisterEvent(method, eventAttr, classObj);
                     //Main.eventManager.RegisterEvent(method, eventAttr, classObj);
+                }
+            }
+        }
+
+        void RegisterExports(Assembly asm, Type type, object classObj)
+        {
+            foreach (var method in type.GetMethods())
+            {
+                var exportAttr = method.GetCustomAttribute<ExportAttribute>();
+
+                if (exportAttr != null)
+                {
+                    Main.exportManager.RegisterExport(method, exportAttr, classObj);
                 }
             }
         }
