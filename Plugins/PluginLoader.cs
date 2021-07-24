@@ -1,10 +1,12 @@
 ﻿using CitizenFX.Core;
 using Newtonsoft.Json;
 using SDK.Server;
+using SDK.Server.Commands;
 using SDK.Server.Plugins;
 using SDK.Shared;
 using SDK.Shared.Plugins;
 using SDK.Shared.Rpc;
+using SDK.Shared.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,12 +19,16 @@ namespace Average.Plugins
 {
     internal class PluginLoader
     {
+        CommandManager commandManager;
+
         string BASE_RESOURCE_PATH = GetResourcePath(SDK.Shared.Constant.RESOURCE_NAME);
 
         List<Plugin> plugins = new List<Plugin>();
 
-        public PluginLoader()
+        public PluginLoader(CommandManager commandManager)
         {
+            this.commandManager = commandManager;
+
             Main.Event("avg.internal.get_plugins").On(new Action<RpcMessage, RpcCallback>(GetPluginsEvent));
         }
 
@@ -186,12 +192,15 @@ namespace Average.Plugins
 
                             foreach (var type in types)
                             {
+                                object classObj = null;
+
                                 if (type.GetCustomAttribute<MainScriptAttribute>() != null)
                                 {
                                     try
                                     {
                                         // Activate asm instance
-                                        var plugin = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
+                                        classObj = Activator.CreateInstance(type, Main.framework, pluginInfo);
+                                        var plugin = classObj as Plugin;
                                         plugin.PluginInfo = pluginInfo;
                                         RegisterPlugin(plugin);
 
@@ -202,6 +211,15 @@ namespace Average.Plugins
                                         Main.logger.Error($"Unable to load {asmName}");
                                     }
                                 }
+
+                                if(classObj == null)
+                                {
+                                    continue;
+                                }
+
+                                RegisterCommands(type, classObj);
+                                RegisterThreads(type, classObj);
+                                RegisterEvents(asm, type, classObj);
                             }
                         }
                         else
@@ -213,6 +231,48 @@ namespace Average.Plugins
                     {
                         Main.logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
                     }
+                }
+            }
+        }
+
+        void RegisterCommands(Type type, object classObj)
+        {
+            // Load registered commands (method need to be public to be detected)
+            foreach (var method in type.GetMethods())
+            {
+                var cmdAttr = method.GetCustomAttribute<SDK.Server.CommandAttribute>();
+                var aliasAttr = method.GetCustomAttribute<CommandAliasAttribute>();
+
+                commandManager.RegisterCommand(cmdAttr, aliasAttr, method, classObj);
+            }
+        }
+
+        void RegisterThreads(Type type, object classObj)
+        {
+            foreach (var method in type.GetMethods())
+            {
+                var threadAttr = method.GetCustomAttribute<ThreadAttribute>();
+
+                if (threadAttr != null)
+                {
+                    Main.threadManager.RegisterThread(method, threadAttr, classObj);
+                }
+            }
+        }
+
+        void RegisterEvents(Assembly asm, Type type, object classObj)
+        {
+            foreach (var method in type.GetMethods())
+            {
+                var eventAttr = method.GetCustomAttribute<EventAttribute>();
+
+                if (eventAttr != null)
+                {
+                    Main.logger.Debug("Params: " + string.Join(", ", method.GetParameters().Select(x => x.ParameterType.FullName)));
+                    //var paramType = Type.GetType()
+                    //var action = method.Invoke(classObj, new object[] { "test1", "action2"});
+                    Main.eventManager.RegisterEvent(method, eventAttr, classObj);
+                    //Main.eventManager.RegisterEvent(method, eventAttr, classObj);
                 }
             }
         }
