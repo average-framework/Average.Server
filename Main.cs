@@ -27,6 +27,9 @@ namespace Average
         internal static ThreadManager threadManager;
         internal static EventManager eventManager;
         internal static ExportManager exportManager;
+        internal static SDK.Server.SyncManager syncManager;
+
+        internal SyncManager sync;
 
         PluginLoader plugin;
 
@@ -40,12 +43,17 @@ namespace Average
             commandManager = new CommandManager(logger);
             threadManager = new ThreadManager(this);
             eventManager = new EventManager(EventHandlers, logger);
-            framework = new Framework(EventHandlers, ScriptExports, threadManager, eventManager, exportManager, Players, logger, commandManager);
+            exportManager = new ExportManager(logger);
+            syncManager = new SDK.Server.SyncManager(logger);
+            framework = new Framework(EventHandlers, ScriptExports, threadManager, eventManager, exportManager, syncManager, Players, logger, commandManager);
             plugin = new PluginLoader(commandManager);
 
             logger.Clear();
             Watermark();
             plugin.Load();
+
+            sync = new SyncManager(syncManager);
+            RegisterScript(sync);
         }
 
         internal static RpcRequest Event(string @event)

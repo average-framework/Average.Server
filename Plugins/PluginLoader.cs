@@ -214,11 +214,26 @@ namespace Average.Plugins
                                         script.PluginInfo = pluginInfo;
                                         RegisterPlugin(script);
 
-                                        Main.logger.Info($"{asmName} Successfully loaded.");
+                                        Main.logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
                                     }
                                     catch (InvalidCastException ex)
                                     {
-                                        Main.logger.Error($"Unable to load {asmName}");
+                                        Main.logger.Error($"Unable to load {asm.GetName().Name}");
+                                    }
+                                }
+                                else
+                                {
+                                    try
+                                    {
+                                        script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
+                                        script.PluginInfo = pluginInfo;
+                                        RegisterPlugin(script);
+
+                                        Main.logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
+                                    }
+                                    catch
+                                    {
+                                        Main.logger.Error($"Unable to load script: {script.Name}");
                                     }
                                 }
 
@@ -229,8 +244,10 @@ namespace Average.Plugins
 
                                 RegisterCommands(type, script);
                                 RegisterThreads(type, script);
-                                RegisterEvents(asm, type, script);
-                                RegisterExports(asm, type, script);
+                                RegisterEvents(type, script);
+                                RegisterExports(type, script);
+                                RegisterSyncs(type, script);
+                                RegisterGetSyncs(type, script);
                             }
                         }
                         else
@@ -279,7 +296,7 @@ namespace Average.Plugins
             }
         }
 
-        void RegisterEvents(Assembly asm, Type type, object classObj)
+        void RegisterEvents(Type type, object classObj)
         {
             foreach (var method in type.GetMethods())
             {
@@ -287,16 +304,12 @@ namespace Average.Plugins
 
                 if (eventAttr != null)
                 {
-                    Main.logger.Debug("Params: " + string.Join(", ", method.GetParameters().Select(x => x.ParameterType.FullName)));
-                    //var paramType = Type.GetType()
-                    //var action = method.Invoke(classObj, new object[] { "test1", "action2"});
                     Main.eventManager.RegisterEvent(method, eventAttr, classObj);
-                    //Main.eventManager.RegisterEvent(method, eventAttr, classObj);
                 }
             }
         }
 
-        void RegisterExports(Assembly asm, Type type, object classObj)
+        void RegisterExports(Type type, object classObj)
         {
             foreach (var method in type.GetMethods())
             {
@@ -305,6 +318,58 @@ namespace Average.Plugins
                 if (exportAttr != null)
                 {
                     Main.exportManager.RegisterExport(method, exportAttr, classObj);
+                }
+            }
+        }
+
+        void RegisterSyncs(Type type, object classObj)
+        {
+            // Registering syncs (method need to be public to be detected)
+            for (int i = 0; i < type.GetProperties().Count(); i++)
+            {
+                var property = type.GetProperties()[i];
+                var syncAttr = property.GetCustomAttribute<SyncAttribute>();
+
+                if (syncAttr != null)
+                {
+                    Main.syncManager.RegisterSync(ref property, syncAttr, classObj);
+                }
+            }
+
+            for (int i = 0; i < type.GetFields().Count(); i++)
+            {
+                var field = type.GetFields()[i];
+                var syncAttr = field.GetCustomAttribute<SyncAttribute>();
+
+                if (syncAttr != null)
+                {
+                    Main.syncManager.RegisterSync(ref field, syncAttr, classObj);
+                }
+            }
+        }
+
+        void RegisterGetSyncs(Type type, object classObj)
+        {
+            // Registering getSyncs (method need to be public to be detected)
+            for (int i = 0; i < type.GetProperties().Count(); i++)
+            {
+                var property = type.GetProperties()[i];
+                var getSyncAttr = property.GetCustomAttribute<GetSyncAttribute>();
+
+                if (getSyncAttr != null)
+                {
+                    Main.syncManager.RegisterGetSync(ref property, getSyncAttr, classObj);
+                }
+            }
+
+            for (int i = 0; i < type.GetFields().Count(); i++)
+            {
+                var field = type.GetFields()[i];
+                var getSyncAttr = field.GetCustomAttribute<GetSyncAttribute>();
+
+                if (getSyncAttr != null)
+                {
+                    Main.syncManager.RegisterGetSync(ref field, getSyncAttr, classObj);
                 }
             }
         }
