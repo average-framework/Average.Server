@@ -22,6 +22,8 @@ namespace Average
 
             syncManager.SyncProperties();
             syncManager.SyncFields();
+            syncManager.SyncNetworkedProperties();
+            syncManager.SyncNetworkedFields();
         }
     }
 }

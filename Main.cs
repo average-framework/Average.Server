@@ -8,10 +8,13 @@ using SDK.Server.Diagnostics;
 using SDK.Server.Events;
 using SDK.Server.Exports;
 using SDK.Server.Rpc;
+using SDK.Shared;
 using SDK.Shared.Rpc;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using static SDK.Server.SyncManager;
 
 namespace Average
 {
@@ -61,19 +64,11 @@ namespace Average
             return new RpcRequest(@event, new RpcHandler(Events), new RpcTrigger(PlayerList), new RpcSerializer());
         }
 
-        /// <summary>
-        /// Create new thread at runtime
-        /// </summary>
-        /// <param name="task"></param>
         internal void RegisterTick(Func<Task> func)
         {
             Tick += func;
         }
 
-        /// <summary>
-        /// Delete thread at runtime
-        /// </summary>
-        /// <param name="task"></param>
         internal void UnregisterTick(Func<Task> func)
         {
             Tick -= func;

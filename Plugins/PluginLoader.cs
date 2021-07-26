@@ -346,11 +346,35 @@ namespace Average.Plugins
                     Main.syncManager.RegisterSync(ref field, syncAttr, classObj);
                 }
             }
+
+            // Registering networkSyncs (property need to be public to be detected)
+            for (int i = 0; i < type.GetProperties().Count(); i++)
+            {
+                var property = type.GetProperties()[i];
+                var syncAttr = property.GetCustomAttribute<NetworkSyncAttribute>();
+
+                if (syncAttr != null)
+                {
+                    Main.syncManager.RegisterNetworkSync(ref property, syncAttr, classObj);
+                }
+            }
+
+            // Registering networkSyncs (field need to be public to be detected)
+            for (int i = 0; i < type.GetFields().Count(); i++)
+            {
+                var field = type.GetFields()[i];
+                var syncAttr = field.GetCustomAttribute<NetworkSyncAttribute>();
+
+                if (syncAttr != null)
+                {
+                    Main.syncManager.RegisterNetworkSync(ref field, syncAttr, classObj);
+                }
+            }
         }
 
         void RegisterGetSyncs(Type type, object classObj)
         {
-            // Registering getSyncs (method need to be public to be detected)
+            // Registering getSyncs (property need to be public to be detected)
             for (int i = 0; i < type.GetProperties().Count(); i++)
             {
                 var property = type.GetProperties()[i];
@@ -362,6 +386,7 @@ namespace Average.Plugins
                 }
             }
 
+            // Registering getSyncs (field need to be public to be detected)
             for (int i = 0; i < type.GetFields().Count(); i++)
             {
                 var field = type.GetFields()[i];
