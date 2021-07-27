@@ -1,4 +1,5 @@
-﻿using Average.Plugins;
+﻿using Average.Internal;
+using Average.Plugins;
 using Average.Threading;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
@@ -8,21 +9,16 @@ using SDK.Server.Diagnostics;
 using SDK.Server.Events;
 using SDK.Server.Exports;
 using SDK.Server.Rpc;
-using SDK.Shared;
-using SDK.Shared.Rpc;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
-using static SDK.Server.SyncManager;
 
 namespace Average
 {
     internal class Main : BaseScript
     {
-        internal static EventHandlerDictionary Events { get; private set; }
-        internal static ExportDictionary ScriptExports { get; private set; }
-        internal static PlayerList PlayerList { get; set; }
+        static EventHandlerDictionary eventHandlers;
+        static PlayerList players;
 
         internal static Logger logger;
         internal static CommandManager commandManager;
@@ -31,37 +27,37 @@ namespace Average
         internal static EventManager eventManager;
         internal static ExportManager exportManager;
         internal static SDK.Server.SyncManager syncManager;
+        internal static RpcRequest rpc;
 
-        internal SyncManager sync;
-
-        PluginLoader plugin;
+        SQL sql;
+        SyncManager sync;
+        CfxManager cfx;
+        PluginLoader loader;
 
         public Main()
         {
-            Events = EventHandlers;
-            ScriptExports = Exports;
-            PlayerList = Players;
+            eventHandlers = EventHandlers;
+            players = Players;
 
             logger = new Logger();
+            logger.Clear();
+            Watermark();
+            sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
+
             commandManager = new CommandManager(logger);
             threadManager = new ThreadManager(this);
             eventManager = new EventManager(EventHandlers, logger);
+            rpc = new RpcRequest(new SDK.Shared.Rpc.RpcHandler(EventHandlers), new RpcTrigger(Players), new SDK.Shared.Rpc.RpcSerializer());
             exportManager = new ExportManager(logger);
             syncManager = new SDK.Server.SyncManager(logger);
-            framework = new Framework(EventHandlers, ScriptExports, threadManager, eventManager, exportManager, syncManager, Players, logger, commandManager);
-            plugin = new PluginLoader(commandManager);
+            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc);
+            cfx = new CfxManager(EventHandlers, logger, framework);
+            loader = new PluginLoader(rpc, logger, commandManager);
 
-            logger.Clear();
-            Watermark();
-            plugin.Load();
+            loader.Load();
 
             sync = new SyncManager(syncManager);
             RegisterScript(sync);
-        }
-
-        internal static RpcRequest Event(string @event)
-        {
-            return new RpcRequest(@event, new RpcHandler(Events), new RpcTrigger(PlayerList), new RpcSerializer());
         }
 
         internal void RegisterTick(Func<Task> func)

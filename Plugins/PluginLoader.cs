@@ -1,8 +1,9 @@
-﻿using CitizenFX.Core;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using SDK.Server;
 using SDK.Server.Commands;
+using SDK.Server.Diagnostics;
 using SDK.Server.Plugins;
+using SDK.Server.Rpc;
 using SDK.Shared;
 using SDK.Shared.Plugins;
 using SDK.Shared.Rpc;
@@ -13,24 +14,28 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using static CitizenFX.Core.Native.API;
-using static SDK.Server.Rpc.IRpcRequest;
+using static SDK.Server.Rpc.RpcRequest;
 
 namespace Average.Plugins
 {
     internal class PluginLoader
     {
+        RpcRequest rpc;
+        Logger logger;
         CommandManager commandManager;
 
-        string BASE_RESOURCE_PATH = GetResourcePath(SDK.Shared.Constant.RESOURCE_NAME);
+        string BASE_RESOURCE_PATH = GetResourcePath(Constant.RESOURCE_NAME);
 
         List<Plugin> plugins = new List<Plugin>();
         List<PluginInfo> clientPlugins = new List<PluginInfo>();
 
-        public PluginLoader(CommandManager commandManager)
+        public PluginLoader(RpcRequest rpc, Logger logger, CommandManager commandManager)
         {
+            this.rpc = rpc;
+            this.logger = logger;
             this.commandManager = commandManager;
 
-            Main.Event("avg.internal.get_plugins").On(new Action<RpcMessage, RpcCallback>(GetPluginsEvent));
+            rpc.Event("avg.internal.get_plugins").On(new Action<RpcMessage, RpcCallback>(GetPluginsEvent));
         }
 
         IEnumerable<string> GetPluginsPath()
@@ -45,7 +50,7 @@ namespace Average.Plugins
 
             if (pluginsPath.Count() == 0)
             {
-                Main.logger.Warn($"No plugins detected");
+                logger.Warn($"No plugins detected.");
                 return null;
             }
 
@@ -58,7 +63,7 @@ namespace Average.Plugins
 
                 if (pluginFiles.Count() == 0)
                 {
-                    Main.logger.Error($"[{dirInfo.Name.ToUpper()}] Is not a valid resource.");
+                    logger.Error($"[{dirInfo.Name.ToUpper()}] Is not a valid resource.");
                     continue;
                 }
 
@@ -81,20 +86,19 @@ namespace Average.Plugins
                                 }
                                 else
                                 {
-                                    Main.logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin format.");
+                                    logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin format.");
                                 }
                             }
                             else
                             {
-                                Main.logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin info.");
+                                logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin info.");
                             }
                             break;
                     }
                 }
-
-                Main.logger.Warn($"{validate.Count} validated plugins of {pluginsPath.Count()} detected !");
             }
 
+            logger.Warn($"{validate.Count} validated plugins of {pluginsPath.Count()} detected !");
             return validate;
         }
 
@@ -161,7 +165,7 @@ namespace Average.Plugins
                     }
                     else
                     {
-                        Main.logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                        logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
                     }
 
                     if (!string.IsNullOrEmpty(pluginInfo.Server))
@@ -174,7 +178,7 @@ namespace Average.Plugins
                         {
                             var asmName = asm.GetName().ToString().Split(',')[0];
 
-                            Main.logger.Info($"Loading {asmName} ...");
+                            logger.Info($"Loading {asmName} ...");
 
                             var types = asm.GetTypes().Where(x => !x.IsAbstract && x.IsClass && x.IsSubclassOf(typeof(Plugin))).ToList();
                             var mainScriptCount = 0;
@@ -191,13 +195,13 @@ namespace Average.Plugins
 
                             if (mainScriptCount > 1)
                             {
-                                Main.logger.Error("Unable to load multiples [MainScript] attribute in same plugin. Fix this error to continue.");
+                                logger.Error("Unable to load multiples [MainScript] attribute in same plugin. Fix this error to continue.");
                                 return;
                             }
 
                             if (mainScriptCount == 0)
                             {
-                                Main.logger.Error("Unable to load this plugin, he does not contains [MainScript] attribute. Fix this error to continue.");
+                                logger.Error("Unable to load this plugin, he does not contains [MainScript] attribute. Fix this error to continue.");
                                 return;
                             }
 
@@ -211,14 +215,14 @@ namespace Average.Plugins
                                     {
                                         // Activate asm instance
                                         script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
-                                        script.PluginInfo = pluginInfo;
+                                        //script.PluginInfo = pluginInfo;
                                         RegisterPlugin(script);
 
-                                        Main.logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
+                                        logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
                                     }
                                     catch (InvalidCastException ex)
                                     {
-                                        Main.logger.Error($"Unable to load {asm.GetName().Name}");
+                                        logger.Error($"Unable to load {asm.GetName().Name}");
                                     }
                                 }
                                 else
@@ -226,14 +230,14 @@ namespace Average.Plugins
                                     try
                                     {
                                         script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
-                                        script.PluginInfo = pluginInfo;
+                                        //script.PluginInfo = pluginInfo;
                                         RegisterPlugin(script);
 
-                                        Main.logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
+                                        logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
                                     }
                                     catch
                                     {
-                                        Main.logger.Error($"Unable to load script: {script.Name}");
+                                        logger.Error($"Unable to load script: {script.Name}");
                                     }
                                 }
 
@@ -252,7 +256,7 @@ namespace Average.Plugins
                         }
                         else
                         {
-                            Main.logger.Error($"[{currentDirName.ToUpper()}] {fileInfo.Name} is not an valid plugin for AverageFramework.");
+                            logger.Error($"[{currentDirName.ToUpper()}] {fileInfo.Name} is not an valid plugin for AverageFramework.");
                         }
                     }
                     else
@@ -264,7 +268,7 @@ namespace Average.Plugins
                         }
                         else
                         {
-                            Main.logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                            logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
                         }
                     }
                 }
@@ -401,13 +405,13 @@ namespace Average.Plugins
 
         void RegisterPlugin(Plugin script)
         {
-            BaseScript.RegisterScript(script);
+            //BaseScript.RegisterScript(script);
             plugins.Add(script);
         }
 
         void UnloadScript(Plugin script)
         {
-            BaseScript.UnregisterScript(script);
+            //BaseScript.UnregisterScript(script);
             plugins.Remove(script);
         }
 
@@ -416,8 +420,6 @@ namespace Average.Plugins
         void GetPluginsEvent(RpcMessage message, RpcCallback callback)
         {
             var pluginsInfo = new List<IPluginInfo>();
-
-            Main.logger.Warn("Get plugins for client");
 
             foreach (var plugin in clientPlugins)
             {

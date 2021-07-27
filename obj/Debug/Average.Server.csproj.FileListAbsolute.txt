@@ -5,3 +5,5 @@ C:\Users\bubbl\Desktop\Average Framework\Average.Server\obj\Debug\Average.Server
 C:\Users\bubbl\Desktop\Average Framework\Average.Server\obj\Debug\average.server.net.dll
 C:\Users\bubbl\Desktop\Averagge Framework TestServer\resources\avg\average.server.net.dll
 C:\Users\bubbl\Desktop\AverageFrameworkServer\resources\avg\average.server.net.dll
+C:\Users\bubbl\Desktop\AverageFrameworkServer\resources\avg\average.server.net.pdb
+C:\Users\bubbl\Desktop\Average Framework\Average.Server\obj\Debug\average.server.net.pdb
