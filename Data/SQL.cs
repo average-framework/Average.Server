@@ -1,7 +1,7 @@
 ﻿using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
-using SDK.Server;
 using SDK.Server.Diagnostics;
+using SDK.Server.Managers;
 using SDK.Shared.DataModels;
 using System;
 using System.Collections.Generic;
@@ -236,7 +236,7 @@ namespace Average.Data
 
             if (!IsOpen)
             {
-                return  false;
+                return false;
             }
 
             var isUpdated = false;

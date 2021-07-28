@@ -1,6 +1,7 @@
 ﻿using CitizenFX.Core;
 using SDK.Server.Diagnostics;
 using SDK.Server.Events;
+using SDK.Server.Managers;
 using SDK.Shared;
 using System;
 using System.Collections.Generic;
