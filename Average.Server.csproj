@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="Commands\CommandManager.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="Events\EventManager.cs" />
     <Compile Include="Exports\ExportManager.cs" />
     <Compile Include="Internal\CfxManager.cs" />
     <Compile Include="Internal\SQL.cs" />

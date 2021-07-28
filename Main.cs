@@ -1,4 +1,5 @@
 ﻿using Average.Commands;
+using Average.Events;
 using Average.Exports;
 using Average.Internal;
 using Average.Plugins;
@@ -45,7 +46,7 @@ namespace Average
             exportManager = new ExportManager(logger);
             syncManager = new SDK.Server.SyncManager(logger);
             framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql);
-            cfx = new CfxManager(EventHandlers, logger, framework);
+            cfx = new CfxManager(EventHandlers, logger, eventManager);
             loader = new PluginLoader(rpc, logger, commandManager);
 
             loader.Load();

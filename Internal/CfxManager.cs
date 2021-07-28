@@ -1,5 +1,5 @@
-﻿using CitizenFX.Core;
-using SDK.Server;
+﻿using Average.Events;
+using CitizenFX.Core;
 using SDK.Server.Diagnostics;
 using System;
 
@@ -9,13 +9,13 @@ namespace Average.Internal
     {
         EventHandlerDictionary eventHandlers;
         Logger logger;
-        Framework framework;
+        EventManager eventManager;
 
-        public CfxManager(EventHandlerDictionary eventHandlers, Logger logger, Framework framework)
+        public CfxManager(EventHandlerDictionary eventHandlers, Logger logger, EventManager eventManager)
         {
             this.eventHandlers = eventHandlers;
             this.logger = logger;
-            this.framework = framework;
+            this.eventManager = eventManager;
 
             eventHandlers["playerConnecting"] += new Action<Player, string, dynamic, dynamic>(OnPlayerConnecting);
             eventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDisconnecting);
@@ -27,12 +27,12 @@ namespace Average.Internal
         {
             //deferrals.defer();
             logger.Info($"{playerName} is connected to the server.");
-            framework.Event.OnPlayerConnecting(player, setKickReason, deferrals);
+            eventManager.OnPlayerConnecting(player, setKickReason, deferrals);
         }
 
         protected async void OnPlayerDisconnecting([FromSource] Player player, string reason)
         {
-            framework.Event.OnPlayerDisconnecting(player, reason);
+            eventManager.OnPlayerDisconnecting(player, reason);
         }
 
         #endregion
