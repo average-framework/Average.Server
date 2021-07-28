@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using Average.Commands;
+using Newtonsoft.Json;
 using SDK.Server;
-using SDK.Server.Commands;
 using SDK.Server.Diagnostics;
 using SDK.Server.Plugins;
 using SDK.Server.Rpc;

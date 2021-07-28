@@ -64,6 +64,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\CommandManager.cs" />
     <Compile Include="Configuration.cs" />
     <Compile Include="Exports\ExportManager.cs" />
     <Compile Include="Internal\CfxManager.cs" />
