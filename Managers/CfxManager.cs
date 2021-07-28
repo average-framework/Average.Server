@@ -18,6 +18,8 @@ namespace Average.Managers
 
             eventHandlers["playerConnecting"] += new Action<Player, string, dynamic, dynamic>(OnPlayerConnecting);
             eventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDisconnecting);
+            eventHandlers["onResourceStop"] += new Action<string>(OnResourceStop);
+            eventHandlers["onResourceStart"] += new Action<string>(OnResourceStart);
         }
 
         #region Events
@@ -32,6 +34,16 @@ namespace Average.Managers
         protected async void OnPlayerDisconnecting([FromSource] Player player, string reason)
         {
             eventManager.OnPlayerDisconnecting(player, reason);
+        }
+
+        protected async void OnResourceStop(string resource)
+        {
+            eventManager.OnResourceStop(resource);
+        }
+
+        protected async void OnResourceStart(string resource)
+        {
+            eventManager.OnResourceStart(resource);
         }
 
         #endregion

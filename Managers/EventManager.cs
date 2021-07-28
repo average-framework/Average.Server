@@ -16,6 +16,11 @@ namespace Average.Managers
         Dictionary<string, Delegate> events;
         Logger logger;
 
+        public event EventHandler<PlayerConnectingEventArgs> PlayerConnecting;
+        public event EventHandler<PlayerDisconnectingEventArgs> PlayerDisconnecting;
+        public event EventHandler<ResourceStopEventArgs> ResourceStop;
+        public event EventHandler<ResourceStartEventArgs> ResourceStart;
+
         public EventManager(EventHandlerDictionary eventHandlers, Logger logger)
         {
             this.logger = logger;
@@ -82,9 +87,6 @@ namespace Average.Managers
 
         #region Events
 
-        public event EventHandler<PlayerConnectingEventArgs> PlayerConnecting;
-        public event EventHandler<PlayerDisconnectingEventArgs> PlayerDisconnecting;
-
         public void OnPlayerConnecting(Player player, dynamic kick, dynamic deferrals)
         {
             if (PlayerConnecting != null)
@@ -98,6 +100,22 @@ namespace Average.Managers
             if (PlayerDisconnecting != null)
             {
                 PlayerDisconnecting(null, new PlayerDisconnectingEventArgs(player, reason));
+            }
+        }
+
+        public void OnResourceStop(string resource)
+        {
+            if (ResourceStop != null)
+            {
+                ResourceStop(null, new ResourceStopEventArgs(resource));
+            }
+        }
+
+        public void OnResourceStart(string resource)
+        {
+            if (ResourceStart != null)
+            {
+                ResourceStart(null, new ResourceStartEventArgs(resource));
             }
         }
 
