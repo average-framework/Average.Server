@@ -50,15 +50,15 @@ namespace Average.Managers
                             }), false);
                         }
 
-                        Logger.Debug($"Regisering {aliasAttr.Alias.Length} alias for command: {commandAttr.Command} [{string.Join(", ", aliasAttr.Alias)}]");
+                        Logger.Debug($"Registering {aliasAttr.Alias.Length} alias for command: {commandAttr.Command} [{string.Join(", ", aliasAttr.Alias)}]");
                     }
 
                     Commands.Add(new Tuple<CommandAttribute, CommandAliasAttribute>(commandAttr, aliasAttr));
-                    Logger.Debug($"Regisering command: {commandAttr.Command}");
+                    Logger.Debug($"Registering [Command] attribute: {commandAttr.Command}");
                 }
                 else
                 {
-                    Logger.Warn($"Unable to register command: {commandAttr.Command}, arguments does not match with the framework command format.");
+                    Logger.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
                 }
             }
             else if (methodParams.Count() == 0)
@@ -80,14 +80,14 @@ namespace Average.Managers
                     }
 
                     Commands.Add(new Tuple<CommandAttribute, CommandAliasAttribute>(commandAttr, aliasAttr));
-                    Logger.Debug($"Regisering {aliasAttr.Alias.Length} alias for command: {commandAttr.Command} [{string.Join(", ", aliasAttr.Alias)}]");
+                    Logger.Debug($"Registering {aliasAttr.Alias.Length} alias for command: {commandAttr.Command} [{string.Join(", ", aliasAttr.Alias)}]");
                 }
 
-                Logger.Debug($"Regisering command: {commandAttr.Command}");
+                Logger.Debug($"Registering [Command] attribute: {commandAttr.Command}");
             }
             else
             {
-                Logger.Warn($"Unable to register command: {commandAttr.Command}, arguments does not match with the framework command format.");
+                Logger.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
             }
         }
 

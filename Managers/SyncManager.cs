@@ -132,7 +132,6 @@ namespace Average.Managers
                 if (!sync.LastValue.Equals(syncValue))
                 {
                     sync.LastValue = syncValue;
-                    //logger.Trace($"Trigger avg.internal.sync_property, {sync.Attribute.Name}, {sync.Property.Name}, {sync.LastValue}, {syncValue}");
                     BaseScript.TriggerClientEvent("avg.internal.sync_property", sync.Attribute.Name, syncValue);
                 }
             }
@@ -153,7 +152,6 @@ namespace Average.Managers
                 if (!sync.LastValue.Equals(syncValue))
                 {
                     sync.LastValue = syncValue;
-                    //logger.Trace($"Trigger avg.internal.sync_field, {sync.Attribute.Name}, {syncValue}");
                     BaseScript.TriggerClientEvent("avg.internal.sync_field", sync.Attribute.Name, syncValue);
                 }
             }
@@ -166,16 +164,16 @@ namespace Average.Managers
                 if (property.CanWrite && property.CanRead)
                 {
                     propertiesSyncs.Add(syncAttr.Name, new SyncPropertyState(syncAttr, property, classObj));
-                    logger.Debug($"Registering [Sync] attribute on property: {property.Name}");
+                    logger.Debug($"Registering [Sync] attribute: {syncAttr.Name} on property: {property.Name}");
                 }
                 else
                 {
-                    logger.Error($"Unable to register [Sync]: {syncAttr.Name} on property: {property.Name}, [Sync] attribute can only be placed on getter & setter property.");
+                    logger.Error($"Unable to register [Sync] attribute: {syncAttr.Name} on property: {property.Name}, [Sync] attribute can only be placed on getter & setter property.");
                 }
             }
             else
             {
-                logger.Error($"Unable to register [Sync]: {syncAttr.Name} on property: {property.Name}, an [Sync] attribute have already been registered with this name.");
+                logger.Error($"Unable to register [Sync] attribute: {syncAttr.Name} on property: {property.Name}, an [Sync] attribute have already been registered with this name.");
             }
         }
 
@@ -184,11 +182,11 @@ namespace Average.Managers
             if (!fieldsSyncs.ContainsKey(syncAttr.Name))
             {
                 fieldsSyncs.Add(syncAttr.Name, new SyncFieldState(syncAttr, field, classObj));
-                logger.Debug($"Registering [Sync] attribute on field: {field.Name}");
+                logger.Debug($"Registering [Sync] attribute: {syncAttr.Name} on field: {field.Name}");
             }
             else
             {
-                logger.Error($"Unable to register [Sync]: {syncAttr.Name} on field: {field.Name}, an [Sync] attribute have already been registered with this name.");
+                logger.Error($"Unable to register [Sync] attribute: {syncAttr.Name} on field: {field.Name}, an [Sync] attribute have already been registered with this name.");
             }
         }
 
@@ -197,18 +195,18 @@ namespace Average.Managers
             if (property.CanWrite && property.CanRead)
             {
                 propertiesGetSyncs.Add(new GetSyncPropertyState(getSyncAttr, property, classObj));
-                logger.Debug($"Registering [GetSync]: {getSyncAttr.Name} on property: {property.Name}.");
+                logger.Debug($"Registering [GetSync] attribute: {getSyncAttr.Name} on property: {property.Name}.");
             }
             else
             {
-                logger.Error($"Unable to register [GetSync]: {getSyncAttr.Name} on property: {property.Name}, [GetSync] attribute can only be placed on getter & setter property.");
+                logger.Error($"Unable to register [GetSync] attribute: {getSyncAttr.Name} on property: {property.Name}, [GetSync] attribute can only be placed on getter & setter property.");
             }
         }
 
         public void RegisterGetSync(ref FieldInfo field, GetSyncAttribute getSyncAttr, object classObj)
         {
             fieldsGetSyncs.Add(new GetSyncFieldState(getSyncAttr, field, classObj));
-            logger.Debug($"Registering [GetSync]: {getSyncAttr.Name} on field: {field.Name}.");
+            logger.Debug($"Registering [GetSync] attribute: {getSyncAttr.Name} on field: {field.Name}.");
         }
 
         public void RegisterNetworkSync(ref PropertyInfo property, NetworkSyncAttribute syncAttr, object classObj)
@@ -222,12 +220,12 @@ namespace Average.Managers
                 }
                 else
                 {
-                    logger.Error($"Unable to register [NetworkSync]: {syncAttr.Name} on property: {property.Name}, [NetworkSync] attribute can only be placed on getter & setter property.");
+                    logger.Error($"Unable to register [NetworkSync] attribute: {syncAttr.Name} on property: {property.Name}, [NetworkSync] attribute can only be placed on getter & setter property.");
                 }
             }
             else
             {
-                logger.Error($"Unable to register [NetworkSync]: {syncAttr.Name} on property: {property.Name}, an [NetworkSync] attribute have already been registered with this name.");
+                logger.Error($"Unable to register [NetworkSync] attribute: {syncAttr.Name} on property: {property.Name}, an [NetworkSync] attribute have already been registered with this name.");
             }
         }
 
@@ -240,7 +238,7 @@ namespace Average.Managers
             }
             else
             {
-                logger.Error($"Unable to register [NetworkSync]: {syncAttr.Name} on field: {field.Name}, an [NetworkSync] attribute have already been registered with this name.");
+                logger.Error($"Unable to register [NetworkSync] attribute: {syncAttr.Name} on field: {field.Name}, an [NetworkSync] attribute have already been registered with this name.");
             }
         }
 

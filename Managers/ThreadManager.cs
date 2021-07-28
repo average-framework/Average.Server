@@ -72,7 +72,7 @@ namespace Average.Managers
             }
             else
             {
-                Main.logger.Error($"Unable to register thread: {method.Name}, you need to delete parameters: [{string.Join(", ", methodParams.Select(x => x.ParameterType.Name))}]");
+                Main.logger.Error($"Unable to register [Thread] attribute: {method.Name}, you need to delete parameters: [{string.Join(", ", methodParams.Select(x => x.ParameterType.Name))}]");
             }
         }
 
