@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Average
+namespace Average.Managers
 {
     public class SyncManager : ISyncManager
     {

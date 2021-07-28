@@ -1,9 +1,6 @@
-﻿using Average.Commands;
-using Average.Events;
-using Average.Exports;
-using Average.Internal;
+﻿using Average.Data;
+using Average.Managers;
 using Average.Plugins;
-using Average.Threading;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using SDK.Server;
@@ -27,7 +24,6 @@ namespace Average
         internal static RpcRequest rpc;
 
         internal SQL sql;
-        internal SyncManager sync;
         internal CfxManager cfx;
         internal PluginLoader loader;
 
@@ -50,7 +46,7 @@ namespace Average
 
             loader.Load();
 
-            Tick += sync.SyncUpdate;
+            Tick += syncManager.SyncUpdate;
         }
 
         internal void RegisterTick(Func<Task> func)

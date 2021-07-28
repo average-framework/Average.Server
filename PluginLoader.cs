@@ -1,4 +1,4 @@
-﻿using Average.Commands;
+﻿using Average.Managers;
 using Newtonsoft.Json;
 using SDK.Server;
 using SDK.Server.Diagnostics;

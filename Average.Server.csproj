@@ -64,18 +64,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Commands\CommandManager.cs" />
+    <Compile Include="Managers\CommandManager.cs" />
     <Compile Include="Configuration.cs" />
-    <Compile Include="Events\EventManager.cs" />
-    <Compile Include="Exports\ExportManager.cs" />
-    <Compile Include="Internal\CfxManager.cs" />
-    <Compile Include="Internal\SQL.cs" />
-    <Compile Include="Internal\SQLConnection.cs" />
+    <Compile Include="Managers\EventManager.cs" />
+    <Compile Include="Managers\ExportManager.cs" />
+    <Compile Include="Managers\CfxManager.cs" />
+    <Compile Include="Data\SQL.cs" />
+    <Compile Include="Data\SQLConnection.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="Plugins\PluginLoader.cs" />
+    <Compile Include="PluginLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SyncManager.cs" />
-    <Compile Include="Threading\ThreadManager.cs" />
+    <Compile Include="Managers\SyncManager.cs" />
+    <Compile Include="Managers\ThreadManager.cs" />
     <Compile Include="Utilities\Directory.cs" />
   </ItemGroup>
   <ItemGroup>

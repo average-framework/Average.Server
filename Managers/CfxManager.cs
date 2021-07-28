@@ -1,9 +1,8 @@
-﻿using Average.Events;
-using CitizenFX.Core;
+﻿using CitizenFX.Core;
 using SDK.Server.Diagnostics;
 using System;
 
-namespace Average.Internal
+namespace Average.Managers
 {
     internal class CfxManager
     {
