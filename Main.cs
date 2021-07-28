@@ -1,4 +1,5 @@
-﻿using Average.Internal;
+﻿using Average.Exports;
+using Average.Internal;
 using Average.Plugins;
 using Average.Threading;
 using CitizenFX.Core;
@@ -7,7 +8,6 @@ using SDK.Server;
 using SDK.Server.Commands;
 using SDK.Server.Diagnostics;
 using SDK.Server.Events;
-using SDK.Server.Exports;
 using SDK.Server.Rpc;
 using System;
 using System.Reflection;
@@ -17,9 +17,6 @@ namespace Average
 {
     internal class Main : BaseScript
     {
-        static EventHandlerDictionary eventHandlers;
-        static PlayerList players;
-
         internal static Logger logger;
         internal static CommandManager commandManager;
         internal static Framework framework;
@@ -29,28 +26,25 @@ namespace Average
         internal static SDK.Server.SyncManager syncManager;
         internal static RpcRequest rpc;
 
-        SQL sql;
-        SyncManager sync;
-        CfxManager cfx;
-        PluginLoader loader;
+        internal SQL sql;
+        internal SyncManager sync;
+        internal CfxManager cfx;
+        internal PluginLoader loader;
 
         public Main()
         {
-            eventHandlers = EventHandlers;
-            players = Players;
-
             logger = new Logger();
             logger.Clear();
             Watermark();
-            sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
 
+            sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
             commandManager = new CommandManager(logger);
             threadManager = new ThreadManager(this);
             eventManager = new EventManager(EventHandlers, logger);
             rpc = new RpcRequest(new SDK.Shared.Rpc.RpcHandler(EventHandlers), new RpcTrigger(Players), new SDK.Shared.Rpc.RpcSerializer());
             exportManager = new ExportManager(logger);
             syncManager = new SDK.Server.SyncManager(logger);
-            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc);
+            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql);
             cfx = new CfxManager(EventHandlers, logger, framework);
             loader = new PluginLoader(rpc, logger, commandManager);
 
@@ -70,7 +64,7 @@ namespace Average
             Tick -= func;
         }
 
-        void Watermark()
+        internal void Watermark()
         {
             Console.WriteLine("");
             Console.WriteLine("");

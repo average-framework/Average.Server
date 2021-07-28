@@ -1,6 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
-using MySqlX.XDevAPI.Common;
 using Newtonsoft.Json;
+using SDK.Server;
 using SDK.Server.Diagnostics;
 using SDK.Shared.DataModels;
 using System;
@@ -11,15 +11,15 @@ using System.Threading.Tasks;
 
 namespace Average.Internal
 {
-    public class SQL
+    public class SQL : ISQL
     {
         MySqlConnection connection;
         SQLConnection connectionInfo;
 
         Logger logger;
 
-        bool IsOpen { get; }
-        bool IsWorking { get; set; }
+        public bool IsOpen { get; set; }
+        public bool IsWorking { get; set; }
 
         public SQL(Logger logger, SQLConnection connectionInfo)
         {
