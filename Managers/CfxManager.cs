@@ -20,6 +20,14 @@ namespace Average.Managers
             eventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDisconnecting);
             eventHandlers["onResourceStop"] += new Action<string>(OnResourceStop);
             eventHandlers["onResourceStart"] += new Action<string>(OnResourceStart);
+            eventHandlers["onResourceListRefresh"] += new Action(OnResourceListRefresh);
+            eventHandlers["onResourceStarting"] += new Action<string>(OnResourceStarting);
+            eventHandlers["onServerResourceStart"] += new Action<string>(OnServerResourceStart);
+            eventHandlers["onServerResourceStop"] += new Action<string>(OnServerResourceStop);
+            eventHandlers["playerJoining"] += new Action<string, string>(OnPlayerJoining);
+            eventHandlers["entityCreated"] += new Action<int>(OnEntityCreated);
+            eventHandlers["entityCreating"] += new Action<int>(OnEntityCreating);
+            eventHandlers["entityRemoved"] += new Action<int>(OnEntityRemoved);
         }
 
         #region Events
@@ -44,6 +52,46 @@ namespace Average.Managers
         protected async void OnResourceStart(string resource)
         {
             eventManager.OnResourceStart(resource);
+        }
+
+        protected async void OnResourceListRefresh()
+        {
+            eventManager.OnResourceListRefresh();
+        }
+
+        protected async void OnResourceStarting(string resource)
+        {
+            eventManager.OnResourceStarting(resource);
+        }
+
+        protected async void OnServerResourceStart(string resource)
+        {
+            eventManager.OnServerResourceStart(resource);
+        }
+
+        protected async void OnServerResourceStop(string resource)
+        {
+            eventManager.OnServerResourceStop(resource);
+        }
+
+        protected async void OnPlayerJoining(string source, string oldId)
+        {
+            eventManager.OnPlayerJoining(source, oldId);
+        }
+
+        protected async void OnEntityCreated(int handle)
+        {
+            eventManager.OnEntityCreated(handle);
+        }
+
+        protected async void OnEntityCreating(int handle)
+        {
+            eventManager.OnEntityCreating(handle);
+        }
+
+        protected async void OnEntityRemoved(int handle)
+        {
+            eventManager.OnEntityRemoved(handle);
         }
 
         #endregion

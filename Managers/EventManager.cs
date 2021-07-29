@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Cryptography;
 
 namespace Average.Managers
 {
@@ -21,7 +20,7 @@ namespace Average.Managers
         public event EventHandler<PlayerDisconnectingEventArgs> PlayerDisconnecting;
         public event EventHandler<ResourceStopEventArgs> ResourceStop;
         public event EventHandler<ResourceStartEventArgs> ResourceStart;
-        public event EventHandler ResourceListRefresh;
+        public event EventHandler<EventArgs> ResourceListRefresh;
         public event EventHandler<ResourceStartingEventArgs> ResourceStarting;
         public event EventHandler<ServerResourceStartEventArgs> ServerResourceStart;
         public event EventHandler<ServerResourceStopEventArgs> ServerResourceStop;
@@ -132,7 +131,7 @@ namespace Average.Managers
         {
             if (ResourceListRefresh != null)
             {
-                ResourceListRefresh(null, null);
+                ResourceListRefresh(null, new EventArgs());
             }
         }
 
