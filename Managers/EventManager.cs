@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 
 namespace Average.Managers
 {
@@ -20,6 +21,14 @@ namespace Average.Managers
         public event EventHandler<PlayerDisconnectingEventArgs> PlayerDisconnecting;
         public event EventHandler<ResourceStopEventArgs> ResourceStop;
         public event EventHandler<ResourceStartEventArgs> ResourceStart;
+        public event EventHandler ResourceListRefresh;
+        public event EventHandler<ResourceStartingEventArgs> ResourceStarting;
+        public event EventHandler<ServerResourceStartEventArgs> ServerResourceStart;
+        public event EventHandler<ServerResourceStopEventArgs> ServerResourceStop;
+        public event EventHandler<PlayerJoiningEventArgs> PlayerJoining;
+        public event EventHandler<EntityCreatedEventArgs> EntityCreated;
+        public event EventHandler<EntityCreatingEventArgs> EntityCreating;
+        public event EventHandler<EntityRemovedEventArgs> EntityRemoved;
 
         public EventManager(EventHandlerDictionary eventHandlers, Logger logger)
         {
@@ -116,6 +125,70 @@ namespace Average.Managers
             if (ResourceStart != null)
             {
                 ResourceStart(null, new ResourceStartEventArgs(resource));
+            }
+        }
+
+        public void OnResourceListRefresh()
+        {
+            if (ResourceListRefresh != null)
+            {
+                ResourceListRefresh(null, null);
+            }
+        }
+
+        public void OnResourceStarting(string resource)
+        {
+            if (ResourceStarting != null)
+            {
+                ResourceStarting(null, new ResourceStartingEventArgs(resource));
+            }
+        }
+
+        public void OnServerResourceStart(string resource)
+        {
+            if (ServerResourceStart != null)
+            {
+                ServerResourceStart(null, new ServerResourceStartEventArgs(resource));
+            }
+        }
+
+        public void OnServerResourceStop(string resource)
+        {
+            if (ServerResourceStop != null)
+            {
+                ServerResourceStop(null, new ServerResourceStopEventArgs(resource));
+            }
+        }
+
+        public void OnPlayerJoining(string source, string oldId)
+        {
+            if (PlayerJoining != null)
+            {
+                PlayerJoining(null, new PlayerJoiningEventArgs(source, oldId));
+            }
+        }
+
+        public void OnEntityCreated(int handle)
+        {
+            if (EntityCreated != null)
+            {
+                EntityCreated(null, new EntityCreatedEventArgs(handle));
+            }
+        }
+
+        public void OnEntityCreating(int handle)
+        {
+            if (EntityCreating != null)
+            {
+                EntityCreating(null, new EntityCreatingEventArgs(handle));
+            }
+        }
+
+        public void OnEntityRemoved(int handle)
+        {
+            if (EntityRemoved != null)
+            {
+                EntityRemoved(null, new EntityRemovedEventArgs(handle));
             }
         }
 
