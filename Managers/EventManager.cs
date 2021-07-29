@@ -28,6 +28,7 @@ namespace Average.Managers
         public event EventHandler<EntityCreatedEventArgs> EntityCreated;
         public event EventHandler<EntityCreatingEventArgs> EntityCreating;
         public event EventHandler<EntityRemovedEventArgs> EntityRemoved;
+        public event EventHandler<PlayerEnteredScopeEventArgs> PlayerEnteredScope;
 
         public EventManager(EventHandlerDictionary eventHandlers, Logger logger)
         {
@@ -188,6 +189,14 @@ namespace Average.Managers
             if (EntityRemoved != null)
             {
                 EntityRemoved(null, new EntityRemovedEventArgs(handle));
+            }
+        }
+
+        public void OnPlayerEnteredScope(object data, string player)
+        {
+            if (PlayerEnteredScope != null)
+            {
+                PlayerEnteredScope(null, new PlayerEnteredScopeEventArgs(data, player));
             }
         }
 
