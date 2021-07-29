@@ -29,6 +29,7 @@ namespace Average.Managers
         public event EventHandler<EntityCreatingEventArgs> EntityCreating;
         public event EventHandler<EntityRemovedEventArgs> EntityRemoved;
         public event EventHandler<PlayerEnteredScopeEventArgs> PlayerEnteredScope;
+        public event EventHandler<PlayerLeftScopeEventArgs> PlayerLeftScope;
 
         public EventManager(EventHandlerDictionary eventHandlers, Logger logger)
         {
@@ -192,11 +193,19 @@ namespace Average.Managers
             }
         }
 
-        public void OnPlayerEnteredScope(object data, string player)
+        public void OnPlayerEnteredScope(object data)
         {
             if (PlayerEnteredScope != null)
             {
-                PlayerEnteredScope(null, new PlayerEnteredScopeEventArgs(data, player));
+                PlayerEnteredScope(null, new PlayerEnteredScopeEventArgs(data));
+            }
+        }
+
+        public void OnPlayerLeftScope(object data)
+        {
+            if (PlayerLeftScope != null)
+            {
+                PlayerLeftScope(null, new PlayerLeftScopeEventArgs(data));
             }
         }
 

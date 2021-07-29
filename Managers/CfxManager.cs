@@ -28,7 +28,8 @@ namespace Average.Managers
             eventHandlers["entityCreated"] += new Action<int>(OnEntityCreated);
             eventHandlers["entityCreating"] += new Action<int>(OnEntityCreating);
             eventHandlers["entityRemoved"] += new Action<int>(OnEntityRemoved);
-            eventHandlers["playerEnteredScope"] += new Action<object, string>(OnPlayerEnteredScope);
+            eventHandlers["playerEnteredScope"] += new Action<object>(OnPlayerEnteredScope);
+            eventHandlers["playerLeftScope"] += new Action<object>(OnPlayerLeftScope);
         }
 
         #region Events
@@ -95,9 +96,14 @@ namespace Average.Managers
             eventManager.OnEntityRemoved(handle);
         }
 
-        protected async void OnPlayerEnteredScope(object data, string player)
+        protected async void OnPlayerEnteredScope(object data)
         {
-            eventManager.OnPlayerEnteredScope(data, player);
+            eventManager.OnPlayerEnteredScope(data);
+        }
+
+        protected async void OnPlayerLeftScope(object data)
+        {
+            eventManager.OnPlayerLeftScope(data);
         }
 
         #endregion
