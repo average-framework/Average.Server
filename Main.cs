@@ -34,6 +34,7 @@ namespace Average
             Watermark();
 
             sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
+            sql.Connect();
             commandManager = new CommandManager(logger);
             threadManager = new ThreadManager(this);
             eventManager = new EventManager(EventHandlers, logger);
@@ -44,9 +45,18 @@ namespace Average
             cfx = new CfxManager(EventHandlers, logger, eventManager);
             loader = new PluginLoader(rpc, logger, commandManager);
 
-            loader.Load();
+            Task.Factory.StartNew(async () => 
+            {
+                while (!sql.IsOpen)
+                {
+                    logger.Warn("Trying to reconnect to database in 5 seconds");
+                    await Delay(5000);
+                    sql.Connect();
+                }
 
-            Tick += syncManager.SyncUpdate;
+                loader.Load();
+                Tick += syncManager.SyncUpdate;
+            });
         }
 
         internal void RegisterTick(Func<Task> func)

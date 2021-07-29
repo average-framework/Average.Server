@@ -25,7 +25,10 @@ namespace Average.Data
         {
             this.logger = logger;
             this.connectionInfo = connectionInfo;
+        }
 
+        public void Connect()
+        {
             try
             {
                 connection = new MySqlConnection($"SERVER={connectionInfo.Host};PORT={connectionInfo.Port};DATABASE={connectionInfo.Database};UID={connectionInfo.Username};PASSWORD={connectionInfo.Password};CHARSET=utf8;");
