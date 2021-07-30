@@ -1,4 +1,6 @@
 ﻿using Average.Managers;
+using CitizenFX.Core;
+using CitizenFX.Core.Native;
 using Newtonsoft.Json;
 using SDK.Server;
 using SDK.Server.Diagnostics;
@@ -18,7 +20,7 @@ using static SDK.Server.Rpc.RpcRequest;
 
 namespace Average.Plugins
 {
-    internal class PluginLoader
+    public class PluginLoader : BaseScript
     {
         RpcRequest rpc;
         Logger logger;
@@ -26,7 +28,7 @@ namespace Average.Plugins
 
         string BASE_RESOURCE_PATH = GetResourcePath(Constant.RESOURCE_NAME);
 
-        List<Plugin> plugins = new List<Plugin>();
+        public List<IPlugin> plugins = new List<IPlugin>();
         List<PluginInfo> clientPlugins = new List<PluginInfo>();
 
         public PluginLoader(RpcRequest rpc, Logger logger, CommandManager commandManager)
@@ -165,7 +167,7 @@ namespace Average.Plugins
                     }
                     else
                     {
-                        logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                        //logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
                     }
 
                     if (!string.IsNullOrEmpty(pluginInfo.Server))
@@ -246,12 +248,12 @@ namespace Average.Plugins
                                     continue;
                                 }
 
-                                RegisterCommands(type, script);
                                 RegisterThreads(type, script);
                                 RegisterEvents(type, script);
                                 RegisterExports(type, script);
                                 RegisterSyncs(type, script);
                                 RegisterGetSyncs(type, script);
+                                RegisterCommands(type, script);
                             }
                         }
                         else
@@ -261,15 +263,7 @@ namespace Average.Plugins
                     }
                     else
                     {
-                        if (!string.IsNullOrEmpty(pluginInfo.Client))
-                        {
-                            // Is client only
-                            clientPlugins.Add(pluginInfo);
-                        }
-                        else
-                        {
-                            logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
-                        }
+                        //logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
                     }
                 }
             }

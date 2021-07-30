@@ -30,12 +30,15 @@ namespace Average.Managers
         public event EventHandler<EntityRemovedEventArgs> EntityRemoved;
         public event EventHandler<PlayerEnteredScopeEventArgs> PlayerEnteredScope;
         public event EventHandler<PlayerLeftScopeEventArgs> PlayerLeftScope;
+        public event EventHandler<HttpResponseEventArgs> HttpResponse;
+
 
         public EventManager(EventHandlerDictionary eventHandlers, Logger logger)
         {
             this.logger = logger;
             events = new Dictionary<string, Delegate>();
 
+            eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);
             eventHandlers["avg.internal.trigger_event"] += new Action<string, List<object>>(InternalTriggerEvent);
         }
 
@@ -206,6 +209,16 @@ namespace Average.Managers
             if (PlayerLeftScope != null)
             {
                 PlayerLeftScope(null, new PlayerLeftScopeEventArgs(data));
+            }
+        }
+
+        public void OnHttpResponse(int token, int status, string text, dynamic header)
+        {
+            Console.WriteLine("Test: " + string.Join(", ", token, status, text, header));
+
+            if (HttpResponse != null)
+            {
+                HttpResponse(null, new HttpResponseEventArgs(token, status, text, header));
             }
         }
 

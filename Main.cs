@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Average
 {
-    internal class Main : BaseScript
+    public class Main : BaseScript
     {
         internal static Logger logger;
         internal static CommandManager commandManager;
@@ -22,16 +22,17 @@ namespace Average
         internal static ExportManager exportManager;
         internal static SyncManager syncManager;
         internal static RpcRequest rpc;
+        internal static InternalManager internalManager;
 
-        internal SQL sql;
-        internal CfxManager cfx;
-        internal PluginLoader loader;
+        SQL sql;
+        CfxManager cfx;
+        PluginLoader loader;
 
         public Main()
         {
             logger = new Logger();
-            logger.Clear();
-            Watermark();
+            //logger.Clear();
+            //Watermark();
 
             sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
             sql.Connect();
@@ -41,22 +42,27 @@ namespace Average
             rpc = new RpcRequest(new SDK.Shared.Rpc.RpcHandler(EventHandlers), new RpcTrigger(Players), new SDK.Shared.Rpc.RpcSerializer());
             exportManager = new ExportManager(logger);
             syncManager = new SyncManager(logger);
-            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql);
+            internalManager = new InternalManager();
+            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, internalManager);
             cfx = new CfxManager(EventHandlers, logger, eventManager);
             loader = new PluginLoader(rpc, logger, commandManager);
+            internalManager.SetPluginList(ref loader.plugins);
 
-            Task.Factory.StartNew(async () => 
-            {
-                while (!sql.IsOpen)
-                {
-                    logger.Warn("Trying to reconnect to database in 5 seconds");
-                    await Delay(5000);
-                    sql.Connect();
-                }
+            //Task.Factory.StartNew(async () => 
+            //{
+            //    while (!sql.IsOpen)
+            //    {
+            //        logger.Warn("Trying to reconnect to database in 5 seconds");
+            //        await Delay(5000);
+            //        sql.Connect();
+            //    }
 
-                loader.Load();
-                Tick += syncManager.SyncUpdate;
-            });
+            //    loader.Load();
+            //    Tick += syncManager.SyncUpdate;
+            //});
+
+            loader.Load();
+            Tick += syncManager.SyncUpdate;
         }
 
         internal void RegisterTick(Func<Task> func)

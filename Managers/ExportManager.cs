@@ -22,25 +22,42 @@ namespace Average.Managers
 
         public void CallMethod(string methodName, params object[] args)
         {
-            if (exports.ContainsKey(methodName))
+            try
             {
-                exports[methodName].DynamicInvoke(args);
+                if (exports.ContainsKey(methodName))
+                {
+                    exports[methodName].DynamicInvoke(args);
+                }
+                else
+                {
+                    logger.Debug($"Unable to call export: {methodName}, this export does not exists.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                logger.Debug($"Unable to call export: {methodName}, this export does not exists.");
+                logger.Error($"Error on call method: {methodName}. Error: {ex.Message}");
             }
         }
 
         public T CallMethod<T>(string methodName, params object[] args)
         {
-            if (exports.ContainsKey(methodName))
+            try
             {
-                return (T)exports[methodName].DynamicInvoke(args);
+                if (exports.ContainsKey(methodName))
+                {
+                    return (T)exports[methodName].DynamicInvoke(args);
+                }
+                else
+                {
+                    logger.Debug($"Unable to call export: {methodName}, this export does not exists.");
+                }
+
+                var instance = (T)Activator.CreateInstance(typeof(T));
+                return instance;
             }
-            else
+            catch (Exception ex)
             {
-                logger.Debug($"Unable to call export: {methodName}, this export does not exists.");
+                logger.Error($"Error on call method: {methodName}. Error: {ex.Message}");
             }
 
             return (T)Activator.CreateInstance(typeof(T));
