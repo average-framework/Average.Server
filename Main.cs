@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Average
 {
-    public class Main : BaseScript
+    internal class Main : BaseScript
     {
         internal static Logger logger;
         internal static CommandManager commandManager;
@@ -42,7 +42,7 @@ namespace Average
             rpc = new RpcRequest(new SDK.Shared.Rpc.RpcHandler(EventHandlers), new RpcTrigger(Players), new SDK.Shared.Rpc.RpcSerializer());
             exportManager = new ExportManager(logger);
             syncManager = new SyncManager(logger);
-            internalManager = new InternalManager();
+            internalManager = new InternalManager(logger);
             framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, internalManager);
             cfx = new CfxManager(EventHandlers, logger, eventManager);
             loader = new PluginLoader(rpc, logger, commandManager);

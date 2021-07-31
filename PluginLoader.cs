@@ -125,7 +125,9 @@ namespace Average.Plugins
             try
             {
                 var content = File.ReadAllText(fileInfo.FullName);
-                return JsonConvert.DeserializeObject<PluginInfo>(content);
+                var pluginInfo = JsonConvert.DeserializeObject<PluginInfo>(content);
+                pluginInfo.Name = fileInfo.Directory.Name;
+                return pluginInfo;
             }
             catch
             {

@@ -36,7 +36,6 @@ namespace Average.Managers
 
         protected async void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic setKickReason, dynamic deferrals)
         {
-            //deferrals.defer();
             logger.Info($"{playerName} is connected to the server.");
             eventManager.OnPlayerConnecting(player, setKickReason, deferrals);
         }

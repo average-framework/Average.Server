@@ -1,4 +1,6 @@
-﻿using SDK.Server.Interfaces;
+﻿using CitizenFX.Core.Native;
+using SDK.Server.Diagnostics;
+using SDK.Server.Interfaces;
 using SDK.Shared.Plugins;
 using System;
 using System.Collections.Generic;
@@ -9,10 +11,11 @@ namespace Average.Managers
     public class InternalManager : IInternal
     {
         List<IPlugin> plugins;
+        Logger logger;
 
-        public InternalManager()
+        public InternalManager(Logger logger)
         {
-            
+            this.logger = logger;
         }
 
         public void SetPluginList(ref List<IPlugin> plugins)
@@ -31,14 +34,17 @@ namespace Average.Managers
             {
                 var instance = plugins.Find(x => x.GetType().FullName == pluginName);
 
-                if (instance != null)
+                if(instance == null)
                 {
-                    return (T)instance;
+                    logger.Error($"This class namespace / class does not exists. This namespace can be changed by another one, please contact owner of this script for more informations. [{pluginName}]");
+                    return default(T);
                 }
+
+                return (T)instance;
             }
             catch
             {
-
+                logger.Error($"This class namespace / class does not exists. This namespace can be changed by another one, please contact owner of this script for more informations. [{pluginName}]");
             }
 
             return default(T);
@@ -48,12 +54,13 @@ namespace Average.Managers
         {
             var instance = plugins.Find(x => x.GetType().FullName == pluginName);
 
-            if (instance != null)
+            if (instance == null)
             {
-                return (dynamic)instance;
+                logger.Error($"This class namespace / class does not exists. This namespace can be changed by another one, please contact owner of this script for more informations. [{pluginName}]");
+                return null;
             }
 
-            return null;
+            return (dynamic)instance;
         }
     }
 }

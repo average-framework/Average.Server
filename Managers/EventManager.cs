@@ -214,8 +214,6 @@ namespace Average.Managers
 
         public void OnHttpResponse(int token, int status, string text, dynamic header)
         {
-            Console.WriteLine("Test: " + string.Join(", ", token, status, text, header));
-
             if (HttpResponse != null)
             {
                 HttpResponse(null, new HttpResponseEventArgs(token, status, text, header));
