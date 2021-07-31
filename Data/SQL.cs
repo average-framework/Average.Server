@@ -52,6 +52,24 @@ namespace Average.Data
             }
         }
 
+        public async Task<List<T>> GetAllAsync<T>(string table)
+        {
+            IsWorking = true;
+
+            if (!IsOpen)
+            {
+                return new List<T>();
+            }
+
+            var cmd = connection.CreateCommand();
+            cmd.CommandText = $"SELECT * FROM {table}";
+            var reader = await cmd.ExecuteReaderAsync();
+            var results = await MapDeserialize<T>(reader);
+
+            IsWorking = false;
+            return results;
+        }
+
         public async Task<List<T>> GetAllAsync<T>(string table, Func<T, bool> predicate)
         {
             IsWorking = true;
