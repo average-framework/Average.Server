@@ -1,10 +1,12 @@
-﻿using CitizenFX.Core.Native;
+﻿using CitizenFX.Core;
+using CitizenFX.Core.Native;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
 using SDK.Shared.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Average.Managers
 {
@@ -13,25 +15,23 @@ namespace Average.Managers
         List<IPlugin> plugins;
         Logger logger;
 
+        public bool IsWorking { get; set; }
+
         public InternalManager(Logger logger)
         {
             this.logger = logger;
         }
 
-        public void SetPluginList(ref List<IPlugin> plugins)
-        {
-            this.plugins = plugins;
-        }
+        public void SetPluginList(ref List<IPlugin> plugins) => this.plugins = plugins;
 
-        public IEnumerable<string> GetRegisteredPluginsNamespace()
-        {
-            return plugins.Select(x => x.GetType().FullName);
-        }
+        public IEnumerable<string> GetRegisteredPluginsNamespace() => plugins.Select(x => x.GetType().FullName);
 
-        public T GetPluginInstance<T>(string pluginName)
+        public async Task<T> GetPluginInstance<T>(string pluginName)
         {
             try
             {
+                while (IsWorking) await BaseScript.Delay(0);
+
                 var instance = plugins.Find(x => x.GetType().FullName == pluginName);
 
                 if(instance == null)

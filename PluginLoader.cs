@@ -152,6 +152,8 @@ namespace Average.Plugins
             //    }
             //}
 
+            Main.internalManager.IsWorking = true;
+
             foreach (var file in ValidatePlugins())
             {
                 var currentDirPath = Path.GetDirectoryName(file);
@@ -269,6 +271,8 @@ namespace Average.Plugins
                     }
                 }
             }
+
+            Main.internalManager.IsWorking = false;
         }
 
         void RegisterCommands(Type type, object classObj)
