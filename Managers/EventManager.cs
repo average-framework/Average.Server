@@ -47,7 +47,6 @@ namespace Average.Managers
         {
             if (events.ContainsKey(eventName))
             {
-                //events[eventName].DynamicInvoke(args);
                 events[eventName].ForEach(x => x.DynamicInvoke(args));
             }
         }

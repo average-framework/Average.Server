@@ -1,6 +1,5 @@
 ﻿using Average.Managers;
 using CitizenFX.Core;
-using CitizenFX.Core.Native;
 using Newtonsoft.Json;
 using SDK.Server;
 using SDK.Server.Diagnostics;
@@ -282,10 +281,8 @@ namespace Average.Plugins
             // Load registered commands
             foreach (var method in type.GetMethods(flags))
             {
-                var cmdAttr = method.GetCustomAttribute<SDK.Server.ServerCommandAttribute>();
-                var aliasAttr = method.GetCustomAttribute<ClientCommandAliasAttribute>();
-
-                commandManager.RegisterCommand(cmdAttr, aliasAttr, method, classObj);
+                var cmdAttr = method.GetCustomAttribute<ServerCommandAttribute>();
+                commandManager.RegisterCommand(cmdAttr, method, classObj);
             }
         }
 

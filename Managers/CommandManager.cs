@@ -1,10 +1,7 @@
-﻿using Average.Plugins;
-using CitizenFX.Core.Native;
-using Newtonsoft.Json;
+﻿using CitizenFX.Core.Native;
 using SDK.Server;
 using SDK.Server.Commands;
 using SDK.Server.Diagnostics;
-using SDK.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,15 +12,15 @@ namespace Average.Managers
     public class CommandManager : ICommandManager
     {
         Logger Logger { get; }
-        List<Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>> Commands { get; }
+        List<ServerCommandAttribute> Commands { get; }
 
         public CommandManager(Logger logger)
         {
             Logger = logger;
-            Commands = new List<Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>>();
+            Commands = new List<ServerCommandAttribute>();
         }
 
-        public void RegisterCommand(ServerCommandAttribute commandAttr, ClientCommandAliasAttribute aliasAttr, MethodInfo method, object classObj)
+        public void RegisterCommand(ServerCommandAttribute commandAttr, MethodInfo method, object classObj)
         {
             if (commandAttr == null) return;
 
@@ -39,21 +36,8 @@ namespace Average.Managers
                         method.Invoke(classObj, new object[] { source, args, raw });
                     }), false);
 
-                    if (aliasAttr != null)
-                    {
-                        foreach (var alias in aliasAttr.Alias)
-                        {
-                            API.RegisterCommand(alias, new Action<int, List<object>, string>((source, args, raw) =>
-                            {
-                                method.Invoke(classObj, new object[] { source, args, raw });
-                            }), false);
-                        }
-
-                        Logger.Debug($"Registering {aliasAttr.Alias.Length} alias for command: {commandAttr.Command} [{string.Join(", ", aliasAttr.Alias)}]");
-                    }
-
-                    Commands.Add(new Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>(commandAttr, aliasAttr));
-                    Logger.Debug($"Regisering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
+                    Commands.Add(commandAttr);
+                    Logger.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
                 }
                 else
                 {
@@ -68,21 +52,8 @@ namespace Average.Managers
                     method.Invoke(classObj, new object[] { });
                 }), false);
 
-                if (aliasAttr != null)
-                {
-                    foreach (var alias in aliasAttr.Alias)
-                    {
-                        API.RegisterCommand(alias, new Action(() =>
-                        {
-                            method.Invoke(classObj, new object[] { });
-                        }), false);
-                    }
-
-                    Commands.Add(new Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>(commandAttr, aliasAttr));
-                    Logger.Debug($"Registering {aliasAttr.Alias.Length} alias for command: {commandAttr.Command} [{string.Join(", ", aliasAttr.Alias)}]");
-                }
-
-                Logger.Debug($"Regisering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
+                Commands.Add(commandAttr);
+                Logger.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
             }
             else
             {
@@ -90,9 +61,9 @@ namespace Average.Managers
             }
         }
 
-        public IEnumerable<Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>> GetCommands() => Commands.AsEnumerable();
+        public IEnumerable<ServerCommandAttribute> GetCommands() => Commands.AsEnumerable();
 
-        public ServerCommandAttribute GetCommand(string command) => Commands.Find(x => x.Item1.Command == command).Item1;
+        public ServerCommandAttribute GetCommand(string command) => Commands.Find(x => x.Command == command);
 
         public int Count() => Commands.Count();
     }
