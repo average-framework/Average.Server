@@ -13,7 +13,7 @@ namespace Average.Managers
 {
     public class EventManager : IEventManager
     {
-        Dictionary<string, Delegate> events;
+        Dictionary<string, List<Delegate>> events;
         Logger logger;
 
         public event EventHandler<PlayerConnectingEventArgs> PlayerConnecting;
@@ -36,7 +36,7 @@ namespace Average.Managers
         public EventManager(EventHandlerDictionary eventHandlers, Logger logger)
         {
             this.logger = logger;
-            events = new Dictionary<string, Delegate>();
+            events = new Dictionary<string, List<Delegate>>();
 
             eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);
             eventHandlers["avg.internal.trigger_event"] += new Action<string, List<object>>(InternalTriggerEvent);
@@ -46,7 +46,8 @@ namespace Average.Managers
         {
             if (events.ContainsKey(eventName))
             {
-                events[eventName].DynamicInvoke(args);
+                //events[eventName].DynamicInvoke(args);
+                events[eventName].ForEach(x => x.DynamicInvoke(args));
             }
         }
 
@@ -64,12 +65,40 @@ namespace Average.Managers
         {
             if (!events.ContainsKey(eventName))
             {
-                events.Add(eventName, action);
-                logger.Debug($"Registering internal event: {eventName}");
+                events.Add(eventName, new List<Delegate>(){ action });
             }
             else
             {
-                logger.Error($"Unable to register internal event: {eventName}, an event have already been registered with this event name.");
+                events[eventName].Add(action);
+                //logger.Error($"Unable to register internal event: {eventName}, an event have already been registered with this event name.");
+            }
+
+            logger.Debug($"Registering internal event: {eventName}");
+        }
+
+        public void UnregisterInternalEvent(string eventName)
+        {
+            if (events.ContainsKey(eventName))
+            {
+                events.Remove(eventName);
+                logger.Debug($"Unregister event: {eventName}");
+            }
+            else
+            {
+                logger.Error($"Unable to unregister event: {eventName}.");
+            }
+        }
+
+        public void UnregisterInternalEventAction(string eventName, Delegate action)
+        {
+            if (events.ContainsKey(eventName) && events[eventName].Contains(action))
+            {
+                events[eventName].Remove(action);
+                logger.Debug($"Unregister event action: {eventName}");
+            }
+            else
+            {
+                logger.Error($"Unable to unregister event action: {eventName}.");
             }
         }
 
@@ -77,16 +106,22 @@ namespace Average.Managers
         {
             var methodParams = method.GetParameters();
 
-            if (!events.ContainsKey(eventAttr.Event))
-            {
-                var action = Action.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
-                events.Add(eventAttr.Event, action);
-                logger.Debug($"Registering [Event] attribute: {eventAttr.Event} on method: {method.Name}, args count: {methodParams.Count()}");
-            }
-            else
-            {
-                logger.Error($"Unable to register [Event] attribute: {eventAttr.Event} on method: {method.Name}, an event have already been registered with this event name.");
-            }
+            var action = Action.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
+            RegisterInternalEvent(eventAttr.Event, action);
+
+            logger.Debug($"Registering [Event] attribute: {eventAttr.Event} on method: {method.Name}, args count: {methodParams.Count()}");
+
+            //if (!events.ContainsKey(eventAttr.Event))
+            //{
+            //    var action = Action.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
+            //    RegisterInternalEvent(eventAttr.Event, action);
+            //    //events.Add(eventAttr.Event, action);
+            //    logger.Debug($"Registering [Event] attribute: {eventAttr.Event} on method: {method.Name}, args count: {methodParams.Count()}");
+            //}
+            //else
+            //{
+            //    logger.Error($"Unable to register [Event] attribute: {eventAttr.Event} on method: {method.Name}, an event have already been registered with this event name.");
+            //}
         }
 
         #region Internal
