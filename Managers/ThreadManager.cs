@@ -70,6 +70,8 @@ namespace Average.Managers
 
                     //main.RegisterTick(func);
                     attachCallback(func);
+
+                    Main.logger.Debug($"Registering [Thread] attribute to method: {method.Name}.");
                 }
             }
             else
@@ -91,6 +93,12 @@ namespace Average.Managers
                 //main.UnregisterTick(thread.Func);
                 detachCallback(thread.Func);
                 threads.Remove(thread);
+
+                Main.logger.Debug($"Unregistering [Thread] attribute to method: {methodName}.");
+            }
+            else
+            {
+                Main.logger.Debug($"Unable to unregistering [Thread] attribute from method: {methodName}.");
             }
         }
 

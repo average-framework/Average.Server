@@ -277,8 +277,10 @@ namespace Average.Plugins
 
         void RegisterCommands(Type type, object classObj)
         {
-            // Load registered commands (method need to be public to be detected)
-            foreach (var method in type.GetMethods())
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+            // Load registered commands
+            foreach (var method in type.GetMethods(flags))
             {
                 var cmdAttr = method.GetCustomAttribute<SDK.Server.ServerCommandAttribute>();
                 var aliasAttr = method.GetCustomAttribute<ClientCommandAliasAttribute>();
@@ -289,7 +291,9 @@ namespace Average.Plugins
 
         void RegisterThreads(Type type, object classObj)
         {
-            foreach (var method in type.GetMethods())
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+            foreach (var method in type.GetMethods(flags))
             {
                 var threadAttr = method.GetCustomAttribute<ThreadAttribute>();
 
@@ -302,7 +306,9 @@ namespace Average.Plugins
 
         void RegisterEvents(Type type, object classObj)
         {
-            foreach (var method in type.GetMethods())
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+            foreach (var method in type.GetMethods(flags))
             {
                 var eventAttr = method.GetCustomAttribute<ServerEventAttribute>();
 
@@ -315,7 +321,9 @@ namespace Average.Plugins
 
         void RegisterExports(Type type, object classObj)
         {
-            foreach (var method in type.GetMethods())
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+            foreach (var method in type.GetMethods(flags))
             {
                 var exportAttr = method.GetCustomAttribute<ExportAttribute>();
 
@@ -328,10 +336,12 @@ namespace Average.Plugins
 
         void RegisterSyncs(Type type, object classObj)
         {
-            // Registering syncs (method need to be public to be detected)
-            for (int i = 0; i < type.GetProperties().Count(); i++)
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+            // Registering syncs
+            for (int i = 0; i < type.GetProperties(flags).Count(); i++)
             {
-                var property = type.GetProperties()[i];
+                var property = type.GetProperties(flags)[i];
                 var syncAttr = property.GetCustomAttribute<SyncAttribute>();
 
                 if (syncAttr != null)
@@ -340,9 +350,9 @@ namespace Average.Plugins
                 }
             }
 
-            for (int i = 0; i < type.GetFields().Count(); i++)
+            for (int i = 0; i < type.GetFields(flags).Count(); i++)
             {
-                var field = type.GetFields()[i];
+                var field = type.GetFields(flags)[i];
                 var syncAttr = field.GetCustomAttribute<SyncAttribute>();
 
                 if (syncAttr != null)
@@ -351,10 +361,10 @@ namespace Average.Plugins
                 }
             }
 
-            // Registering networkSyncs (property need to be public to be detected)
-            for (int i = 0; i < type.GetProperties().Count(); i++)
+            // Registering networkSyncs
+            for (int i = 0; i < type.GetProperties(flags).Count(); i++)
             {
-                var property = type.GetProperties()[i];
+                var property = type.GetProperties(flags)[i];
                 var syncAttr = property.GetCustomAttribute<NetworkSyncAttribute>();
 
                 if (syncAttr != null)
@@ -363,10 +373,10 @@ namespace Average.Plugins
                 }
             }
 
-            // Registering networkSyncs (field need to be public to be detected)
-            for (int i = 0; i < type.GetFields().Count(); i++)
+            // Registering networkSyncs
+            for (int i = 0; i < type.GetFields(flags).Count(); i++)
             {
-                var field = type.GetFields()[i];
+                var field = type.GetFields(flags)[i];
                 var syncAttr = field.GetCustomAttribute<NetworkSyncAttribute>();
 
                 if (syncAttr != null)
@@ -378,10 +388,12 @@ namespace Average.Plugins
 
         void RegisterGetSyncs(Type type, object classObj)
         {
-            // Registering getSyncs (property need to be public to be detected)
-            for (int i = 0; i < type.GetProperties().Count(); i++)
+            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+            // Registering getSyncs
+            for (int i = 0; i < type.GetProperties(flags).Count(); i++)
             {
-                var property = type.GetProperties()[i];
+                var property = type.GetProperties(flags)[i];
                 var getSyncAttr = property.GetCustomAttribute<GetSyncAttribute>();
 
                 if (getSyncAttr != null)
@@ -390,10 +402,10 @@ namespace Average.Plugins
                 }
             }
 
-            // Registering getSyncs (field need to be public to be detected)
-            for (int i = 0; i < type.GetFields().Count(); i++)
+            // Registering getSyncs
+            for (int i = 0; i < type.GetFields(flags).Count(); i++)
             {
-                var field = type.GetFields()[i];
+                var field = type.GetFields(flags)[i];
                 var getSyncAttr = field.GetCustomAttribute<GetSyncAttribute>();
 
                 if (getSyncAttr != null)
