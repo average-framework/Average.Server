@@ -82,10 +82,7 @@ namespace Average.Managers
 
         #region Internal
 
-        internal void InternalCallMethod(string methodName, List<object> args)
-        {
-            CallMethod(methodName, args.ToArray());
-        }
+        internal void InternalCallMethod(string methodName, List<object> args) => CallMethod(methodName, args.ToArray());
 
         #endregion
     }

@@ -17,10 +17,7 @@ namespace Average.Managers
 
         public bool IsWorking { get; set; }
 
-        public InternalManager(Logger logger)
-        {
-            this.logger = logger;
-        }
+        public InternalManager(Logger logger) => this.logger = logger;
 
         public void SetPluginList(ref List<IPlugin> plugins) => this.plugins = plugins;
 

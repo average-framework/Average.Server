@@ -23,6 +23,8 @@ namespace Average.Managers
 
         Logger logger;
 
+        public int SyncRate { get; set; } = 60;
+
         public SyncManager(Logger logger)
         {
             this.logger = logger;
@@ -54,10 +56,7 @@ namespace Average.Managers
             return null;
         }
 
-        internal object GetFieldValue(FieldInfo field, object classObj)
-        {
-            return field.GetValue(classObj);
-        }
+        internal object GetFieldValue(FieldInfo field, object classObj) => field.GetValue(classObj);
 
         #endregion
 
@@ -242,8 +241,6 @@ namespace Average.Managers
             }
         }
 
-        public int SyncRate { get; set; } = 60;
-
         public async Task SyncUpdate()
         {
             await BaseScript.Delay(SyncRate);
@@ -252,34 +249,16 @@ namespace Average.Managers
             SyncFields();
         }
 
-        public IEnumerable<SyncPropertyState> GetAllSyncProperties()
-        {
-            return propertiesSyncs.Values.AsEnumerable();
-        }
+        public IEnumerable<SyncPropertyState> GetAllSyncProperties() => propertiesSyncs.Values.AsEnumerable();
 
-        public IEnumerable<SyncFieldState> GetAllSyncFields()
-        {
-            return fieldsSyncs.Values.AsEnumerable();
-        }
+        public IEnumerable<SyncFieldState> GetAllSyncFields() => fieldsSyncs.Values.AsEnumerable();
 
-        public IEnumerable<GetSyncPropertyState> GetAllGetSyncProperties()
-        {
-            return propertiesGetSyncs.AsEnumerable();
-        }
+        public IEnumerable<GetSyncPropertyState> GetAllGetSyncProperties() => propertiesGetSyncs.AsEnumerable();
 
-        public IEnumerable<GetSyncFieldState> GetAllGetSyncFields()
-        {
-            return fieldsGetSyncs.AsEnumerable();
-        }
+        public IEnumerable<GetSyncFieldState> GetAllGetSyncFields() => fieldsGetSyncs.AsEnumerable();
 
-        public IEnumerable<SyncPropertyState> GetAllNetworkedSyncProperties()
-        {
-            return networkedPropertiesSyncs.Values.AsEnumerable();
-        }
+        public IEnumerable<SyncPropertyState> GetAllNetworkedSyncProperties() => networkedPropertiesSyncs.Values.AsEnumerable();
 
-        public IEnumerable<SyncFieldState> GetAllNetworkedSyncFields()
-        {
-            return networkedFieldsSyncs.Values.AsEnumerable();
-        }
+        public IEnumerable<SyncFieldState> GetAllNetworkedSyncFields() => networkedFieldsSyncs.Values.AsEnumerable();
     }
 }

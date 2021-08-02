@@ -6,13 +6,11 @@ namespace Average.Managers
 {
     internal class CfxManager
     {
-        EventHandlerDictionary eventHandlers;
         Logger logger;
         EventManager eventManager;
 
         public CfxManager(EventHandlerDictionary eventHandlers, Logger logger, EventManager eventManager)
         {
-            this.eventHandlers = eventHandlers;
             this.logger = logger;
             this.eventManager = eventManager;
 
@@ -34,73 +32,73 @@ namespace Average.Managers
 
         #region Events
 
-        protected async void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic setKickReason, dynamic deferrals)
+        protected void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic setKickReason, dynamic deferrals)
         {
             logger.Info($"{playerName} is connected to the server.");
             eventManager.OnPlayerConnecting(player, setKickReason, deferrals);
         }
 
-        protected async void OnPlayerDisconnecting([FromSource] Player player, string reason)
+        protected void OnPlayerDisconnecting([FromSource] Player player, string reason)
         {
             eventManager.OnPlayerDisconnecting(player, reason);
         }
 
-        protected async void OnResourceStop(string resource)
+        protected void OnResourceStop(string resource)
         {
             eventManager.OnResourceStop(resource);
         }
 
-        protected async void OnResourceStart(string resource)
+        protected void OnResourceStart(string resource)
         {
             eventManager.OnResourceStart(resource);
         }
 
-        protected async void OnResourceListRefresh()
+        protected void OnResourceListRefresh()
         {
             eventManager.OnResourceListRefresh();
         }
 
-        protected async void OnResourceStarting(string resource)
+        protected void OnResourceStarting(string resource)
         {
             eventManager.OnResourceStarting(resource);
         }
 
-        protected async void OnServerResourceStart(string resource)
+        protected void OnServerResourceStart(string resource)
         {
             eventManager.OnServerResourceStart(resource);
         }
 
-        protected async void OnServerResourceStop(string resource)
+        protected void OnServerResourceStop(string resource)
         {
             eventManager.OnServerResourceStop(resource);
         }
 
-        protected async void OnPlayerJoining(string source, string oldId)
+        protected void OnPlayerJoining(string source, string oldId)
         {
             eventManager.OnPlayerJoining(source, oldId);
         }
 
-        protected async void OnEntityCreated(int handle)
+        protected void OnEntityCreated(int handle)
         {
             eventManager.OnEntityCreated(handle);
         }
 
-        protected async void OnEntityCreating(int handle)
+        protected void OnEntityCreating(int handle)
         {
             eventManager.OnEntityCreating(handle);
         }
 
-        protected async void OnEntityRemoved(int handle)
+        protected void OnEntityRemoved(int handle)
         {
             eventManager.OnEntityRemoved(handle);
         }
 
-        protected async void OnPlayerEnteredScope(object data)
+        protected void OnPlayerEnteredScope(object data)
         {
             eventManager.OnPlayerEnteredScope(data);
         }
 
-        protected async void OnPlayerLeftScope(object data)
+        protected void OnPlayerLeftScope(object data)
         {
             eventManager.OnPlayerLeftScope(data);
         }
