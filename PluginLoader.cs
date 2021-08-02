@@ -304,7 +304,7 @@ namespace Average.Plugins
         {
             foreach (var method in type.GetMethods())
             {
-                var eventAttr = method.GetCustomAttribute<EventAttribute>();
+                var eventAttr = method.GetCustomAttribute<ServerEventAttribute>();
 
                 if (eventAttr != null)
                 {
