@@ -37,7 +37,7 @@ namespace Average
             sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
             sql.Connect();
             commandManager = new CommandManager(logger);
-            threadManager = new ThreadManager(this);
+            threadManager = new ThreadManager(c => Tick += c, c => Tick -= c);
             eventManager = new EventManager(EventHandlers, logger);
             rpc = new RpcRequest(new SDK.Shared.Rpc.RpcHandler(EventHandlers), new RpcTrigger(Players), new SDK.Shared.Rpc.RpcSerializer());
             exportManager = new ExportManager(logger);

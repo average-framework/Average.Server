@@ -1,4 +1,5 @@
 ﻿using CitizenFX.Core;
+using SDK.Server;
 using SDK.Server.Diagnostics;
 using SDK.Server.Events;
 using SDK.Server.Managers;
@@ -102,7 +103,7 @@ namespace Average.Managers
             }
         }
 
-        public void RegisterEvent(MethodInfo method, EventAttribute eventAttr, object classObj)
+        public void RegisterEvent(MethodInfo method, ServerEventAttribute eventAttr, object classObj)
         {
             var methodParams = method.GetParameters();
 
