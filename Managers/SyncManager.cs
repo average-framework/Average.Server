@@ -4,6 +4,7 @@ using SDK.Server.Diagnostics;
 using SDK.Server.Managers;
 using SDK.Shared;
 using SDK.Shared.Sync;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -26,7 +27,7 @@ namespace Average.Managers
 
         public int SyncRate { get; set; } = 60;
 
-        public SyncManager(Logger logger)
+        public SyncManager(Logger logger, Framework framework)
         {
             this.logger = logger;
 
@@ -38,6 +39,16 @@ namespace Average.Managers
 
             fieldsSyncs = new Dictionary<string, SyncFieldState>();
             fieldsGetSyncs = new List<GetSyncFieldState>();
+
+            framework.Thread.StartThread(Update);
+        }
+
+        protected async Task Update()
+        {
+            await BaseScript.Delay(100);
+
+            SyncProperties();
+            SyncProperties();
         }
 
         #region Internal

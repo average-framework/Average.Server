@@ -41,9 +41,9 @@ namespace Average
             eventManager = new EventManager(EventHandlers, logger);
             rpc = new RpcRequest(new SDK.Shared.Rpc.RpcHandler(EventHandlers), new RpcTrigger(Players), new SDK.Shared.Rpc.RpcSerializer());
             exportManager = new ExportManager(logger);
-            syncManager = new SyncManager(logger);
             internalManager = new InternalManager(logger);
             framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, internalManager);
+            syncManager = new SyncManager(logger, framework);
             cfx = new CfxManager(EventHandlers, logger, eventManager);
             loader = new PluginLoader(rpc, logger, commandManager);
             internalManager.SetPluginList(ref loader.plugins);
