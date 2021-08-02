@@ -15,15 +15,15 @@ namespace Average.Managers
     public class CommandManager : ICommandManager
     {
         Logger Logger { get; }
-        List<Tuple<CommandAttribute, CommandAliasAttribute>> Commands { get; }
+        List<Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>> Commands { get; }
 
         public CommandManager(Logger logger)
         {
             Logger = logger;
-            Commands = new List<Tuple<CommandAttribute, CommandAliasAttribute>>();
+            Commands = new List<Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>>();
         }
 
-        public void RegisterCommand(CommandAttribute commandAttr, CommandAliasAttribute aliasAttr, MethodInfo method, object classObj)
+        public void RegisterCommand(ServerCommandAttribute commandAttr, ClientCommandAliasAttribute aliasAttr, MethodInfo method, object classObj)
         {
             if (commandAttr == null)
             {
@@ -55,7 +55,7 @@ namespace Average.Managers
                         Logger.Debug($"Registering {aliasAttr.Alias.Length} alias for command: {commandAttr.Command} [{string.Join(", ", aliasAttr.Alias)}]");
                     }
 
-                    Commands.Add(new Tuple<CommandAttribute, CommandAliasAttribute>(commandAttr, aliasAttr));
+                    Commands.Add(new Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>(commandAttr, aliasAttr));
                     Logger.Debug($"Registering [Command] attribute: {commandAttr.Command}");
                 }
                 else
@@ -81,7 +81,7 @@ namespace Average.Managers
                         }), false);
                     }
 
-                    Commands.Add(new Tuple<CommandAttribute, CommandAliasAttribute>(commandAttr, aliasAttr));
+                    Commands.Add(new Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>(commandAttr, aliasAttr));
                     Logger.Debug($"Registering {aliasAttr.Alias.Length} alias for command: {commandAttr.Command} [{string.Join(", ", aliasAttr.Alias)}]");
                 }
 
@@ -93,12 +93,12 @@ namespace Average.Managers
             }
         }
 
-        public IEnumerable<Tuple<CommandAttribute, CommandAliasAttribute>> GetCommands()
+        public IEnumerable<Tuple<ServerCommandAttribute, ClientCommandAliasAttribute>> GetCommands()
         {
             return Commands.AsEnumerable();
         }
 
-        public CommandAttribute GetCommand(string command)
+        public ServerCommandAttribute GetCommand(string command)
         {
             return Commands.Find(x => x.Item1.Command == command).Item1;
         }

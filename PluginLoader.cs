@@ -280,8 +280,8 @@ namespace Average.Plugins
             // Load registered commands (method need to be public to be detected)
             foreach (var method in type.GetMethods())
             {
-                var cmdAttr = method.GetCustomAttribute<SDK.Server.CommandAttribute>();
-                var aliasAttr = method.GetCustomAttribute<CommandAliasAttribute>();
+                var cmdAttr = method.GetCustomAttribute<SDK.Server.ServerCommandAttribute>();
+                var aliasAttr = method.GetCustomAttribute<ClientCommandAliasAttribute>();
 
                 commandManager.RegisterCommand(cmdAttr, aliasAttr, method, classObj);
             }
