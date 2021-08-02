@@ -4,7 +4,6 @@ using SDK.Server.Diagnostics;
 using SDK.Server.Managers;
 using SDK.Shared;
 using SDK.Shared.Sync;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
