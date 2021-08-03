@@ -9,7 +9,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Average.Data
+namespace Average.Server.Data
 {
     public class SQL : ISQL
     {

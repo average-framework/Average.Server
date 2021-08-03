@@ -2,7 +2,7 @@
 using SDK.Server.Diagnostics;
 using System;
 
-namespace Average.Managers
+namespace Average.Server.Managers
 {
     internal class CfxManager
     {

@@ -1,11 +1,12 @@
-﻿using SDK.Shared.Threading;
+﻿using SDK.Server;
+using SDK.Shared.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Average.Managers
+namespace Average.Server.Managers
 {
     internal class ThreadManager : IThreadManager
     {
@@ -67,7 +68,7 @@ namespace Average.Managers
                     thread.Func = func;
                     threads.Add(thread);
 
-                    attachCallback(func);
+                    //attachCallback(func);
 
                     Main.logger.Debug($"Registering [Thread] attribute to method: {method.Name}.");
                 }

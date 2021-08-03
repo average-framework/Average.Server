@@ -1,4 +1,4 @@
-﻿namespace Average.Utilities
+﻿namespace Average.Server.Utilities
 {
     internal static class Directory
     {

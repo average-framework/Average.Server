@@ -1,16 +1,16 @@
-﻿using Average.Data;
-using Average.Managers;
-using Average.Plugins;
+﻿using Average.Server.Data;
+using Average.Server.Managers;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using SDK.Server;
 using SDK.Server.Diagnostics;
 using SDK.Server.Rpc;
+using SDK.Shared.Rpc;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Average
+namespace Average.Server
 {
     internal class Main : BaseScript
     {
@@ -22,34 +22,59 @@ namespace Average
         internal static ExportManager exportManager;
         internal static SyncManager syncManager;
         internal static RpcRequest rpc;
+        internal static UserManager user;
+        internal static PermissionManager permission;
+        internal static CharacterManager characterManager;
+        internal static RequestManager requestManager;
+        internal static RequestInternalManager requestInternalManager;
         internal static InternalManager internalManager;
 
         SQL sql;
         CfxManager cfx;
-        PluginLoader loader;
+        internal static PluginLoader loader;
 
         public Main()
         {
-            logger = new Logger();
-            logger.Clear();
-            Watermark();
+            Task.Factory.StartNew(async () => 
+            {
+                await Delay(0);
 
-            sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
-            sql.Connect();
-            commandManager = new CommandManager(logger);
-            threadManager = new ThreadManager(c => Tick += c, c => Tick -= c);
-            eventManager = new EventManager(EventHandlers, logger);
-            rpc = new RpcRequest(new SDK.Shared.Rpc.RpcHandler(EventHandlers), new RpcTrigger(Players), new SDK.Shared.Rpc.RpcSerializer());
-            exportManager = new ExportManager(logger);
-            internalManager = new InternalManager(logger);
-            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, internalManager);
-            syncManager = new SyncManager(logger, framework);
-            cfx = new CfxManager(EventHandlers, logger, eventManager);
-            loader = new PluginLoader(rpc, logger, commandManager);
-            internalManager.SetPluginList(ref loader.plugins);
+                logger = new Logger();
+                logger.Clear();
 
-            loader.Load();
-            Tick += syncManager.SyncUpdate;
+                Watermark();
+
+                framework = new Framework();
+
+                sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
+                sql.Connect();
+
+                commandManager = new CommandManager(logger);
+                threadManager = new ThreadManager(c => Tick += c, c => Tick -= c);
+                eventManager = new EventManager(EventHandlers, logger);
+                rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
+                exportManager = new ExportManager(logger);
+                user = new UserManager(framework);
+                permission = new PermissionManager(framework);
+                characterManager = new CharacterManager(framework);
+                requestInternalManager = new RequestInternalManager(framework);
+                requestManager = new RequestManager(framework);
+                syncManager = new SyncManager(framework);
+                cfx = new CfxManager(EventHandlers, logger, eventManager);
+                internalManager = new InternalManager(logger);
+
+                framework.SetDependencies(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager, internalManager);
+
+                loader = new PluginLoader(framework);
+                loader.Load();
+
+                await loader.IsPluginsFullyLoaded();
+
+                var plugins = loader.Plugins;
+                internalManager.SetPlugins(ref plugins);
+
+                framework.IsReadyToWork = true;
+            });
         }
 
         internal void RegisterTick(Func<Task> func)

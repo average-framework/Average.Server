@@ -1,4 +1,4 @@
-﻿namespace Average
+﻿namespace Average.Server
 {
     static internal class Configuration
     {

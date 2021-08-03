@@ -1,4 +1,4 @@
-﻿namespace Average.Data
+﻿namespace Average.Server.Data
 {
     public class SQLConnection
     {
