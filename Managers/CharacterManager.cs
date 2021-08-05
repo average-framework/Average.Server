@@ -20,7 +20,7 @@ namespace Average.Server.Managers
         {
             this.framework = framework;
 
-            Task.Factory.StartNew(async () => 
+            Task.Factory.StartNew(async () =>
             {
                 await framework.IsReadyAsync();
 
@@ -31,10 +31,12 @@ namespace Average.Server.Managers
                         var player = framework.Players[message.Target];
                         var characterExist = await Exist(player);
                         callback(characterExist.ToString().ToLower());
+
+                        framework.Logger.Debug($"[Character] Sending character exist. [{characterExist}]");
                     }
                     catch
                     {
-                        framework.Logger.Error("[Character] Unable to check if character exist");
+                        framework.Logger.Debug("[Character] Unable to check if character exist");
                     }
                 });
 
@@ -44,11 +46,7 @@ namespace Average.Server.Managers
 
         public CharacterData GetLocal(string rockstarId)
         {
-            if (Characters.ContainsKey(rockstarId))
-            {
-                return Characters[rockstarId];
-            }
-
+            if (Characters.ContainsKey(rockstarId)) return Characters[rockstarId];
             return null;
         }
 

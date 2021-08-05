@@ -24,6 +24,8 @@ namespace Average.Server.Managers
 
         public async Task<RequestResponse> Http(string url, string method = "GET", string data = "", Dictionary<string, string> headers = null)
         {
+            await framework.IsReadyAsync();
+
             headers = (headers == null) ? new Dictionary<string, string>() : headers;
             //var request = await framework.Internal.GetPluginInstance<RequestInternal>("Request.Server.RequestInternal");
             var response = await framework.RequestInternal.Http(url, method, data, headers);
