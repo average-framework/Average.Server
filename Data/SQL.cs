@@ -208,10 +208,7 @@ namespace Average.Server.Data
 
         public async Task InsertOrUpdateAsync(string table, object newValue)
         {
-            if (!IsOpen)
-            {
-                return;
-            }
+            if (!IsOpen) return;
 
             try
             {
@@ -245,7 +242,7 @@ namespace Average.Server.Data
             }
             catch (Exception ex)
             {
-                logger.Error("[SQL] Unable to insert or update this value: " + ex.Message + ", value: " + table + ", " + newValue);
+                logger.Error("[SQL] Unable to insert or update this value: " + ex.Message + ", table: " + table + " value:" + newValue);
             }
 
             IsWorking = false;

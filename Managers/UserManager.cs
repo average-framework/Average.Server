@@ -37,7 +37,7 @@ namespace Average.Server.Managers
 
         public async Task<bool> Exist(Player player) => await framework.Sql.ExistsAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
 
-        public async void CreateAccount(Player player) => await framework.Sql.InsertOrUpdateAsync("users", new UserData
+        public async void CreateAccount(Player player) => await framework.Sql.InsertAsync("users", new UserData
         {
             RockstarId = player.Identifiers["license"],
             Name = player.Name,
