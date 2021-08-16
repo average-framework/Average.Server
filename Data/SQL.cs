@@ -142,11 +142,11 @@ namespace Average.Server.Data
 
             for (int i = 0; i < result.Count; i++)
             {
-                if (result[i].GetType().GetInterfaces().ToList().Find(x => x == typeof(IDataDeletable)) != null)
+                if (result[i].GetType().GetInterfaces().ToList().Find(x => x == typeof(IDataEditable)) != null)
                 {
                     if (predicate.Invoke(result[i]))
                     {
-                        var data = result[i] as IDataDeletable;
+                        var data = result[i] as IDataEditable;
                         var delCmd = connection.CreateCommand();
                         delCmd.CommandText = $"DELETE FROM {table} WHERE Id=\"{data.Id}\"";
                         await delCmd.ExecuteNonQueryAsync();
@@ -245,7 +245,7 @@ namespace Average.Server.Data
             }
             catch (Exception ex)
             {
-                logger.Error("[SQL] Unable to insert or update this value: " + ex.Message);
+                logger.Error("[SQL] Unable to insert or update this value: " + ex.Message + ", value: " + table + ", " + newValue);
             }
 
             IsWorking = false;
@@ -271,7 +271,7 @@ namespace Average.Server.Data
 
                 for (int i = 0; i < results.Count; i++)
                 {
-                    if (results[i].GetType().GetInterfaces().ToList().Find(x => x == typeof(IDataDeletable)) != null)
+                    if (results[i].GetType().GetInterfaces().ToList().Find(x => x == typeof(IDataEditable)) != null)
                     {
                         if (predicate.Invoke(results[i]))
                         {
@@ -291,7 +291,7 @@ namespace Average.Server.Data
                                 }
                             }
 
-                            var data = results[i] as IDataDeletable;
+                            var data = results[i] as IDataEditable;
                             var values = string.Join(",", result.Values);
                             var updateCmd = connection.CreateCommand();
                             updateCmd.CommandText = $"UPDATE {table} SET {values} WHERE Id=\"{data.Id}\"";
@@ -302,7 +302,7 @@ namespace Average.Server.Data
                     else
                     {
                         var temp = (T)Activator.CreateInstance(typeof(T));
-                        logger.Error($"[SQL] Unable to update this value because the {temp.GetType().Name} type does not inherits from IDataUpdatable");
+                        logger.Error($"[SQL] Unable to update this value because the {temp.GetType().Name} type does not inherits from IDataDeletable");
                         return false;
                     }
                 }

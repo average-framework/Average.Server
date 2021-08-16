@@ -68,7 +68,7 @@ namespace Average.Server.Managers
                     thread.Func = func;
                     threads.Add(thread);
 
-                    //attachCallback(func);
+                    attachCallback(func);
 
                     Main.logger.Debug($"Registering [Thread] attribute to method: {method.Name}.");
                 }
