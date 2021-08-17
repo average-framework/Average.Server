@@ -41,18 +41,19 @@ namespace Average.Server.Managers
             events = new Dictionary<string, List<Delegate>>();
 
             eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);
-            eventHandlers["avg.internal.trigger_event"] += new Action<string, List<object>>(InternalTriggerEvent);
+            eventHandlers["avg.internal.trigger_event"] += new Action<string, Player, List<object>>(InternalTriggerEvent);
         }
 
         public void Emit(string eventName, params object[] args)
         {
             if (events.ContainsKey(eventName))
             {
+                logger.Debug($"Calling custom event: {eventName}. [{string.Join(", ", args)}]");
                 events[eventName].ForEach(x => x.DynamicInvoke(args));
             }
             else
             {
-                logger.Debug($"Calling internal event: {eventName}.");
+                logger.Debug($"Calling internal event: {eventName}. [{string.Join(", ", args)}]");
                 BaseScript.TriggerEvent(eventName, args);
             }
         }
@@ -64,7 +65,7 @@ namespace Average.Server.Managers
 
         public void EmitClient(Player player, string eventName, object[] args)
         {
-            player.TriggerEvent("avg.internal.trigger_event", eventName, args);
+            player.TriggerEvent("avg.internal.trigger_event", eventName, player, args);
         }
 
         public void RegisterInternalEvent(string eventName, Delegate action)
@@ -115,7 +116,12 @@ namespace Average.Server.Managers
 
         #region Internal
 
-        internal void InternalTriggerEvent(string eventName, List<object> args) => Emit(eventName, args.ToArray());
+        internal void InternalTriggerEvent(string eventName, [FromSource] Player player, List<object> args)
+        {
+            var newArgs = new List<object>();
+            newArgs.Add(int.Parse(player.Handle));
+            Emit(eventName, newArgs.ToArray());
+        }
 
         #endregion
 

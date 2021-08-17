@@ -1,6 +1,7 @@
 ﻿using Average.Server.Data;
 using CitizenFX.Core;
 using Newtonsoft.Json;
+using SDK.Server;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
 using SDK.Server.Rpc;
@@ -61,8 +62,7 @@ namespace Average.Server.Managers
             eventManager.PlayerDisconnecting += PlayerDisconnecting;
 
             eventHandler["Character.SetPed"] += new Action<int, uint, int>(OnSetPedEvent);
-            eventHandler["Character.Save"] += new Action<Player, string>(OnSaveEvent);
-            eventHandler["Character.Save"] += new Action<Player, string>(OnSaveEvent);
+            eventHandler["Character.Save"] += new Action<int, string>(OnSaveEvent);
             eventHandler["Character.SetMoney"] += new Action<int, decimal>(OnSetMoneyEvent);
             eventHandler["Character.SetBank"] += new Action<int, decimal>(OnSetBankEvent);
             eventHandler["Character.AddMoney"] += new Action<int, decimal>(OnAddMoneyEvent);
@@ -113,11 +113,11 @@ namespace Average.Server.Managers
 
         protected void OnSetPedEvent(int player, uint model, int variation) => players[player].TriggerEvent("Character.SetPed", model, variation);
 
-        protected async void OnSaveEvent([FromSource] Player player, string json)
+        protected async void OnSaveEvent(int player, string json)
         {
             if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
             {
-                logger.Error("[Character] Unable to save character of player: " + player.Name + ", json contains an error.");
+                logger.Error("[Character] Unable to save character of player: " + players[player].Name + ", json contains an error.");
                 return;
             }
 
