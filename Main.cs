@@ -27,7 +27,6 @@ namespace Average.Server
         internal static CharacterManager characterManager;
         internal static RequestManager requestManager;
         internal static RequestInternalManager requestInternalManager;
-        internal static InternalManager internalManager;
 
         SQL sql;
         CfxManager cfx;
@@ -35,46 +34,35 @@ namespace Average.Server
 
         public Main()
         {
-            Task.Factory.StartNew(async () => 
-            {
-                await Delay(0);
+            logger = new Logger();
+            logger.Clear();
 
-                logger = new Logger();
-                logger.Clear();
+            Watermark();
 
-                Watermark();
 
-                framework = new Framework();
+            sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
+            sql.Connect();
 
-                sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
-                sql.Connect();
+            // Internal Script
+            commandManager = new CommandManager(logger);
+            threadManager = new ThreadManager(c => Tick += c, c => Tick -= c);
+            eventManager = new EventManager(EventHandlers, logger);
+            rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
+            exportManager = new ExportManager(logger);
+            user = new UserManager(logger, rpc, sql, Players);
+            permission = new PermissionManager(logger, rpc, sql);
+            characterManager = new CharacterManager(logger, rpc, sql, eventManager, Players);
+            requestInternalManager = new RequestInternalManager(logger, eventManager);
+            requestManager = new RequestManager(requestInternalManager);
+            syncManager = new SyncManager(logger, threadManager);
+            cfx = new CfxManager(EventHandlers, logger, eventManager);
 
-                commandManager = new CommandManager(logger);
-                threadManager = new ThreadManager(c => Tick += c, c => Tick -= c);
-                eventManager = new EventManager(EventHandlers, logger);
-                rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
-                exportManager = new ExportManager(logger);
-                user = new UserManager(framework);
-                permission = new PermissionManager(framework);
-                characterManager = new CharacterManager(framework);
-                requestInternalManager = new RequestInternalManager(framework);
-                requestManager = new RequestManager(framework);
-                syncManager = new SyncManager(framework);
-                cfx = new CfxManager(EventHandlers, logger, eventManager);
-                internalManager = new InternalManager(logger);
+            // Framework Script
+            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager);
 
-                framework.SetDependencies(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager, internalManager);
-
-                loader = new PluginLoader(framework);
-                loader.Load();
-
-                await loader.IsPluginsFullyLoaded();
-
-                var plugins = loader.Plugins;
-                internalManager.SetPlugins(ref plugins);
-
-                framework.IsReadyToWork = true;
-            });
+            // Plugin Loader
+            loader = new PluginLoader(logger, commandManager, rpc);
+            loader.Load();
         }
 
         internal void RegisterTick(Func<Task> func)

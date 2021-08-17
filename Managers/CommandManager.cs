@@ -11,12 +11,13 @@ namespace Average.Server.Managers
 {
     public class CommandManager : ICommandManager
     {
-        Logger Logger { get; }
+        Logger logger;
+
         List<ServerCommandAttribute> Commands { get; }
 
         public CommandManager(Logger logger)
         {
-            Logger = logger;
+            this.logger = logger;
             Commands = new List<ServerCommandAttribute>();
         }
 
@@ -37,11 +38,11 @@ namespace Average.Server.Managers
                     }), false);
 
                     Commands.Add(commandAttr);
-                    Logger.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
+                    logger.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
                 }
                 else
                 {
-                    Logger.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
+                    logger.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
                 }
             }
             else if (methodParams.Count() == 0)
@@ -53,11 +54,11 @@ namespace Average.Server.Managers
                 }), false);
 
                 Commands.Add(commandAttr);
-                Logger.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
+                logger.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
             }
             else
             {
-                Logger.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
+                logger.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
             }
         }
 

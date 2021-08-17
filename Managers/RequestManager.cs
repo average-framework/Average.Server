@@ -1,5 +1,4 @@
-﻿using SDK.Server;
-using SDK.Server.Interfaces;
+﻿using SDK.Server.Interfaces;
 using SDK.Shared.Request;
 using System;
 using System.Collections.Generic;
@@ -10,25 +9,23 @@ namespace Average.Server.Managers
 {
     public class RequestManager : IRequestManager
     {
-        Framework framework;
+        RequestInternalManager requestInternal;
 
         public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>
         {
             { "Content-Type", "application/json"}
         };
 
-        public RequestManager(Framework framework)
+        public RequestManager(RequestInternalManager requestInternal)
         {
-            this.framework = framework;
+            this.requestInternal = requestInternal;
         }
 
         public async Task<RequestResponse> Http(string url, string method = "GET", string data = "", Dictionary<string, string> headers = null)
         {
-            await framework.IsReadyAsync();
-
             headers = (headers == null) ? new Dictionary<string, string>() : headers;
             //var request = await framework.Internal.GetPluginInstance<RequestInternal>("Request.Server.RequestInternal");
-            var response = await framework.RequestInternal.Http(url, method, data, headers);
+            var response = await requestInternal.Http(url, method, data, headers);
             return ParseRequestResponseInternal(response);
         }
 

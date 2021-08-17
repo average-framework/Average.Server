@@ -3,7 +3,6 @@ using SDK.Server;
 using SDK.Server.Diagnostics;
 using SDK.Server.Events;
 using SDK.Server.Managers;
-using SDK.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +13,9 @@ namespace Average.Server.Managers
 {
     public class EventManager : IEventManager
     {
-        Dictionary<string, List<Delegate>> events;
         Logger logger;
+
+        Dictionary<string, List<Delegate>> events;
 
         public event EventHandler<PlayerConnectingEventArgs> PlayerConnecting;
         public event EventHandler<PlayerDisconnectingEventArgs> PlayerDisconnecting;
@@ -46,9 +46,7 @@ namespace Average.Server.Managers
         public void Emit(string eventName, params object[] args)
         {
             if (events.ContainsKey(eventName))
-            {
                 events[eventName].ForEach(x => x.DynamicInvoke(args));
-            }
         }
 
         public void EmitClients(string eventName, params object[] args)
@@ -64,13 +62,9 @@ namespace Average.Server.Managers
         public void RegisterInternalEvent(string eventName, Delegate action)
         {
             if (!events.ContainsKey(eventName))
-            {
-                events.Add(eventName, new List<Delegate>(){ action });
-            }
+                events.Add(eventName, new List<Delegate>() { action });
             else
-            {
                 events[eventName].Add(action);
-            }
 
             logger.Debug($"Registering internal event: {eventName}");
         }

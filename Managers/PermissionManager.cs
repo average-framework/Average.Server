@@ -1,6 +1,7 @@
-﻿using Newtonsoft.Json;
-using SDK.Server;
+﻿using Average.Server.Data;
+using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
+using SDK.Server.Rpc;
 using SDK.Shared.DataModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -11,18 +12,16 @@ namespace Average.Server.Managers
     {
         public List<PermissionData> Permissions { get; private set; }
 
-        public PermissionManager(Framework framework)
+        public PermissionManager(Logger logger, RpcRequest rpc, SQL sql)
         {
             Task.Factory.StartNew(async () =>
             {
-                await framework.IsReadyAsync();
-
-                Permissions = await framework.Sql.GetAllAsync<PermissionData>("permissions");
-                framework.Logger.Info("[Permission] loaded");
+                Permissions = await sql.GetAllAsync<PermissionData>("permissions");
+                logger.Info("[Permission] loaded");
 
                 #region Events
 
-                framework.Rpc.Event("Permission.GetAll").On((message, callback) =>
+                rpc.Event("Permission.GetAll").On((message, callback) =>
                 {
                     callback(Permissions);
                 });

@@ -11,12 +11,14 @@ namespace Average.Server.Managers
 {
     public class ExportManager : IExportManager
     {
-        Dictionary<string, Delegate> exports;
         Logger logger;
+
+        Dictionary<string, Delegate> exports;
 
         public ExportManager(Logger logger)
         {
             this.logger = logger;
+
             exports = new Dictionary<string, Delegate>();
         }
 

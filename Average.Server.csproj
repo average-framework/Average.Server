@@ -64,7 +64,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InternalManager.cs" />
     <Compile Include="Managers\CharacterManager.cs" />
     <Compile Include="Managers\CommandManager.cs" />
     <Compile Include="Configuration.cs" />

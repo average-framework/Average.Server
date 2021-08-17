@@ -22,7 +22,8 @@ namespace Average.Server
 {
     public class PluginLoader : BaseScript
     {
-        Framework framework;
+        Logger logger;
+        CommandManager command;
 
         string BASE_RESOURCE_PATH = GetResourcePath(Constant.RESOURCE_NAME);
 
@@ -30,18 +31,13 @@ namespace Average.Server
 
         public List<IPlugin> Plugins { get; } = new List<IPlugin>();
 
-        bool isReady;
 
-        public PluginLoader(Framework framework)
+        public PluginLoader(Logger logger, CommandManager command, RpcRequest rpc)
         {
-            this.framework = framework;
+            this.logger = logger;
+            this.command = command;
 
-            framework.Rpc.Event("avg.internal.get_plugins").On(new Action<RpcMessage, RpcCallback>(GetPluginsEvent));
-        }
-
-        public async Task IsPluginsFullyLoaded()
-        {
-            while (!isReady) await BaseScript.Delay(250);
+            rpc.Event("avg.internal.get_plugins").On(new Action<RpcMessage, RpcCallback>(GetPluginsEvent));
         }
 
         IEnumerable<string> GetPluginsPath()
@@ -56,7 +52,7 @@ namespace Average.Server
 
             if (pluginsPath.Count() == 0)
             {
-                framework.Logger.Warn($"No plugins detected.");
+                logger.Warn($"No plugins detected.");
                 return null;
             }
 
@@ -69,7 +65,7 @@ namespace Average.Server
 
                 if (pluginFiles.Count() == 0)
                 {
-                    framework.Logger.Error($"[{dirInfo.Name.ToUpper()}] Is not a valid resource.");
+                    logger.Error($"[{dirInfo.Name.ToUpper()}] Is not a valid resource.");
                     continue;
                 }
 
@@ -92,19 +88,19 @@ namespace Average.Server
                                 }
                                 else
                                 {
-                                    framework.Logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin format.");
+                                    logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin format.");
                                 }
                             }
                             else
                             {
-                                framework.Logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin info.");
+                                logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin info.");
                             }
                             break;
                     }
                 }
             }
 
-            framework.Logger.Warn($"{validate.Count} validated plugins of {pluginsPath.Count()} detected !");
+            logger.Warn($"{validate.Count} validated plugins of {pluginsPath.Count()} detected !");
             return validate;
         }
 
@@ -184,7 +180,7 @@ namespace Average.Server
                             var asm = Assembly.LoadFrom(serverFile);
                             var asmName = asm.GetName().ToString().Split(',')[0];
 
-                            framework.Logger.Info($"Loading {asmName} ...");
+                            logger.Info($"Loading {asmName} ...");
 
                             var types = asm.GetTypes().Where(x => !x.IsAbstract && x.IsClass && x.IsSubclassOf(typeof(Plugin))).ToList();
                             var mainScriptCount = 0;
@@ -201,13 +197,13 @@ namespace Average.Server
 
                             if (mainScriptCount > 1)
                             {
-                                framework.Logger.Error("Unable to load multiples [MainScript] attribute in same plugin. Fix this error to continue.");
+                                logger.Error("Unable to load multiples [MainScript] attribute in same plugin. Fix this error to continue.");
                                 return;
                             }
 
                             if (mainScriptCount == 0)
                             {
-                                framework.Logger.Error("Unable to load this plugin, he does not contains [MainScript] attribute. Fix this error to continue.");
+                                logger.Error("Unable to load this plugin, he does not contains [MainScript] attribute. Fix this error to continue.");
                                 return;
                             }
 
@@ -224,11 +220,11 @@ namespace Average.Server
                                         //script.PluginInfo = pluginInfo;
                                         RegisterPlugin(script, type);
 
-                                        framework.Logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
+                                        logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
                                     }
                                     catch (InvalidCastException ex)
                                     {
-                                        framework.Logger.Error($"Unable to load {asm.GetName().Name}");
+                                        logger.Error($"Unable to load {asm.GetName().Name}");
                                     }
                                 }
                                 else
@@ -239,11 +235,11 @@ namespace Average.Server
                                         //script.PluginInfo = pluginInfo;
                                         RegisterPlugin(script, type);
 
-                                        framework.Logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
+                                        logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
                                     }
                                     catch
                                     {
-                                        framework.Logger.Error($"Unable to load script: {script.Name}");
+                                        logger.Error($"Unable to load script: {script.Name}");
                                     }
                                 }
 
@@ -259,7 +255,7 @@ namespace Average.Server
                         }
                         catch
                         {
-                            framework.Logger.Error($"Unable to load this plugin: {pluginInfo.Server} because this plugin does not exist or is an invalid Average Framework plugin.");
+                            logger.Error($"Unable to load this plugin: {pluginInfo.Server} because this plugin does not exist or is an invalid Average Framework plugin.");
                         }
                     }
                     else
@@ -268,8 +264,6 @@ namespace Average.Server
                     }
                 }
             }
-
-            isReady = true;
         }
 
         void RegisterCommands(Type type, object classObj)
@@ -280,7 +274,7 @@ namespace Average.Server
             foreach (var method in type.GetMethods(flags))
             {
                 var cmdAttr = method.GetCustomAttribute<ServerCommandAttribute>();
-                var commandManager = (CommandManager)framework.Command;
+                var commandManager = (CommandManager)command;
                 commandManager.RegisterCommand(cmdAttr, method, classObj);
             }
         }

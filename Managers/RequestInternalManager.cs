@@ -1,7 +1,7 @@
 ﻿using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using Newtonsoft.Json;
-using SDK.Server;
+using SDK.Server.Diagnostics;
 using SDK.Server.Events;
 using SDK.Server.Interfaces;
 using SDK.Shared.Request;
@@ -12,26 +12,23 @@ namespace Average.Server.Managers
 {
     public class RequestInternalManager : IRequestInternalManager
     {
-        Framework framework;
+        Logger logger;
+        EventManager eventManager;
 
         Dictionary<int, Dictionary<string, dynamic>> responseDictionary;
 
-        public RequestInternalManager(Framework framework)
+        public RequestInternalManager(Logger logger, EventManager eventManager)
         {
-            this.framework = framework;
+            this.logger = logger;
+            this.eventManager = eventManager;
 
-            Task.Factory.StartNew(async () => 
-            {
-                await framework.IsReadyAsync();
-
-                responseDictionary = new Dictionary<int, Dictionary<string, dynamic>>();
-                framework.Event.HttpResponse += HttpResponse;
-            });
+            responseDictionary = new Dictionary<int, Dictionary<string, dynamic>>();
+            eventManager.HttpResponse += HttpResponse;
         }
 
         void HttpResponse(object sender, HttpResponseEventArgs e)
         {
-            framework.Logger.Debug($"Receive http response: {e.Token}, {e.Status}, {e.Text}, {e.Header}");
+            logger.Debug($"Receive http response: {e.Token}, {e.Status}, {e.Text}, {e.Header}");
             Response(e.Token, e.Status, e.Text, e.Header);
         }
 

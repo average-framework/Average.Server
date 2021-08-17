@@ -1,6 +1,9 @@
-﻿using CitizenFX.Core;
+﻿using Average.Server.Data;
+using CitizenFX.Core;
 using SDK.Server;
+using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
+using SDK.Server.Rpc;
 using SDK.Shared.DataModels;
 using System;
 using System.Threading.Tasks;
@@ -9,35 +12,29 @@ namespace Average.Server.Managers
 {
     public class UserManager : IUserManager
     {
-        Framework framework;
+        SQL sql;
 
-        public UserManager(Framework framework)
+        public UserManager(Logger logger, RpcRequest rpc, SQL sql, PlayerList players)
         {
-            this.framework = framework;
+            this.sql = sql;
 
-            Task.Factory.StartNew(async () =>
+            rpc.Event("User.GetUser").On(async (message, callback) =>
             {
-                await framework.IsReadyAsync();
-
-                //framework.Logger.Trace("Get user 0");
-                framework.Rpc.Event("User.GetUser").On(async (message, callback) =>
-                {
-                    framework.Logger.Trace("Get user 1: " + framework.Players[message.Target].Name);
-                    var data = await GetUser(framework.Players[message.Target]);
-                    callback(data);
-                });
+                logger.Debug("Getted user: " + players[message.Target].Name);
+                var data = await GetUser(players[message.Target]);
+                callback(data);
             });
         }
 
         public async Task<UserData> GetUser(Player player)
         {
-            var data = await framework.Sql.GetAllAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
+            var data = await sql.GetAllAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
             return data[0];
         }
 
-        public async Task<bool> Exist(Player player) => await framework.Sql.ExistsAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
+        public async Task<bool> Exist(Player player) => await sql.ExistsAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
 
-        public async void CreateAccount(Player player) => await framework.Sql.InsertAsync("users", new UserData
+        public async void CreateAccount(Player player) => await sql.InsertAsync("users", new UserData
         {
             RockstarId = player.Identifiers["license"],
             Name = player.Name,
@@ -61,7 +58,7 @@ namespace Average.Server.Managers
             Save(data);
         }
 
-        public async void Save(UserData data) => await framework.Sql.InsertOrUpdateAsync("users", data);
+        public async void Save(UserData data) => await sql.InsertOrUpdateAsync("users", data);
 
         public async Task<DateTime> GetLastConnectionTime(Player player)
         {

@@ -1,5 +1,4 @@
-﻿using SDK.Server;
-using SDK.Shared.Threading;
+﻿using SDK.Shared.Threading;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Average.Server.Managers
 {
-    internal class ThreadManager : IThreadManager
+    public class ThreadManager : IThreadManager
     {
         List<Thread> threads = new List<Thread>();
 
@@ -58,7 +57,7 @@ namespace Average.Server.Managers
                                 {
                                     threads[threads.FindIndex(x => x.Func == func)].IsRunning = false;
                                     threads[threads.FindIndex(x => x.Func == func)].IsTerminated = true;
-                           
+
                                     detachCallback(func);
                                 }
                             }
