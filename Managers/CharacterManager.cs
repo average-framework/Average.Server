@@ -20,7 +20,7 @@ namespace Average.Server.Managers
 
         public Dictionary<string, CharacterData> Characters { get; } = new Dictionary<string, CharacterData>();
 
-        public CharacterManager(Logger logger, RpcRequest rpc, SQL sql, EventManager eventManager, PlayerList players)
+        public CharacterManager(Logger logger, RpcRequest rpc, SQL sql, EventManager eventManager, PlayerList players, EventHandlerDictionary eventHandler)
         {
             this.logger = logger;
             this.sql = sql;
@@ -34,20 +34,48 @@ namespace Average.Server.Managers
                     var characterExist = await Exist(player);
                     callback(characterExist.ToString().ToLower());
 
-                    logger.Debug($"[Character] Sending character exist. [{characterExist}]");
+                    logger.Debug($"[Character] Getted character exist: [{characterExist}]");
                 }
                 catch
                 {
-                    logger.Debug("[Character] Unable to check if character exist");
+                    logger.Debug("[Character] Unable to check if character exist.");
+                }
+            });
+
+            rpc.Event("Character.Load").On(async (message, callback) =>
+            {
+                try
+                {
+                    var player = players[message.Target];
+                    var data = await Load(player.Identifiers["license"]);
+                    callback(data);
+
+                    logger.Debug($"[Character] Getted character");
+                }
+                catch
+                {
+                    logger.Debug("[Character] Unable get character.");
                 }
             });
 
             eventManager.PlayerDisconnecting += PlayerDisconnecting;
+
+            eventHandler["Character.SetPed"] += new Action<int, uint, int>(OnSetPedEvent);
+            eventHandler["Character.Save"] += new Action<Player, string>(OnSaveEvent);
+            eventHandler["Character.Save"] += new Action<Player, string>(OnSaveEvent);
+            eventHandler["Character.SetMoney"] += new Action<int, decimal>(OnSetMoneyEvent);
+            eventHandler["Character.SetBank"] += new Action<int, decimal>(OnSetBankEvent);
+            eventHandler["Character.AddMoney"] += new Action<int, decimal>(OnAddMoneyEvent);
+            eventHandler["Character.AddBank"] += new Action<int, decimal>(OnAddBankEvent);
+            eventHandler["Character.RemoveMoney"] += new Action<int, decimal>(OnRemoveMoneyEvent);
+            eventHandler["Character.RemoveBank"] += new Action<int, decimal>(OnRemoveBankEvent);
         }
 
         public CharacterData GetLocal(string rockstarId)
         {
-            if (Characters.ContainsKey(rockstarId)) return Characters[rockstarId];
+            if (Characters.ContainsKey(rockstarId))
+                return Characters[rockstarId];
+
             return null;
         }
 
@@ -83,10 +111,8 @@ namespace Average.Server.Managers
 
         #region Events
 
-        [EventHandler("Character.SetPed")]
         protected void OnSetPedEvent(int player, uint model, int variation) => players[player].TriggerEvent("Character.SetPed", model, variation);
 
-        [EventHandler("Character.Save")]
         protected async void OnSaveEvent([FromSource] Player player, string json)
         {
             if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
@@ -110,22 +136,16 @@ namespace Average.Server.Managers
 
         protected async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await Save(e.Player);
 
-        [EventHandler("Character.SetMoney")]
         protected void OnSetMoneyEvent(int player, decimal amount) => players[player].TriggerEvent("Character.SetMoney", amount);
 
-        [EventHandler("Character.SetBank")]
         protected void OnSetBankEvent(int player, decimal amount) => players[player].TriggerEvent("Character.SetBank", amount);
 
-        [EventHandler("Character.AddMoney")]
         protected void OnAddMoneyEvent(int player, decimal amount) => players[player].TriggerEvent("Character.AddMoney", amount);
 
-        [EventHandler("Character.AddBank")]
         protected void OnAddBankEvent(int player, decimal amount) => players[player].TriggerEvent("Character.AddBank", amount);
 
-        [EventHandler("Character.RemoveMoney")]
         protected void OnRemoveMoneyEvent(int player, decimal amount) => players[player].TriggerEvent("Character.RemoveMoney", amount);
 
-        [EventHandler("Character.RemoveBank")]
         protected void OnRemoveBankEvent(int player, decimal amount) => players[player].TriggerEvent("Character.RemoveBank", amount);
 
         #endregion

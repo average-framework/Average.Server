@@ -51,7 +51,7 @@ namespace Average.Server
             exportManager = new ExportManager(logger);
             user = new UserManager(logger, rpc, sql, Players);
             permission = new PermissionManager(logger, rpc, sql);
-            characterManager = new CharacterManager(logger, rpc, sql, eventManager, Players);
+            characterManager = new CharacterManager(logger, rpc, sql, eventManager, Players, EventHandlers);
             requestInternalManager = new RequestInternalManager(logger, eventManager);
             requestManager = new RequestManager(requestInternalManager);
             syncManager = new SyncManager(logger, threadManager);
@@ -65,15 +65,9 @@ namespace Average.Server
             loader.Load();
         }
 
-        internal void RegisterTick(Func<Task> func)
-        {
-            Tick += func;
-        }
+        internal void RegisterTick(Func<Task> func) => Tick += func;
 
-        internal void UnregisterTick(Func<Task> func)
-        {
-            Tick -= func;
-        }
+        internal void UnregisterTick(Func<Task> func) => Tick -= func;
 
         internal void Watermark()
         {
