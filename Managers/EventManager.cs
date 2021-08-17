@@ -48,12 +48,12 @@ namespace Average.Server.Managers
         {
             if (events.ContainsKey(eventName))
             {
-                logger.Debug($"Calling custom event: {eventName}. [{string.Join(", ", args)}]");
+                logger.Debug($"Calling event: {eventName}.");
                 events[eventName].ForEach(x => x.DynamicInvoke(args));
             }
             else
             {
-                logger.Debug($"Calling internal event: {eventName}. [{string.Join(", ", args)}]");
+                logger.Debug($"Calling external event: {eventName}.");
                 BaseScript.TriggerEvent(eventName, args);
             }
         }
@@ -120,6 +120,10 @@ namespace Average.Server.Managers
         {
             var newArgs = new List<object>();
             newArgs.Add(int.Parse(player.Handle));
+
+            foreach (var arg in args)
+                newArgs.Add(arg);
+
             Emit(eventName, newArgs.ToArray());
         }
 
