@@ -1,7 +1,6 @@
 ﻿using Average.Server.Data;
 using CitizenFX.Core;
 using Newtonsoft.Json;
-using SDK.Server;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
 using SDK.Server.Rpc;

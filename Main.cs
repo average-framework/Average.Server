@@ -39,7 +39,6 @@ namespace Average.Server
 
             Watermark();
 
-
             sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
             sql.Connect();
 
@@ -50,7 +49,7 @@ namespace Average.Server
             rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
             exportManager = new ExportManager(logger);
             user = new UserManager(logger, rpc, sql, Players);
-            permission = new PermissionManager(logger, rpc, sql);
+            permission = new PermissionManager(logger, rpc, sql, EventHandlers, Players);
             characterManager = new CharacterManager(logger, rpc, sql, eventManager, Players, EventHandlers);
             requestInternalManager = new RequestInternalManager(logger, eventManager);
             requestManager = new RequestManager(requestInternalManager);
