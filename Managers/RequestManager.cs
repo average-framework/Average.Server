@@ -16,15 +16,11 @@ namespace Average.Server.Managers
             { "Content-Type", "application/json"}
         };
 
-        public RequestManager(RequestInternalManager requestInternal)
-        {
-            this.requestInternal = requestInternal;
-        }
+        public RequestManager(RequestInternalManager requestInternal) => this.requestInternal = requestInternal;
 
         public async Task<RequestResponse> Http(string url, string method = "GET", string data = "", Dictionary<string, string> headers = null)
         {
             headers = (headers == null) ? new Dictionary<string, string>() : headers;
-            //var request = await framework.Internal.GetPluginInstance<RequestInternal>("Request.Server.RequestInternal");
             var response = await requestInternal.Http(url, method, data, headers);
             return ParseRequestResponseInternal(response);
         }
@@ -35,9 +31,7 @@ namespace Average.Server.Managers
             var headerDict = (IDictionary<string, object>)headerDyn;
 
             foreach (KeyValuePair<string, object> entry in headerDict)
-            {
                 headers.Add(entry.Key, entry.Value.ToString());
-            }
 
             return headers;
         }

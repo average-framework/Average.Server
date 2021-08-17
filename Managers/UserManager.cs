@@ -1,6 +1,5 @@
 ﻿using Average.Server.Data;
 using CitizenFX.Core;
-using SDK.Server;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
 using SDK.Server.Rpc;
@@ -20,7 +19,7 @@ namespace Average.Server.Managers
 
             rpc.Event("User.GetUser").On(async (message, callback) =>
             {
-                logger.Debug("Getted user: " + players[message.Target].Name);
+                logger.Debug("Getted user");
                 var data = await GetUser(players[message.Target]);
                 callback(data);
             });

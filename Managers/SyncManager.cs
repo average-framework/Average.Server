@@ -55,14 +55,7 @@ namespace Average.Server.Managers
         internal object GetPropertyValue(PropertyInfo property, object classObj)
         {
             if (property.GetIndexParameters().Length == 0)
-            {
-                // Can get value
                 return property.GetValue(classObj, null);
-            }
-            else
-            {
-                // Cannot get value
-            }
 
             return null;
         }

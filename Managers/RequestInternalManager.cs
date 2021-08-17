@@ -59,9 +59,6 @@ namespace Average.Server.Managers
             return res;
         }
 
-        void IRequestInternalManager.HttpResponse(object sender, HttpResponseEventArgs e)
-        {
-            HttpResponse(sender, e);
-        }
+        void IRequestInternalManager.HttpResponse(object sender, HttpResponseEventArgs e) => HttpResponse(sender, e);
     }
 }

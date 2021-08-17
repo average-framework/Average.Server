@@ -37,6 +37,7 @@ namespace Average.Server.Managers
         public EventManager(EventHandlerDictionary eventHandlers, Logger logger)
         {
             this.logger = logger;
+
             events = new Dictionary<string, List<Delegate>>();
 
             eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);

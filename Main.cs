@@ -93,7 +93,6 @@ namespace Average.Server
             Console.WriteLine($"    | VERSION {Assembly.GetExecutingAssembly().GetName().Version} | EARLY BUILD | {API.GetConvar("sv_maxclients", "")} SLOTS      |");
             Console.WriteLine("    --------------------------------------------------------");
             Console.WriteLine("");
-            Console.WriteLine("");
         }
     }
 }

@@ -27,13 +27,9 @@ namespace Average.Server.Managers
             try
             {
                 if (exports.ContainsKey(methodName))
-                {
                     exports[methodName].DynamicInvoke(args);
-                }
                 else
-                {
                     logger.Debug($"Unable to call export: {methodName}, this export does not exists.");
-                }
             }
             catch (Exception ex)
             {
@@ -46,13 +42,9 @@ namespace Average.Server.Managers
             try
             {
                 if (exports.ContainsKey(methodName))
-                {
                     return (T)exports[methodName].DynamicInvoke(args);
-                }
                 else
-                {
                     logger.Debug($"Unable to call export: {methodName}, this export does not exists.");
-                }
 
                 var instance = (T)Activator.CreateInstance(typeof(T));
                 return instance;
