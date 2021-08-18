@@ -131,124 +131,109 @@ namespace Average.Server.Managers
 
         #region Events
 
-        public void OnPlayerConnecting(Player player, dynamic kick, dynamic deferrals)
+        public async void OnPlayerConnecting(Player player, dynamic kick, dynamic deferrals)
         {
-            if (PlayerConnecting != null)
-            {
-                PlayerConnecting(null, new PlayerConnectingEventArgs(player, kick, deferrals));
-            }
+            await Main.loader.IsReady();
+            PlayerConnecting?.Invoke(this, new PlayerConnectingEventArgs(player, kick, deferrals));
+            Emit("PlayerConnecting", int.Parse(player.Handle), kick, deferrals);
         }
 
-        public void OnPlayerDisconnecting(Player player, string reason)
+        public async void OnPlayerDisconnecting(Player player, string reason)
         {
-            if (PlayerDisconnecting != null)
-            {
-                PlayerDisconnecting(null, new PlayerDisconnectingEventArgs(player, reason));
-            }
+            await Main.loader.IsReady();
+            PlayerDisconnecting?.Invoke(this, new PlayerDisconnectingEventArgs(player, reason));
+            Emit("PlayerDisconnecting", int.Parse(player.Handle), reason);
         }
 
-        public void OnResourceStop(string resource)
+        public async void OnResourceStop(string resource)
         {
-            if (ResourceStop != null)
-            {
-                ResourceStop(null, new ResourceStopEventArgs(resource));
-            }
+            await Main.loader.IsReady();
+            ResourceStop?.Invoke(this, new ResourceStopEventArgs(resource));
+            Emit("ResourceStop", resource);
         }
 
-        public void OnResourceStart(string resource)
+        public async void OnResourceStart(string resource)
         {
-            if (ResourceStart != null)
-            {
-                ResourceStart(null, new ResourceStartEventArgs(resource));
-            }
+            await Main.loader.IsReady();
+            ResourceStart?.Invoke(this, new ResourceStartEventArgs(resource));
+            Emit("ResourceStart", resource);
         }
 
-        public void OnResourceListRefresh()
+        public async void OnResourceListRefresh()
         {
-            if (ResourceListRefresh != null)
-            {
-                ResourceListRefresh(null, new EventArgs());
-            }
+            await Main.loader.IsReady();
+            ResourceListRefresh?.Invoke(this, new EventArgs());
+            Emit("ResourceListRefresh");
         }
 
-        public void OnResourceStarting(string resource)
+        public async void OnResourceStarting(string resource)
         {
-            if (ResourceStarting != null)
-            {
-                ResourceStarting(null, new ResourceStartingEventArgs(resource));
-            }
+            await Main.loader.IsReady();
+            ResourceStarting?.Invoke(this, new ResourceStartingEventArgs(resource));
+            Emit("ResourceStarting", resource);
         }
 
-        public void OnServerResourceStart(string resource)
+        public async void OnServerResourceStart(string resource)
         {
-            if (ServerResourceStart != null)
-            {
-                ServerResourceStart(null, new ServerResourceStartEventArgs(resource));
-            }
+            await Main.loader.IsReady();
+            ServerResourceStart?.Invoke(this, new ServerResourceStartEventArgs(resource));
+            Emit("ServerResourceStart", resource);
         }
 
-        public void OnServerResourceStop(string resource)
+        public async void OnServerResourceStop(string resource)
         {
-            if (ServerResourceStop != null)
-            {
-                ServerResourceStop(null, new ServerResourceStopEventArgs(resource));
-            }
+            await Main.loader.IsReady();
+            ServerResourceStop?.Invoke(this, new ServerResourceStopEventArgs(resource));
+            Emit("ServerResourceStop", resource);
         }
 
-        public void OnPlayerJoining(string source, string oldId)
+        public async void OnPlayerJoining(string source, string oldId)
         {
-            if (PlayerJoining != null)
-            {
-                PlayerJoining(null, new PlayerJoiningEventArgs(source, oldId));
-            }
+            await Main.loader.IsReady();
+            PlayerJoining?.Invoke(this, new PlayerJoiningEventArgs(source, oldId));
+            Emit("PlayerJoining", source, oldId);
         }
 
-        public void OnEntityCreated(int handle)
+        public async void OnEntityCreated(int handle)
         {
-            if (EntityCreated != null)
-            {
-                EntityCreated(null, new EntityCreatedEventArgs(handle));
-            }
+            await Main.loader.IsReady();
+            EntityCreated?.Invoke(this, new EntityCreatedEventArgs(handle));
+            Emit("EntityCreated", handle);
         }
 
-        public void OnEntityCreating(int handle)
+        public async void OnEntityCreating(int handle)
         {
-            if (EntityCreating != null)
-            {
-                EntityCreating(null, new EntityCreatingEventArgs(handle));
-            }
+            await Main.loader.IsReady();
+            EntityCreating?.Invoke(this, new EntityCreatingEventArgs(handle));
+            Emit("EntityCreating", handle);
         }
 
-        public void OnEntityRemoved(int handle)
+        public async void  OnEntityRemoved(int handle)
         {
-            if (EntityRemoved != null)
-            {
-                EntityRemoved(null, new EntityRemovedEventArgs(handle));
-            }
+            await Main.loader.IsReady();
+            EntityRemoved?.Invoke(this, new EntityRemovedEventArgs(handle));
+            Emit("EntityRemoved", handle);
         }
 
-        public void OnPlayerEnteredScope(object data)
+        public async void OnPlayerEnteredScope(object data)
         {
-            if (PlayerEnteredScope != null)
-            {
-                PlayerEnteredScope(null, new PlayerEnteredScopeEventArgs(data));
-            }
+            await Main.loader.IsReady();
+            PlayerEnteredScope?.Invoke(this, new PlayerEnteredScopeEventArgs(data));
+            Emit("PlayerEnteredScope", data);
         }
 
-        public void OnPlayerLeftScope(object data)
+        public async void OnPlayerLeftScope(object data)
         {
-            if (PlayerLeftScope != null)
-            {
-                PlayerLeftScope(null, new PlayerLeftScopeEventArgs(data));
-            }
+            await Main.loader.IsReady();
+            PlayerLeftScope?.Invoke(this, new PlayerLeftScopeEventArgs(data));
+            Emit("PlayerLeftScope", data);
         }
 
-        public void OnHttpResponse(int token, int status, string text, dynamic header)
+        public async void OnHttpResponse(int token, int status, string text, dynamic header)
         {
-            if (HttpResponse != null)
-            {
-                HttpResponse(null, new HttpResponseEventArgs(token, status, text, header));
-            }
+            await Main.loader.IsReady();
+            HttpResponse?.Invoke(this, new HttpResponseEventArgs(token, status, text, header));
+            Emit("HttpResponse", token, status, text, header);
         }
 
         #endregion

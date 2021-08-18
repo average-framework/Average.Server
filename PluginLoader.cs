@@ -25,11 +25,13 @@ namespace Average.Server
         Logger logger;
         CommandManager command;
 
+        bool isReady;
+
         string BASE_RESOURCE_PATH = GetResourcePath(Constant.RESOURCE_NAME);
 
         List<PluginInfo> clientPlugins = new List<PluginInfo>();
 
-        public List<IPlugin> Plugins { get; } = new List<IPlugin>();
+        public List<Plugin> Plugins { get; } = new List<Plugin>();
 
 
         public PluginLoader(Logger logger, CommandManager command, RpcRequest rpc)
@@ -38,6 +40,11 @@ namespace Average.Server
             this.command = command;
 
             rpc.Event("avg.internal.get_plugins").On(new Action<RpcMessage, RpcCallback>(GetPluginsEvent));
+        }
+
+        public async Task IsReady()
+        {
+            while (!isReady) await BaseScript.Delay(0);
         }
 
         IEnumerable<string> GetPluginsPath()
@@ -243,7 +250,8 @@ namespace Average.Server
                                     }
                                 }
 
-                                if (script == null) continue;
+                                if (script == null)
+                                    continue;
 
                                 RegisterThreads(type, script);
                                 RegisterEvents(type, script);
@@ -264,6 +272,8 @@ namespace Average.Server
                     }
                 }
             }
+
+            isReady = true;
         }
 
         void RegisterCommands(Type type, object classObj)
@@ -424,9 +434,7 @@ namespace Average.Server
             var pluginsInfo = new List<IPluginInfo>();
 
             foreach (var plugin in clientPlugins)
-            {
                 pluginsInfo.Add(plugin);
-            }
 
             callback(pluginsInfo);
         }
