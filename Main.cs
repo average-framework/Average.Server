@@ -39,7 +39,8 @@ namespace Average.Server
 
             Watermark();
 
-            sql = new SQL(logger, new SQLConnection("localhost", 3306, "rdr_newcore", "root", ""));
+            var baseConfig = SDK.Server.Configuration.Parse("config.json");
+            sql = new SQL(logger, new SQLConnection((string)baseConfig["MySQL"]["Host"], (int)baseConfig["MySQL"]["Port"], (string)baseConfig["MySQL"]["Database"], (string)baseConfig["MySQL"]["Username"], (string)baseConfig["MySQL"]["Password"]));
             sql.Connect();
 
             // Internal Script

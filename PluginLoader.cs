@@ -224,7 +224,6 @@ namespace Average.Server
                                     {
                                         // Activate asm instance
                                         script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
-                                        //script.PluginInfo = pluginInfo;
                                         RegisterPlugin(script, type);
 
                                         logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
@@ -239,7 +238,6 @@ namespace Average.Server
                                     try
                                     {
                                         script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
-                                        //script.PluginInfo = pluginInfo;
                                         RegisterPlugin(script, type);
 
                                         logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
