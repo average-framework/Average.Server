@@ -67,6 +67,7 @@
     <Compile Include="Managers\CharacterManager.cs" />
     <Compile Include="Managers\CommandManager.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="Managers\DoorManager.cs" />
     <Compile Include="Managers\EventManager.cs" />
     <Compile Include="Managers\ExportManager.cs" />
     <Compile Include="Managers\CfxManager.cs" />

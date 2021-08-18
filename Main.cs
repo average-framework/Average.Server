@@ -27,6 +27,7 @@ namespace Average.Server
         internal static RequestManager requestManager;
         internal static RequestInternalManager requestInternalManager;
         internal static JobManager jobManager;
+        internal static DoorManager doorManager;
 
         internal static PluginLoader loader;
 
@@ -55,9 +56,10 @@ namespace Average.Server
             syncManager = new SyncManager(logger, threadManager);
             var cfx = new CfxManager(EventHandlers, logger, eventManager);
             jobManager = new JobManager(logger, characterManager, EventHandlers, Players);
+            doorManager = new DoorManager(logger, EventHandlers, eventManager, rpc);
 
             // Framework Script
-            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager, jobManager);
+            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager, jobManager, doorManager);
 
             // Plugin Loader
             loader = new PluginLoader(logger, commandManager, rpc);
