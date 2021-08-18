@@ -73,6 +73,7 @@
     <Compile Include="Data\SQL.cs" />
     <Compile Include="Data\SQLConnection.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="Managers\JobManager.cs" />
     <Compile Include="Managers\PermissionManager.cs" />
     <Compile Include="Managers\UserManager.cs" />
     <Compile Include="PluginLoader.cs" />

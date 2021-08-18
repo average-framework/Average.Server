@@ -81,6 +81,12 @@ namespace Average.Server.Managers
         public async Task<CharacterData> Load(string rockstarId)
         {
             var data = await sql.GetAllAsync<CharacterData>("characters", x => x.RockstarId == rockstarId);
+
+            if (!Characters.ContainsKey(rockstarId))
+                Characters.Add(rockstarId, data[0]);
+            else
+                Characters[rockstarId] = data[0];
+
             return data[0];
         }
 
@@ -96,15 +102,26 @@ namespace Average.Server.Managers
 
         public async Task Create(CharacterData data) => await sql.InsertOrUpdateAsync("characters", data);
 
-        public async Task Save(Player player)
+        public async Task SaveCache(Player player)
         {
             var rockstarId = player.Identifiers["license"];
 
             if (Characters.ContainsKey(rockstarId))
             {
-                var character = Characters[rockstarId];
-                await sql.InsertOrUpdateAsync("characters", character);
-                logger.Info("[Character] Saved: " + rockstarId);
+                var data = Characters[rockstarId];
+                await sql.InsertOrUpdateAsync("characters", data);
+                logger.Debug("[Character] Cache saved: " + rockstarId);
+            }
+        }
+
+        public void UpdateCache(Player player, CharacterData data)
+        {
+            var rockstarId = player.Identifiers["license"];
+
+            if (Characters.ContainsKey(rockstarId))
+            {
+                Characters[rockstarId] = data;
+                logger.Debug("[Character] Cache updated: " + rockstarId);
             }
         }
 
@@ -116,24 +133,14 @@ namespace Average.Server.Managers
         {
             if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
             {
-                logger.Error("[Character] Unable to save character of player: " + players[player].Name + ", json contains an error.");
+                logger.Error("[Character] Unable to save character for player: " + players[player].Name + ", json contains an error.");
                 return;
             }
 
-            var character = JsonConvert.DeserializeObject<CharacterData>(json);
-
-            if (Characters.ContainsKey(character.RockstarId))
-            {
-                Characters[character.RockstarId] = character;
-            }
-            else
-            {
-                Characters.Add(character.RockstarId, character);
-                await Create(character);
-            }
+            UpdateCache(players[player], JsonConvert.DeserializeObject<CharacterData>(json));
         }
 
-        protected async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await Save(e.Player);
+        protected async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await SaveCache(e.Player);
 
         protected void OnSetMoneyEvent(int player, decimal amount) => players[player].TriggerEvent("Character.SetMoney", amount);
 

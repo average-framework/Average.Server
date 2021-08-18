@@ -8,7 +8,6 @@ using SDK.Server.Rpc;
 using SDK.Shared.Rpc;
 using System;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Average.Server
 {
@@ -27,9 +26,8 @@ namespace Average.Server
         internal static CharacterManager characterManager;
         internal static RequestManager requestManager;
         internal static RequestInternalManager requestInternalManager;
+        internal static JobManager jobManager;
 
-        SQL sql;
-        CfxManager cfx;
         internal static PluginLoader loader;
 
         public Main()
@@ -40,7 +38,7 @@ namespace Average.Server
             Watermark();
 
             var baseConfig = SDK.Server.Configuration.Parse("config.json");
-            sql = new SQL(logger, new SQLConnection((string)baseConfig["MySQL"]["Host"], (int)baseConfig["MySQL"]["Port"], (string)baseConfig["MySQL"]["Database"], (string)baseConfig["MySQL"]["Username"], (string)baseConfig["MySQL"]["Password"]));
+            var sql = new SQL(logger, new SQLConnection((string)baseConfig["MySQL"]["Host"], (int)baseConfig["MySQL"]["Port"], (string)baseConfig["MySQL"]["Database"], (string)baseConfig["MySQL"]["Username"], (string)baseConfig["MySQL"]["Password"]));
             sql.Connect();
 
             // Internal Script
@@ -55,19 +53,16 @@ namespace Average.Server
             requestInternalManager = new RequestInternalManager(logger, eventManager);
             requestManager = new RequestManager(requestInternalManager);
             syncManager = new SyncManager(logger, threadManager);
-            cfx = new CfxManager(EventHandlers, logger, eventManager);
+            var cfx = new CfxManager(EventHandlers, logger, eventManager);
+            jobManager = new JobManager(logger, characterManager, EventHandlers, Players);
 
             // Framework Script
-            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager);
+            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager, jobManager);
 
             // Plugin Loader
             loader = new PluginLoader(logger, commandManager, rpc);
             loader.Load();
         }
-
-        internal void RegisterTick(Func<Task> func) => Tick += func;
-
-        internal void UnregisterTick(Func<Task> func) => Tick -= func;
 
         internal void Watermark()
         {
