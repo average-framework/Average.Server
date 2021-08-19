@@ -18,7 +18,7 @@ namespace Average.Server.Managers
 
         int saveInterval;
         int deferredInterval;
-        int cancelSaveInterval;
+        int cancelSaveTimeout;
 
         JObject baseConfig;
 
@@ -35,7 +35,7 @@ namespace Average.Server.Managers
 
             saveInterval = (int)baseConfig["Save"]["SaveInterval"];
             deferredInterval = (int)baseConfig["Save"]["DeferredInterval"];
-            cancelSaveInterval = (int)baseConfig["Save"]["CancelSaveInterval"];
+            cancelSaveTimeout = (int)baseConfig["Save"]["CancelSaveTimeout"];
 
             thread.StartThread(Update);
             
@@ -72,7 +72,7 @@ namespace Average.Server.Managers
 
             var time = GetGameTimer();
 
-            while (!playersSavedState.Values.All(x => x) && (GetGameTimer() - time) < cancelSaveInterval) await BaseScript.Delay(0);
+            while (!playersSavedState.Values.All(x => x) && (GetGameTimer() - time) < cancelSaveTimeout) await BaseScript.Delay(0);
 
             var seconds = saveInterval / 1000;
             var minutes = seconds / 60;
