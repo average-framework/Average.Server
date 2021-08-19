@@ -34,9 +34,11 @@ namespace Average.Server.Managers
             var targetRockstarId = target.Identifiers["license"];
             await character.Load(targetRockstarId);
 
-            character.Characters[targetRockstarId].Job.Name = jobName;
-            character.Characters[targetRockstarId].Job.Role.Name = roleName;
-            character.Characters[targetRockstarId].Job.Role.Level = roleLevel;
+            var cache = character.GetCache(targetRockstarId);
+            cache.Job.Name = jobName;
+            cache.Job.Role.Name = roleName;
+            cache.Job.Role.Level = roleLevel;
+            character.UpdateCache(target, cache);
 
             await character.Save(target);
 

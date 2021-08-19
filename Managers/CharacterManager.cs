@@ -17,16 +17,16 @@ namespace Average.Server.Managers
         Logger logger;
         SQL sql;
         PlayerList players;
-        SaveManager save;
 
-        public Dictionary<string, CharacterData> Characters { get; } = new Dictionary<string, CharacterData>();
+        const string tableName = "characters";
+
+        Dictionary<string, CharacterData> characters { get; } = new Dictionary<string, CharacterData>();
 
         public CharacterManager(Logger logger, RpcRequest rpc, SQL sql, EventManager eventManager, PlayerList players, EventHandlerDictionary eventHandler, SaveManager save)
         {
             this.logger = logger;
             this.sql = sql;
             this.players = players;
-            this.save = save;
 
             #region Rpc
 
@@ -78,50 +78,52 @@ namespace Average.Server.Managers
             eventHandler["Character.RemoveBank"] += new Action<int, decimal>(OnRemoveBankEvent);
 
             #endregion
+
+            save.AddInQueue(this);
         }
 
-        public CharacterData GetLocal(string rockstarId)
+        public CharacterData GetCache(string rockstarId)
         {
-            if (Characters.ContainsKey(rockstarId))
-                return Characters[rockstarId];
+            if (characters.ContainsKey(rockstarId))
+                return characters[rockstarId];
 
             return null;
         }
 
         public async Task<CharacterData> Load(string rockstarId)
         {
-            var data = await sql.GetAllAsync<CharacterData>("characters", x => x.RockstarId == rockstarId);
+            var data = await sql.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
 
-            if (!Characters.ContainsKey(rockstarId))
-                Characters.Add(rockstarId, data[0]);
+            if (!characters.ContainsKey(rockstarId))
+                characters.Add(rockstarId, data[0]);
             else
-                Characters[rockstarId] = data[0];
+                characters[rockstarId] = data[0];
 
             return data[0];
         }
 
-        public async Task<bool> LocalExist(Player player, bool isLocal)
+        public async Task<bool> CacheExist(Player player, bool isLocal)
         {
             if (isLocal)
-                return Characters.Values.ToList().Exists(x => x.RockstarId == player.Identifiers["license"]);
+                return characters.Values.ToList().Exists(x => x.RockstarId == player.Identifiers["license"]);
             else
-                return await sql.ExistsAsync<CharacterData>("characters", x => x.RockstarId == player.Identifiers["license"]);
+                return await sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
         }
 
-        public async Task<bool?> Exist(Player player) => await sql.ExistsAsync<CharacterData>("characters", x => x.RockstarId == player.Identifiers["license"]);
+        public async Task<bool?> Exist(Player player) => await sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
 
-        public async Task Create(CharacterData data) => await sql.InsertOrUpdateAsync("characters", data);
+        public async Task Create(CharacterData data) => await sql.InsertOrUpdateAsync(tableName, data);
 
         public async Task Save(Player player)
         {
             var rockstarId = player.Identifiers["license"];
 
-            if (Characters.ContainsKey(rockstarId))
+            if (characters.ContainsKey(rockstarId))
             {
                 try
                 {
-                    var data = Characters[rockstarId];
-                    await sql.InsertOrUpdateAsync("characters", data);
+                    var data = characters[rockstarId];
+                    await sql.InsertOrUpdateAsync(tableName, data);
                     logger.Debug("[Character] Saved: " + rockstarId);
                 }
                 catch (Exception ex)
@@ -133,18 +135,18 @@ namespace Average.Server.Managers
 
         public async Task SaveAll()
         {
-            for (int i = 0; i < Characters.Count; i++)
+            for (int i = 0; i < characters.Count; i++)
             {
-                var data = Characters.ElementAt(i);
+                var data = characters.ElementAt(i);
 
                 try
                 {
-                    await sql.InsertOrUpdateAsync("characters", data.Value);
+                    await sql.InsertOrUpdateAsync(tableName, data.Value);
                     logger.Debug("[Character] Saved: " + data.Key);
                 }
                 catch (Exception ex)
                 {
-                    logger.Error($"[Character] Error on saving character: {data.Key} . Error: " + ex.Message);
+                    logger.Error($"[Character] Error on saving character: {data.Key}. Error: " + ex.Message);
                 }
             }
         }
@@ -153,14 +155,14 @@ namespace Average.Server.Managers
         {
             var rockstarId = player.Identifiers["license"];
 
-            if (Characters.ContainsKey(rockstarId))
+            if (characters.ContainsKey(rockstarId))
             {
-                Characters[rockstarId] = data;
+                characters[rockstarId] = data;
                 logger.Debug("[Character] Cache updated: " + rockstarId);
             }
         }
 
-        #region Events
+        #region Event
 
         protected void OnSetPedEvent(int player, uint model, int variation) => players[player].TriggerEvent("Character.SetPed", model, variation);
 
