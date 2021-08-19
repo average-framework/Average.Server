@@ -22,9 +22,13 @@ namespace Average.Server.Managers
 
             doors = SDK.Server.Configuration.Parse<List<Door>>("configs/custom_doors.json");
 
-            #region Events
+            #region Event
 
             eventHandlers["Door.SetDoorState"] += new Action<Vector3>(SetDoorStateEvent);
+
+            #endregion
+
+            #region Rpc
 
             rpc.Event("Door.GetDoors").On((message, callback) => callback(doors.ToArray()));
 
@@ -56,11 +60,14 @@ namespace Average.Server.Managers
             var door = Exist(position);
 
             if (door == null)
-                return;
-            else
+            {
                 logger.Debug("[Door] Any door exist at position: " + position);
-
-            SetDoorState(door);
+                return;
+            }
+            else
+            {
+                SetDoorState(door);
+            }
         }
 
         #endregion

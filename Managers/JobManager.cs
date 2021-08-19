@@ -38,7 +38,7 @@ namespace Average.Server.Managers
             character.Characters[targetRockstarId].Job.Role.Name = roleName;
             character.Characters[targetRockstarId].Job.Role.Level = roleLevel;
 
-            await character.SaveCache(target);
+            await character.Save(target);
 
             logger.Warn($"Job setted by {player.Name} for {target.Name}, job: {jobName}, rolename: {roleName}");
         }

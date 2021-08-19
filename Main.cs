@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace Average.Server
 {
-    internal class Main : BaseScript
+    internal class Main : BaseScript 
     {
         internal static Logger logger;
         internal static CommandManager commandManager;
@@ -28,8 +28,11 @@ namespace Average.Server
         internal static RequestInternalManager requestInternalManager;
         internal static JobManager jobManager;
         internal static DoorManager doorManager;
+        internal static SaveManager saveManager;
 
         internal static PluginLoader loader;
+
+        CfxManager cfxManager;
 
         public Main()
         {
@@ -46,20 +49,23 @@ namespace Average.Server
             commandManager = new CommandManager(logger);
             threadManager = new ThreadManager(c => Tick += c, c => Tick -= c);
             eventManager = new EventManager(EventHandlers, logger);
-            rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
+            syncManager = new SyncManager(logger, threadManager);
             exportManager = new ExportManager(logger);
-            user = new UserManager(logger, rpc, sql, Players);
-            permission = new PermissionManager(logger, rpc, sql, EventHandlers, Players);
-            characterManager = new CharacterManager(logger, rpc, sql, eventManager, Players, EventHandlers);
+            rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
             requestInternalManager = new RequestInternalManager(logger, eventManager);
             requestManager = new RequestManager(requestInternalManager);
-            syncManager = new SyncManager(logger, threadManager);
-            var cfx = new CfxManager(EventHandlers, logger, eventManager);
+
+            saveManager = new SaveManager(logger, threadManager, eventManager, EventHandlers, Players);
+
+            user = new UserManager(logger, rpc, sql, Players);
+            permission = new PermissionManager(logger, rpc, sql, EventHandlers, Players);
+            characterManager = new CharacterManager(logger, rpc, sql, eventManager, Players, EventHandlers, saveManager);
             jobManager = new JobManager(logger, characterManager, EventHandlers, Players);
             doorManager = new DoorManager(logger, EventHandlers, eventManager, rpc);
+            cfxManager = new CfxManager(EventHandlers, logger, eventManager);
 
             // Framework Script
-            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager, jobManager, doorManager);
+            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager, jobManager, doorManager, saveManager);
 
             // Plugin Loader
             loader = new PluginLoader(logger, commandManager, rpc);

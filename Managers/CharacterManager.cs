@@ -12,19 +12,23 @@ using System.Threading.Tasks;
 
 namespace Average.Server.Managers
 {
-    public class CharacterManager : ICharacterManager
+    public class CharacterManager : ICharacterManager, ISaveable
     {
         Logger logger;
         SQL sql;
         PlayerList players;
+        SaveManager save;
 
         public Dictionary<string, CharacterData> Characters { get; } = new Dictionary<string, CharacterData>();
 
-        public CharacterManager(Logger logger, RpcRequest rpc, SQL sql, EventManager eventManager, PlayerList players, EventHandlerDictionary eventHandler)
+        public CharacterManager(Logger logger, RpcRequest rpc, SQL sql, EventManager eventManager, PlayerList players, EventHandlerDictionary eventHandler, SaveManager save)
         {
             this.logger = logger;
             this.sql = sql;
             this.players = players;
+            this.save = save;
+
+            #region Rpc
 
             rpc.Event("Character.Exist").On(async (message, callback) =>
             {
@@ -58,6 +62,10 @@ namespace Average.Server.Managers
                 }
             });
 
+            #endregion
+
+            #region Event
+
             eventManager.PlayerDisconnecting += PlayerDisconnecting;
 
             eventHandler["Character.SetPed"] += new Action<int, uint, int>(OnSetPedEvent);
@@ -68,6 +76,8 @@ namespace Average.Server.Managers
             eventHandler["Character.AddBank"] += new Action<int, decimal>(OnAddBankEvent);
             eventHandler["Character.RemoveMoney"] += new Action<int, decimal>(OnRemoveMoneyEvent);
             eventHandler["Character.RemoveBank"] += new Action<int, decimal>(OnRemoveBankEvent);
+
+            #endregion
         }
 
         public CharacterData GetLocal(string rockstarId)
@@ -102,15 +112,40 @@ namespace Average.Server.Managers
 
         public async Task Create(CharacterData data) => await sql.InsertOrUpdateAsync("characters", data);
 
-        public async Task SaveCache(Player player)
+        public async Task Save(Player player)
         {
             var rockstarId = player.Identifiers["license"];
 
             if (Characters.ContainsKey(rockstarId))
             {
-                var data = Characters[rockstarId];
-                await sql.InsertOrUpdateAsync("characters", data);
-                logger.Debug("[Character] Cache saved: " + rockstarId);
+                try
+                {
+                    var data = Characters[rockstarId];
+                    await sql.InsertOrUpdateAsync("characters", data);
+                    logger.Debug("[Character] Saved: " + rockstarId);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error($"[Character] Error on saving character: {rockstarId}. Error: " + ex.Message);
+                }
+            }
+        }
+
+        public async Task SaveAll()
+        {
+            for (int i = 0; i < Characters.Count; i++)
+            {
+                var data = Characters.ElementAt(i);
+
+                try
+                {
+                    await sql.InsertOrUpdateAsync("characters", data.Value);
+                    logger.Debug("[Character] Saved: " + data.Key);
+                }
+                catch (Exception ex)
+                {
+                    logger.Error($"[Character] Error on saving character: {data.Key} . Error: " + ex.Message);
+                }
             }
         }
 
@@ -140,7 +175,7 @@ namespace Average.Server.Managers
             UpdateCache(players[player], JsonConvert.DeserializeObject<CharacterData>(json));
         }
 
-        protected async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await SaveCache(e.Player);
+        protected async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await Save(e.Player);
 
         protected void OnSetMoneyEvent(int player, decimal amount) => players[player].TriggerEvent("Character.SetMoney", amount);
 
