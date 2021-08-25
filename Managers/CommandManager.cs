@@ -13,45 +13,46 @@ namespace Average.Server.Managers
     {
         private List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
 
+        private void RegisterCommandInternal(string command, object classObj, MethodInfo method,
+            ServerCommandAttribute commandAttr)
+        {
+            var methodParams = method.GetParameters();
+
+            API.RegisterCommand(command, new Action<int, List<object>, string>(async (source, args, raw) =>
+            {
+                var newArgs = new List<object>();
+
+                if (args.Count == methodParams.Length)
+                {
+                    try
+                    {
+                        args.ForEach(x =>
+                            newArgs.Add(Convert.ChangeType(x,
+                                methodParams[args.FindIndex(p => p == x)].ParameterType)));
+                        method.Invoke(classObj, newArgs.ToArray());
+                    }
+                    catch
+                    {
+                        Log.Error($"Unable to convert command arguments.");
+                    }
+                }
+                else
+                {
+                    var usage = "";
+                    methodParams.ToList().ForEach(x => usage += $"<[{x.ParameterType.Name}] {x.Name}> ");
+                    Log.Error($"Invalid command usage: {command} {usage}.");
+                }
+            }), false);
+
+            Log.Debug($"Registering [Command] attribute: {command} on method: {method.Name}");
+        }
+
         public void RegisterCommand(ServerCommandAttribute commandAttr, MethodInfo method, object classObj)
         {
             if (commandAttr == null) return;
 
-            var methodParams = method.GetParameters();
-
-            if (methodParams.Count() == 3)
-            {
-                if (methodParams[0].ParameterType == typeof(int) && methodParams[1].ParameterType == typeof(List<object>) && methodParams[2].ParameterType == typeof(string))
-                {
-                    // source, args, raw
-                    API.RegisterCommand(commandAttr.Command, new Action<int, List<object>, string>((source, args, raw) =>
-                    {
-                        method.Invoke(classObj, new object[] { source, args, raw });
-                    }), false);
-
-                    _commands.Add(commandAttr);
-                    Log.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
-                }
-                else
-                {
-                    Log.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
-                }
-            }
-            else if (methodParams.Count() == 0)
-            {
-                // empty args
-                API.RegisterCommand(commandAttr.Command, new Action(() =>
-                {
-                    method.Invoke(classObj, new object[] { });
-                }), false);
-
-                _commands.Add(commandAttr);
-                Log.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
-            }
-            else
-            {
-                Log.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
-            }
+            RegisterCommandInternal(commandAttr.Command, classObj, method, commandAttr);
+            _commands.Add(commandAttr);
         }
 
         public IEnumerable<ServerCommandAttribute> GetCommands() => _commands.AsEnumerable();
