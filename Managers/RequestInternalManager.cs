@@ -42,7 +42,7 @@ namespace Average.Server.Managers
             requestData.data = data;
             requestData.headers = headers;
 
-            var json = await JsonConvert.SerializeObjectAsync(requestData);
+            var json = JsonConvert.SerializeObject(requestData);
             var token = API.PerformHttpRequestInternal(json, json.Length);
 
             while (!_responseDictionary.ContainsKey(token)) await BaseScript.Delay(0);

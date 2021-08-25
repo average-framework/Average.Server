@@ -328,7 +328,7 @@ namespace Average.Server.Data
 
             reader.Close();
             IsWorking = false;
-            return JsonConvert.DeserializeObject<List<T>>(await JsonConvert.SerializeObjectAsync(list));
+            return JsonConvert.DeserializeObject<List<T>>(JsonConvert.SerializeObject(list));
         }
 
         private Dictionary<string, object> MapSerialize(object value) => JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(value));
