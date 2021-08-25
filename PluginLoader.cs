@@ -2,9 +2,7 @@
 using CitizenFX.Core;
 using Newtonsoft.Json;
 using SDK.Server;
-using SDK.Server.Diagnostics;
 using SDK.Server.Plugins;
-using SDK.Server.Rpc;
 using SDK.Shared;
 using SDK.Shared.Plugins;
 using SDK.Shared.Rpc;
@@ -15,6 +13,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using SDK.Server.Diagnostics;
 using static CitizenFX.Core.Native.API;
 using static SDK.Server.Rpc.RpcRequest;
 
@@ -22,24 +21,16 @@ namespace Average.Server
 {
     public class PluginLoader : BaseScript
     {
-        Logger logger;
-        CommandManager command;
+        private bool isReady;
+        private string BASE_RESOURCE_PATH = GetResourcePath(Constant.RESOURCE_NAME);
 
-        bool isReady;
-
-        string BASE_RESOURCE_PATH = GetResourcePath(Constant.RESOURCE_NAME);
-
-        List<PluginInfo> clientPlugins = new List<PluginInfo>();
-
-        public List<Plugin> Plugins { get; } = new List<Plugin>();
+        private readonly List<PluginInfo> _clientPlugins = new List<PluginInfo>();
+        private readonly List<Plugin> _plugins = new List<Plugin>();
 
 
-        public PluginLoader(Logger logger, CommandManager command, RpcRequest rpc)
+        public PluginLoader()
         {
-            this.logger = logger;
-            this.command = command;
-
-            rpc.Event("avg.internal.get_plugins").On(new Action<RpcMessage, RpcCallback>(GetPluginsEvent));
+            Main.rpc.Event("avg.internal.get_plugins").On(GetPluginsEvent);
         }
 
         public async Task IsReady()
@@ -47,19 +38,19 @@ namespace Average.Server
             while (!isReady) await BaseScript.Delay(0);
         }
 
-        IEnumerable<string> GetPluginsPath()
+        private IEnumerable<string> GetPluginsPath()
         {
             var pluginsDirectoryPath = string.Join("/", BASE_RESOURCE_PATH, SDK.Shared.Constant.BASE_PLUGIN_DIRECTORY_NAME);
             return Directory.GetDirectories(pluginsDirectoryPath);
         }
 
-        IEnumerable<string> ValidatePlugins()
+        private IEnumerable<string> ValidatePlugins()
         {
             var pluginsPath = GetPluginsPath();
 
             if (pluginsPath.Count() == 0)
             {
-                logger.Warn($"No plugins detected.");
+                Log.Warn($"No plugins detected.");
                 return null;
             }
 
@@ -72,7 +63,7 @@ namespace Average.Server
 
                 if (pluginFiles.Count() == 0)
                 {
-                    logger.Error($"[{dirInfo.Name.ToUpper()}] Is not a valid resource.");
+                    Log.Error($"[{dirInfo.Name.ToUpper()}] Is not a valid resource.");
                     continue;
                 }
 
@@ -95,23 +86,23 @@ namespace Average.Server
                                 }
                                 else
                                 {
-                                    logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin format.");
+                                    Log.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin format.");
                                 }
                             }
                             else
                             {
-                                logger.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin info.");
+                                Log.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin info.");
                             }
                             break;
                     }
                 }
             }
 
-            logger.Warn($"{validate.Count} validated plugins of {pluginsPath.Count()} detected !");
+            Log.Warn($"{validate.Count} validated plugins of {pluginsPath.Count()} detected !");
             return validate;
         }
 
-        bool CheckPluginManifestIntegrity(string filePath)
+        private bool CheckPluginManifestIntegrity(string filePath)
         {
             var json = File.ReadAllText(filePath);
             var obj = JsonConvert.DeserializeObject<Dictionary<string, object>>(json);
@@ -127,7 +118,7 @@ namespace Average.Server
             return true;
         }
 
-        PluginInfo GetPluginInfo(FileInfo fileInfo)
+        private PluginInfo GetPluginInfo(FileInfo fileInfo)
         {
             try
             {
@@ -142,7 +133,7 @@ namespace Average.Server
             }
         }
 
-        IEnumerable<string> GetPluginFiles(string filePath)
+        private IEnumerable<string> GetPluginFiles(string filePath)
         {
             return Directory.GetFiles(filePath);
         }
@@ -162,7 +153,6 @@ namespace Average.Server
             foreach (var file in ValidatePlugins())
             {
                 var currentDirPath = Path.GetDirectoryName(file);
-                var currentDirName = Utilities.Directory.GetDirectoryName(currentDirPath);
 
                 var fileInfo = new FileInfo(file);
                 var pluginInfo = GetPluginInfo(fileInfo);
@@ -172,11 +162,7 @@ namespace Average.Server
                     if (!string.IsNullOrEmpty(pluginInfo.Client))
                     {
                         // Is client only
-                        clientPlugins.Add(pluginInfo);
-                    }
-                    else
-                    {
-                        //logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                        _clientPlugins.Add(pluginInfo);
                     }
 
                     if (!string.IsNullOrEmpty(pluginInfo.Server))
@@ -187,36 +173,26 @@ namespace Average.Server
                             var asm = Assembly.LoadFrom(serverFile);
                             var asmName = asm.GetName().ToString().Split(',')[0];
 
-                            logger.Info($"Loading {asmName} ...");
+                            Log.Info($"Loading {asmName} ...");
 
                             var types = asm.GetTypes().Where(x => !x.IsAbstract && x.IsClass && x.IsSubclassOf(typeof(Plugin))).ToList();
-                            var mainScriptCount = 0;
-
-                            foreach (var type in types)
-                            {
-                                var attr = type.GetCustomAttribute<MainScriptAttribute>();
-
-                                if (attr != null)
-                                {
-                                    mainScriptCount++;
-                                }
-                            }
+                            var mainScriptCount = types.Select(type => type.GetCustomAttribute<MainScriptAttribute>()).Count(attr => attr != null);
 
                             if (mainScriptCount > 1)
                             {
-                                logger.Error("Unable to load multiples [MainScript] attribute in same plugin. Fix this error to continue.");
+                                Log.Error("Unable to load multiples [MainScript] attribute in same plugin. Fix this error to continue.");
                                 return;
                             }
 
                             if (mainScriptCount == 0)
                             {
-                                logger.Error("Unable to load this plugin, he does not contains [MainScript] attribute. Fix this error to continue.");
+                                Log.Error("Unable to load this plugin, he does not contains [MainScript] attribute. Fix this error to continue.");
                                 return;
                             }
 
                             foreach (var type in types)
                             {
-                                Plugin script = null;
+                                Plugin? script = null;
 
                                 if (type.GetCustomAttribute<MainScriptAttribute>() != null)
                                 {
@@ -226,11 +202,11 @@ namespace Average.Server
                                         script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
                                         RegisterPlugin(script, type);
 
-                                        logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
+                                        Log.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
                                     }
                                     catch (InvalidCastException ex)
                                     {
-                                        logger.Error($"Unable to load {asm.GetName().Name}");
+                                        Log.Error($"Unable to load {asm.GetName().Name}");
                                     }
                                 }
                                 else
@@ -240,16 +216,15 @@ namespace Average.Server
                                         script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
                                         RegisterPlugin(script, type);
 
-                                        logger.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
+                                        Log.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
                                     }
                                     catch
                                     {
-                                        logger.Error($"Unable to load script: {script.Name}");
+                                        Log.Error($"Unable to load script: {script.Name}");
                                     }
                                 }
 
-                                if (script == null)
-                                    continue;
+                                if (script == null) continue;
 
                                 RegisterThreads(type, script);
                                 RegisterEvents(type, script);
@@ -261,12 +236,12 @@ namespace Average.Server
                         }
                         catch
                         {
-                            logger.Error($"Unable to load this plugin: {pluginInfo.Server} because this plugin does not exist or is an invalid Average Framework plugin.");
+                            Log.Error($"Unable to load this plugin: {pluginInfo.Server} because this plugin does not exist or is an invalid Average Framework plugin.");
                         }
                     }
                     else
                     {
-                        //logger.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                        //Log.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
                     }
                 }
             }
@@ -274,7 +249,7 @@ namespace Average.Server
             isReady = true;
         }
 
-        void RegisterCommands(Type type, object classObj)
+        private void RegisterCommands(Type type, object classObj)
         {
             var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
@@ -282,12 +257,11 @@ namespace Average.Server
             foreach (var method in type.GetMethods(flags))
             {
                 var cmdAttr = method.GetCustomAttribute<ServerCommandAttribute>();
-                var commandManager = (CommandManager)command;
-                commandManager.RegisterCommand(cmdAttr, method, classObj);
+                Main.commandManager.RegisterCommand(cmdAttr, method, classObj);
             }
         }
 
-        void RegisterThreads(Type type, object classObj)
+        private void RegisterThreads(Type type, object classObj)
         {
             var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
@@ -302,7 +276,7 @@ namespace Average.Server
             }
         }
 
-        void RegisterEvents(Type type, object classObj)
+        private void RegisterEvents(Type type, object classObj)
         {
             var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
@@ -317,7 +291,7 @@ namespace Average.Server
             }
         }
 
-        void RegisterExports(Type type, object classObj)
+        private void RegisterExports(Type type, object classObj)
         {
             var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
@@ -332,7 +306,7 @@ namespace Average.Server
             }
         }
 
-        void RegisterSyncs(Type type, object classObj)
+        private void RegisterSyncs(Type type, object classObj)
         {
             var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
@@ -384,7 +358,7 @@ namespace Average.Server
             }
         }
 
-        void RegisterGetSyncs(Type type, object classObj)
+        private void RegisterGetSyncs(Type type, object classObj)
         {
             var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
@@ -413,25 +387,25 @@ namespace Average.Server
             }
         }
 
-        void RegisterPlugin(Plugin script, Type classType)
+        private void RegisterPlugin(Plugin script, Type classType)
         {
             //BaseScript.RegisterScript(script);
-            Plugins.Add(script);
+            _plugins.Add(script);
         }
 
-        void UnloadScript(Plugin script)
+        private void UnloadScript(Plugin script)
         {
             //BaseScript.UnregisterScript(script);
-            Plugins.Remove(script);
+            _plugins.Remove(script);
         }
 
-        #region Events
+        #region Event
 
-        void GetPluginsEvent(RpcMessage message, RpcCallback callback)
+        private void GetPluginsEvent(RpcMessage message, RpcCallback callback)
         {
             var pluginsInfo = new List<IPluginInfo>();
 
-            foreach (var plugin in clientPlugins)
+            foreach (var plugin in _clientPlugins)
                 pluginsInfo.Add(plugin);
 
             callback(pluginsInfo);

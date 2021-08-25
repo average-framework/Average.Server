@@ -13,9 +13,7 @@ namespace Average.Server.Managers
 {
     public class EventManager : IEventManager
     {
-        Logger logger;
-
-        Dictionary<string, List<Delegate>> events;
+        private Dictionary<string, List<Delegate>> _events = new Dictionary<string, List<Delegate>>();
 
         public event EventHandler<PlayerConnectingEventArgs> PlayerConnecting;
         public event EventHandler<PlayerDisconnectingEventArgs> PlayerDisconnecting;
@@ -34,26 +32,22 @@ namespace Average.Server.Managers
         public event EventHandler<HttpResponseEventArgs> HttpResponse;
 
 
-        public EventManager(EventHandlerDictionary eventHandlers, Logger logger)
+        public EventManager()
         {
-            this.logger = logger;
-
-            events = new Dictionary<string, List<Delegate>>();
-
-            eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);
-            eventHandlers["avg.internal.trigger_event"] += new Action<string, Player, List<object>>(InternalTriggerEvent);
+            Main.eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);
+            Main.eventHandlers["avg.internal.trigger_event"] += new Action<string, Player, List<object>>(InternalTriggerEvent);
         }
 
         public void Emit(string eventName, params object[] args)
         {
-            if (events.ContainsKey(eventName))
+            if (_events.ContainsKey(eventName))
             {
-                logger.Debug($"Calling event: {eventName}.");
-                events[eventName].ForEach(x => x.DynamicInvoke(args));
+                Log.Debug($"Calling event: {eventName}.");
+                _events[eventName].ForEach(x => x.DynamicInvoke(args));
             }
             else
             {
-                logger.Debug($"Calling external event: {eventName}.");
+                Log.Debug($"Calling external event: {eventName}.");
                 BaseScript.TriggerEvent(eventName, args);
             }
         }
@@ -68,39 +62,39 @@ namespace Average.Server.Managers
             player.TriggerEvent("avg.internal.trigger_event", eventName, player, args);
         }
 
-        public void RegisterInternalEvent(string eventName, Delegate action)
+        private void RegisterInternalEvent(string eventName, Delegate action)
         {
-            if (!events.ContainsKey(eventName))
-                events.Add(eventName, new List<Delegate>() { action });
+            if (!_events.ContainsKey(eventName))
+                _events.Add(eventName, new List<Delegate>() { action });
             else
-                events[eventName].Add(action);
+                _events[eventName].Add(action);
 
-            logger.Debug($"Registering internal event: {eventName}");
+            Log.Debug($"Registering internal event: {eventName}");
         }
 
         public void UnregisterInternalEvent(string eventName)
         {
-            if (events.ContainsKey(eventName))
+            if (_events.ContainsKey(eventName))
             {
-                events.Remove(eventName);
-                logger.Debug($"Unregister event: {eventName}");
+                _events.Remove(eventName);
+                Log.Debug($"Unregister event: {eventName}");
             }
             else
             {
-                logger.Error($"Unable to unregister event: {eventName}.");
+                Log.Error($"Unable to unregister event: {eventName}.");
             }
         }
 
         public void UnregisterInternalEventAction(string eventName, Delegate action)
         {
-            if (events.ContainsKey(eventName) && events[eventName].Contains(action))
+            if (_events.ContainsKey(eventName) && _events[eventName].Contains(action))
             {
-                events[eventName].Remove(action);
-                logger.Debug($"Unregister event action: {eventName}");
+                _events[eventName].Remove(action);
+                Log.Debug($"Unregister event action: {eventName}");
             }
             else
             {
-                logger.Error($"Unable to unregister event action: {eventName}.");
+                Log.Error($"Unable to unregister event action: {eventName}.");
             }
         }
 
@@ -111,12 +105,10 @@ namespace Average.Server.Managers
             var action = Action.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
             RegisterInternalEvent(eventAttr.Event, action);
 
-            logger.Debug($"Registering [Event] attribute: {eventAttr.Event} on method: {method.Name}, args count: {methodParams.Count()}");
+            Log.Debug($"Registering [Event] attribute: {eventAttr.Event} on method: {method.Name}, args count: {methodParams.Count()}");
         }
 
-        #region Internal
-
-        internal void InternalTriggerEvent(string eventName, [FromSource] Player player, List<object> args)
+        private void InternalTriggerEvent(string eventName, [FromSource] Player player, List<object> args)
         {
             var newArgs = new List<object>();
             newArgs.Add(int.Parse(player.Handle));
@@ -126,10 +118,8 @@ namespace Average.Server.Managers
 
             Emit(eventName, newArgs.ToArray());
         }
-
-        #endregion
-
-        #region Events
+        
+        #region Event
 
         public async void OnPlayerConnecting(Player player, dynamic kick, dynamic deferrals)
         {

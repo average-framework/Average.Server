@@ -1,5 +1,4 @@
 ﻿using CitizenFX.Core;
-using Newtonsoft.Json.Linq;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
 using System;
@@ -12,32 +11,22 @@ namespace Average.Server.Managers
 {
     public class SaveManager : ISaveManager
     {
-        Logger logger;
-        EventManager eventManager;
-        PlayerList players;
+        private readonly int _saveInterval;
+        private readonly int _deferredInterval;
+        private readonly int _cancelSaveTimeout;
 
-        int saveInterval;
-        int deferredInterval;
-        int cancelSaveTimeout;
+        private List<ISaveable> _tasks = new List<ISaveable>();
+        private Dictionary<string, bool> _playersSavedState = new Dictionary<string, bool>();
 
-        JObject baseConfig;
-
-        List<ISaveable> tasks = new List<ISaveable>();
-        Dictionary<string, bool> playersSavedState = new Dictionary<string, bool>();
-
-        public SaveManager(Logger logger, ThreadManager thread, EventManager eventManager, EventHandlerDictionary eventHandlers, PlayerList players)
+        public SaveManager()
         {
-            this.logger = logger;
-            this.eventManager = eventManager;
-            this.players = players;
+            var baseConfig = SDK.Server.Configuration.Parse("config.json");
 
-            baseConfig = SDK.Server.Configuration.Parse("config.json");
+            _saveInterval = (int)baseConfig["Save"]["SaveInterval"];
+            _deferredInterval = (int)baseConfig["Save"]["DeferredInterval"];
+            _cancelSaveTimeout = (int)baseConfig["Save"]["CancelSaveTimeout"];
 
-            saveInterval = (int)baseConfig["Save"]["SaveInterval"];
-            deferredInterval = (int)baseConfig["Save"]["DeferredInterval"];
-            cancelSaveTimeout = (int)baseConfig["Save"]["CancelSaveTimeout"];
-
-            thread.StartThread(Update);
+            Main.threadManager.StartThread(Update);
             
             #region Command
 
@@ -47,74 +36,70 @@ namespace Average.Server.Managers
 
             #region Event
 
-            eventHandlers["Save.All"] += new Action<int>(SaveAllEvent);
+            Main.eventHandlers["Save.All"] += new Action<int>(SaveAllEvent);
 
             #endregion
         }
 
-        protected async Task Update()
+        private async Task Update()
         {
-            await BaseScript.Delay(saveInterval);
+            await BaseScript.Delay(_saveInterval);
 
-            logger.Info("[Save] Saving server data..");
+            Log.Info("[Save] Saving server data..");
 
             await SaveAll();
 
-            logger.Info($"[Save] Server data saved successfully.");
-            logger.Info("[Save] Saving player data..");
+            Log.Info($"[Save] Server data saved successfully.");
+            Log.Info("[Save] Saving player data..");
 
-            playersSavedState.Clear();
+            _playersSavedState.Clear();
 
-            for (int i = 0; i < players.Count(); i++)
-                playersSavedState.Add(players.ElementAt(i).Identifiers["license"], false);
+            for (int i = 0; i < Main.players.Count(); i++)
+                _playersSavedState.Add(Main.players.ElementAt(i).Identifiers["license"], false);
 
-            eventManager.EmitClients("Save.All");
+            Main.eventManager.EmitClients("Save.All");
 
             var time = GetGameTimer();
 
-            while (!playersSavedState.Values.All(x => x) && (GetGameTimer() - time) < cancelSaveTimeout) await BaseScript.Delay(0);
+            while (!_playersSavedState.Values.All(x => x) && (GetGameTimer() - time) < _cancelSaveTimeout) await BaseScript.Delay(0);
 
-            var seconds = saveInterval / 1000;
+            var seconds = _saveInterval / 1000;
             var minutes = seconds / 60;
 
-            logger.Info($"[Save] Players data saved successfully.");
-            logger.Info($"[Save] Next save in {seconds} seconds ({(minutes >= 1 ? $"{minutes} minutes" : seconds.ToString())})");
+            Log.Info($"[Save] Players data saved successfully.");
+            Log.Info($"[Save] Next save in {seconds} seconds ({(minutes >= 1 ? $"{minutes} minutes" : seconds.ToString())})");
         }
 
         public async Task SaveAll()
         {
-            for (int i = 0; i < tasks.Count; i++)
+            for (int i = 0; i < _tasks.Count; i++)
             {
-                await tasks[i].SaveAll();
-                await BaseScript.Delay(deferredInterval);
+                await _tasks[i].SaveAll();
+                await BaseScript.Delay(_deferredInterval);
             }
         }
 
-        public void AddInQueue(ISaveable saveable) => tasks.Add(saveable);
+        public void AddInQueue(ISaveable saveable) => _tasks.Add(saveable);
 
-        public void DeleteFromQueue(ISaveable saveable) => tasks.Remove(saveable);
+        public void DeleteFromQueue(ISaveable saveable) => _tasks.Remove(saveable);
 
-        #region Command
-
-        protected async void SaveAllCommand() => await SaveAll();
-
-        #endregion
+        private async void SaveAllCommand() => await SaveAll();
 
         #region Event
 
-        protected async void SaveAllEvent(int player)
+        private async void SaveAllEvent(int player)
         {
-            var p = players[player];
+            var p = Main.players[player];
             var license = p.Identifiers["license"];
 
-            if (playersSavedState.ContainsKey(license))
+            if (_playersSavedState.ContainsKey(license))
             {
-                playersSavedState[license] = true;
+                _playersSavedState[license] = true;
 
-                for (int i = 0; i < tasks.Count; i++)
-                    await tasks[i].Save(p);
+                for (int i = 0; i < _tasks.Count; i++)
+                    await _tasks[i].Save(p);
 
-                logger.Debug($"[Save] Saving cache for player: {license}. [{playersSavedState[license]}]");
+                Log.Debug($"[Save] Saving cache for player: {license}. [{_playersSavedState[license]}]");
             }
         }
 

@@ -1,25 +1,17 @@
 ﻿using CitizenFX.Core.Native;
 using SDK.Server;
 using SDK.Server.Commands;
-using SDK.Server.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using SDK.Server.Diagnostics;
 
 namespace Average.Server.Managers
 {
     public class CommandManager : ICommandManager
     {
-        Logger logger;
-
-        List<ServerCommandAttribute> Commands { get; }
-
-        public CommandManager(Logger logger)
-        {
-            this.logger = logger;
-            Commands = new List<ServerCommandAttribute>();
-        }
+        private List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
 
         public void RegisterCommand(ServerCommandAttribute commandAttr, MethodInfo method, object classObj)
         {
@@ -37,12 +29,12 @@ namespace Average.Server.Managers
                         method.Invoke(classObj, new object[] { source, args, raw });
                     }), false);
 
-                    Commands.Add(commandAttr);
-                    logger.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
+                    _commands.Add(commandAttr);
+                    Log.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
                 }
                 else
                 {
-                    logger.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
+                    Log.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
                 }
             }
             else if (methodParams.Count() == 0)
@@ -53,19 +45,19 @@ namespace Average.Server.Managers
                     method.Invoke(classObj, new object[] { });
                 }), false);
 
-                Commands.Add(commandAttr);
-                logger.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
+                _commands.Add(commandAttr);
+                Log.Debug($"Registering [Command] attribute: {commandAttr.Command} on method: {method.Name}");
             }
             else
             {
-                logger.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
+                Log.Warn($"Unable to register [Command] attribute: {commandAttr.Command}, arguments does not match with the framework command format.");
             }
         }
 
-        public IEnumerable<ServerCommandAttribute> GetCommands() => Commands.AsEnumerable();
+        public IEnumerable<ServerCommandAttribute> GetCommands() => _commands.AsEnumerable();
 
-        public ServerCommandAttribute GetCommand(string command) => Commands.Find(x => x.Command == command);
+        public ServerCommandAttribute GetCommand(string command) => _commands.Find(x => x.Command == command);
 
-        public int Count() => Commands.Count();
+        public int Count() => _commands.Count();
     }
 }

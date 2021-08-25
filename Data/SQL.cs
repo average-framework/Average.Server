@@ -13,17 +13,14 @@ namespace Average.Server.Data
 {
     public class SQL : ISQL
     {
-        MySqlConnection connection;
-        SQLConnection connectionInfo;
-
-        Logger logger;
+        private MySqlConnection connection;
+        private SQLConnection connectionInfo;
 
         public bool IsOpen { get; set; }
         public bool IsWorking { get; set; }
 
-        public SQL(Logger logger, SQLConnection connectionInfo)
+        public SQL(SQLConnection connectionInfo)
         {
-            this.logger = logger;
             this.connectionInfo = connectionInfo;
         }
 
@@ -36,11 +33,11 @@ namespace Average.Server.Data
 
                 IsOpen = true;
 
-                logger.Info($"SQL ready");
+                Log.Info($"SQL ready");
             }
             catch (MySqlException ex)
             {
-                logger.Error("Unable to initialize mysql connection.");
+                Log.Error("Unable to initialize mysql connection.");
             }
         }
 
@@ -57,9 +54,7 @@ namespace Average.Server.Data
             IsWorking = true;
 
             if (!IsOpen)
-            {
                 return new List<T>();
-            }
 
             var cmd = connection.CreateCommand();
             cmd.CommandText = $"SELECT * FROM {table}";
@@ -75,9 +70,7 @@ namespace Average.Server.Data
             IsWorking = true;
 
             if (!IsOpen)
-            {
                 return new List<T>();
-            }
 
             var cmd = connection.CreateCommand();
             cmd.CommandText = $"SELECT * FROM {table}";
@@ -102,9 +95,7 @@ namespace Average.Server.Data
             IsWorking = true;
 
             if (!IsOpen)
-            {
                 return false;
-            }
 
             var cmd = connection.CreateCommand();
             cmd.CommandText = $"SELECT * FROM {table}";
@@ -130,9 +121,7 @@ namespace Average.Server.Data
             IsWorking = true;
 
             if (!IsOpen)
-            {
                 return false;
-            }
 
             var cmd = connection.CreateCommand();
             cmd.CommandText = $"SELECT * FROM {table}";
@@ -156,7 +145,7 @@ namespace Average.Server.Data
                 else
                 {
                     var temp = (T)Activator.CreateInstance(typeof(T));
-                    logger.Error($"[SQL] Unable to delete this value because the {temp.GetType().Name} type does not inherits from IDataDeletable");
+                    Log.Error($"[SQL] Unable to delete this value because the {temp.GetType().Name} type does not inherits from IDataDeletable");
                     return false;
                 }
             }
@@ -170,9 +159,7 @@ namespace Average.Server.Data
             IsWorking = true;
 
             if (!IsOpen)
-            {
                 return;
-            }
 
             try
             {
@@ -200,7 +187,7 @@ namespace Average.Server.Data
             }
             catch (Exception ex)
             {
-                logger.Error("[SQL] Unable to insert this value: " + ex.Message);
+                Log.Error("[SQL] Unable to insert this value: " + ex.Message);
             }
 
             IsWorking = false;
@@ -242,7 +229,7 @@ namespace Average.Server.Data
             }
             catch (Exception ex)
             {
-                logger.Error("[SQL] Unable to insert or update this value: " + ex.Message + ", table: " + table + " value:" + newValue);
+                Log.Error("[SQL] Unable to insert or update this value: " + ex.Message + ", table: " + table + " value:" + newValue);
             }
 
             IsWorking = false;
@@ -253,9 +240,7 @@ namespace Average.Server.Data
             IsWorking = true;
 
             if (!IsOpen)
-            {
                 return false;
-            }
 
             var isUpdated = false;
 
@@ -299,21 +284,21 @@ namespace Average.Server.Data
                     else
                     {
                         var temp = (T)Activator.CreateInstance(typeof(T));
-                        logger.Error($"[SQL] Unable to update this value because the {temp.GetType().Name} type does not inherits from IDataDeletable");
+                        Log.Error($"[SQL] Unable to update this value because the {temp.GetType().Name} type does not inherits from IDataDeletable");
                         return false;
                     }
                 }
             }
             catch (Exception ex)
             {
-                logger.Error("[SQL] Unable to update this value: " + ex.Message);
+                Log.Error("[SQL] Unable to update this value: " + ex.Message);
             }
 
             IsWorking = false;
             return isUpdated;
         }
 
-        async Task<List<T>> MapDeserialize<T>(DbDataReader reader)
+        private async Task<List<T>> MapDeserialize<T>(DbDataReader reader)
         {
             IsWorking = true;
 
@@ -343,11 +328,11 @@ namespace Average.Server.Data
 
             reader.Close();
             IsWorking = false;
-            return JsonConvert.DeserializeObject<List<T>>(JsonConvert.SerializeObject(list));
+            return JsonConvert.DeserializeObject<List<T>>(await JsonConvert.SerializeObjectAsync(list));
         }
 
-        Dictionary<string, object> MapSerialize(object value) => JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(value));
+        private Dictionary<string, object> MapSerialize(object value) => JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(value));
 
-        bool IsJson(string value) => value.StartsWith("{") && value.EndsWith("}") || value.StartsWith("[") && value.EndsWith("]");
+        private bool IsJson(string value) => value.StartsWith("{") && value.EndsWith("}") || value.StartsWith("[") && value.EndsWith("]");
     }
 }

@@ -12,23 +12,16 @@ namespace Average.Server.Managers
 {
     public class RequestInternalManager : IRequestInternalManager
     {
-        Logger logger;
-        EventManager eventManager;
+        private Dictionary<int, Dictionary<string, dynamic>> _responseDictionary = new Dictionary<int, Dictionary<string, dynamic>>();
 
-        Dictionary<int, Dictionary<string, dynamic>> responseDictionary;
-
-        public RequestInternalManager(Logger logger, EventManager eventManager)
+        public RequestInternalManager()
         {
-            this.logger = logger;
-            this.eventManager = eventManager;
-
-            responseDictionary = new Dictionary<int, Dictionary<string, dynamic>>();
-            eventManager.HttpResponse += HttpResponse;
+            Main.eventManager.HttpResponse += HttpResponse;
         }
 
-        void HttpResponse(object sender, HttpResponseEventArgs e)
+        public void HttpResponse(object sender, HttpResponseEventArgs e)
         {
-            logger.Debug($"Receive http response: {e.Token}, {e.Status}, {e.Text}, {e.Header}");
+            Log.Debug($"Receive http response: {e.Token}, {e.Status}, {e.Text}, {e.Header}");
             Response(e.Token, e.Status, e.Text, e.Header);
         }
 
@@ -38,7 +31,7 @@ namespace Average.Server.Managers
             response["headers"] = header;
             response["status"] = status;
             response["content"] = text;
-            responseDictionary[token] = response;
+            _responseDictionary[token] = response;
         }
 
         public async Task<Dictionary<string, dynamic>> Http(string url, string method, string data, dynamic headers)
@@ -49,16 +42,14 @@ namespace Average.Server.Managers
             requestData.data = data;
             requestData.headers = headers;
 
-            var json = JsonConvert.SerializeObject(requestData);
+            var json = await JsonConvert.SerializeObjectAsync(requestData);
             var token = API.PerformHttpRequestInternal(json, json.Length);
 
-            while (!responseDictionary.ContainsKey(token)) await BaseScript.Delay(0);
+            while (!_responseDictionary.ContainsKey(token)) await BaseScript.Delay(0);
 
-            var res = responseDictionary[token];
-            responseDictionary.Remove(token);
+            var res = _responseDictionary[token];
+            _responseDictionary.Remove(token);
             return res;
         }
-
-        void IRequestInternalManager.HttpResponse(object sender, HttpResponseEventArgs e) => HttpResponse(sender, e);
     }
 }

@@ -2,7 +2,6 @@
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
 using SDK.Server.Models;
-using SDK.Server.Rpc;
 using System;
 using System.Collections.Generic;
 
@@ -10,36 +9,30 @@ namespace Average.Server.Managers
 {
     public class DoorManager : IDoorManager
     {
-        Logger logger;
-        EventManager eventManager;
+        private readonly List<Door> _doors;
 
-        List<Door> doors;
-
-        public DoorManager(Logger logger, EventHandlerDictionary eventHandlers, EventManager eventManager, RpcRequest rpc)
+        public DoorManager()
         {
-            this.logger = logger;
-            this.eventManager = eventManager;
-
-            doors = SDK.Server.Configuration.Parse<List<Door>>("configs/custom_doors.json");
+            _doors = SDK.Server.Configuration.Parse<List<Door>>("configs/custom_doors.json");
 
             #region Event
 
-            eventHandlers["Door.SetDoorState"] += new Action<Vector3>(SetDoorStateEvent);
+            Main.eventHandlers["Door.SetDoorState"] += new Action<Vector3>(SetDoorStateEvent);
 
             #endregion
 
             #region Rpc
 
-            rpc.Event("Door.GetDoors").On((message, callback) => callback(doors.ToArray()));
+            Main.rpc.Event("Door.GetDoors").On((message, callback) => callback(_doors.ToArray()));
 
             #endregion
         }
 
         #region Export
 
-        public Door Exist(Vector3 position)
+        public Door? Get(Vector3 position)
         {
-            return doors.Find(x =>
+            return _doors.Find(x =>
                 Math.Round(x.Position.X) == Math.Round(position.X) &&
                 Math.Round(x.Position.Y) == Math.Round(position.Y) &&
                 Math.Round(x.Position.Z) == Math.Round(position.Z));
@@ -48,21 +41,20 @@ namespace Average.Server.Managers
         public void SetDoorState(Door door)
         {
             door.IsLocked = !door.IsLocked;
-            eventManager.EmitClients("Door.SetDoorState", door.Position, door.IsLocked);
+            Main.eventManager.EmitClients("Door.SetDoorState", door.Position, door.IsLocked);
         }
 
         #endregion
 
         #region Event
 
-        protected void SetDoorStateEvent(Vector3 position)
+        private void SetDoorStateEvent(Vector3 position)
         {
-            var door = Exist(position);
+            var door = Get(position);
 
             if (door == null)
             {
-                logger.Debug("[Door] Any door exist at position: " + position);
-                return;
+                Log.Debug("[Door] Any door exist at position: " + position);
             }
             else
             {

@@ -6,101 +6,95 @@ namespace Average.Server.Managers
 {
     internal class CfxManager
     {
-        Logger logger;
-        EventManager eventManager;
-
-        public CfxManager(EventHandlerDictionary eventHandlers, Logger logger, EventManager eventManager)
+        public CfxManager()
         {
-            this.logger = logger;
-            this.eventManager = eventManager;
-
-            eventHandlers["playerConnecting"] += new Action<Player, string, dynamic, dynamic>(OnPlayerConnecting);
-            eventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDisconnecting);
-            eventHandlers["onResourceStop"] += new Action<string>(OnResourceStop);
-            eventHandlers["onResourceStart"] += new Action<string>(OnResourceStart);
-            eventHandlers["onResourceListRefresh"] += new Action(OnResourceListRefresh);
-            eventHandlers["onResourceStarting"] += new Action<string>(OnResourceStarting);
-            eventHandlers["onServerResourceStart"] += new Action<string>(OnServerResourceStart);
-            eventHandlers["onServerResourceStop"] += new Action<string>(OnServerResourceStop);
-            eventHandlers["playerJoining"] += new Action<string, string>(OnPlayerJoining);
-            eventHandlers["entityCreated"] += new Action<int>(OnEntityCreated);
-            eventHandlers["entityCreating"] += new Action<int>(OnEntityCreating);
-            eventHandlers["entityRemoved"] += new Action<int>(OnEntityRemoved);
-            eventHandlers["playerEnteredScope"] += new Action<object>(OnPlayerEnteredScope);
-            eventHandlers["playerLeftScope"] += new Action<object>(OnPlayerLeftScope);
+            Main.eventHandlers["playerConnecting"] += new Action<Player, string, dynamic, dynamic>(OnPlayerConnecting);
+            Main.eventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDisconnecting);
+            Main.eventHandlers["onResourceStop"] += new Action<string>(OnResourceStop);
+            Main.eventHandlers["onResourceStart"] += new Action<string>(OnResourceStart);
+            Main.eventHandlers["onResourceListRefresh"] += new Action(OnResourceListRefresh);
+            Main.eventHandlers["onResourceStarting"] += new Action<string>(OnResourceStarting);
+            Main.eventHandlers["onServerResourceStart"] += new Action<string>(OnServerResourceStart);
+            Main.eventHandlers["onServerResourceStop"] += new Action<string>(OnServerResourceStop);
+            Main.eventHandlers["playerJoining"] += new Action<string, string>(OnPlayerJoining);
+            Main.eventHandlers["entityCreated"] += new Action<int>(OnEntityCreated);
+            Main.eventHandlers["entityCreating"] += new Action<int>(OnEntityCreating);
+            Main.eventHandlers["entityRemoved"] += new Action<int>(OnEntityRemoved);
+            Main.eventHandlers["playerEnteredScope"] += new Action<object>(OnPlayerEnteredScope);
+            Main.eventHandlers["playerLeftScope"] += new Action<object>(OnPlayerLeftScope);
         }
 
-        #region Events
+        #region Event
 
-        protected void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic setKickReason, dynamic deferrals)
+        private void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic setKickReason, dynamic deferrals)
         {
-            logger.Info($"{playerName} is connected to the server.");
-            eventManager.OnPlayerConnecting(player, setKickReason, deferrals);
+            Log.Info($"{playerName} is connected to the server.");
+             Main.eventManager.OnPlayerConnecting(player, setKickReason, deferrals);
         }
 
-        protected void OnPlayerDisconnecting([FromSource] Player player, string reason)
+        private void OnPlayerDisconnecting([FromSource] Player player, string reason)
         {
-            eventManager.OnPlayerDisconnecting(player, reason);
+             Main.eventManager.OnPlayerDisconnecting(player, reason);
         }
 
-        protected void OnResourceStop(string resource)
+        private void OnResourceStop(string resource)
         {
-            eventManager.OnResourceStop(resource);
+             Main.eventManager.OnResourceStop(resource);
         }
 
-        protected void OnResourceStart(string resource)
+        private void OnResourceStart(string resource)
         {
-            eventManager.OnResourceStart(resource);
+             Main.eventManager.OnResourceStart(resource);
         }
 
-        protected void OnResourceListRefresh()
+        private void OnResourceListRefresh()
         {
-            eventManager.OnResourceListRefresh();
+             Main.eventManager.OnResourceListRefresh();
         }
 
-        protected void OnResourceStarting(string resource)
+        private void OnResourceStarting(string resource)
         {
-            eventManager.OnResourceStarting(resource);
+             Main.eventManager.OnResourceStarting(resource);
         }
 
-        protected void OnServerResourceStart(string resource)
+        private void OnServerResourceStart(string resource)
         {
-            eventManager.OnServerResourceStart(resource);
+             Main.eventManager.OnServerResourceStart(resource);
         }
 
-        protected void OnServerResourceStop(string resource)
+        private void OnServerResourceStop(string resource)
         {
-            eventManager.OnServerResourceStop(resource);
+             Main.eventManager.OnServerResourceStop(resource);
         }
 
-        protected void OnPlayerJoining(string source, string oldId)
+        private void OnPlayerJoining(string source, string oldId)
         {
-            eventManager.OnPlayerJoining(source, oldId);
+             Main.eventManager.OnPlayerJoining(source, oldId);
         }
 
-        protected void OnEntityCreated(int handle)
+        private void OnEntityCreated(int handle)
         {
-            eventManager.OnEntityCreated(handle);
+             Main.eventManager.OnEntityCreated(handle);
         }
 
-        protected void OnEntityCreating(int handle)
+        private void OnEntityCreating(int handle)
         {
-            eventManager.OnEntityCreating(handle);
+             Main.eventManager.OnEntityCreating(handle);
         }
 
-        protected void OnEntityRemoved(int handle)
+        private void OnEntityRemoved(int handle)
         {
-            eventManager.OnEntityRemoved(handle);
+             Main.eventManager.OnEntityRemoved(handle);
         }
 
-        protected void OnPlayerEnteredScope(object data)
+        private void OnPlayerEnteredScope(object data)
         {
-            eventManager.OnPlayerEnteredScope(data);
+             Main.eventManager.OnPlayerEnteredScope(data);
         }
 
-        protected void OnPlayerLeftScope(object data)
+        private void OnPlayerLeftScope(object data)
         {
-            eventManager.OnPlayerLeftScope(data);
+             Main.eventManager.OnPlayerLeftScope(data);
         }
 
         #endregion

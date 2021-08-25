@@ -1,9 +1,7 @@
-﻿using Average.Server.Data;
-using CitizenFX.Core;
+﻿using CitizenFX.Core;
 using Newtonsoft.Json;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
-using SDK.Server.Rpc;
 using SDK.Shared.DataModels;
 using System;
 using System.Collections.Generic;
@@ -14,51 +12,43 @@ namespace Average.Server.Managers
 {
     public class CharacterManager : ICharacterManager, ISaveable
     {
-        Logger logger;
-        SQL sql;
-        PlayerList players;
+        private const string tableName = "characters";
 
-        const string tableName = "characters";
+        private Dictionary<string, CharacterData> _characters = new Dictionary<string, CharacterData>();
 
-        Dictionary<string, CharacterData> characters { get; } = new Dictionary<string, CharacterData>();
-
-        public CharacterManager(Logger logger, RpcRequest rpc, SQL sql, EventManager eventManager, PlayerList players, EventHandlerDictionary eventHandler, SaveManager save)
+        public CharacterManager()
         {
-            this.logger = logger;
-            this.sql = sql;
-            this.players = players;
-
             #region Rpc
 
-            rpc.Event("Character.Exist").On(async (message, callback) =>
+            Main.rpc.Event("Character.Exist").On(async (message, callback) =>
             {
                 try
                 {
-                    var player = players[message.Target];
+                    var player = Main.players[message.Target];
                     var characterExist = await Exist(player);
                     callback(characterExist.ToString().ToLower());
 
-                    logger.Debug($"[Character] Getted character exist: [{characterExist}]");
+                    Log.Debug($"[Character] Getted character exist: [{characterExist}]");
                 }
                 catch
                 {
-                    logger.Debug("[Character] Unable to check if character exist.");
+                    Log.Debug("[Character] Unable to check if character exist.");
                 }
             });
 
-            rpc.Event("Character.Load").On(async (message, callback) =>
+            Main.rpc.Event("Character.Load").On(async (message, callback) =>
             {
                 try
                 {
-                    var player = players[message.Target];
+                    var player = Main.players[message.Target];
                     var data = await Load(player.Identifiers["license"]);
                     callback(data);
 
-                    logger.Debug($"[Character] Getted character");
+                    Log.Debug($"[Character] Getted character");
                 }
                 catch
                 {
-                    logger.Debug("[Character] Unable get character.");
+                    Log.Debug("[Character] Unable get character.");
                 }
             });
 
@@ -66,38 +56,38 @@ namespace Average.Server.Managers
 
             #region Event
 
-            eventManager.PlayerDisconnecting += PlayerDisconnecting;
+            Main.eventManager.PlayerDisconnecting += PlayerDisconnecting;
 
-            eventHandler["Character.SetPed"] += new Action<int, uint, int>(OnSetPedEvent);
-            eventHandler["Character.Save"] += new Action<int, string>(OnSaveEvent);
-            eventHandler["Character.SetMoney"] += new Action<int, decimal>(OnSetMoneyEvent);
-            eventHandler["Character.SetBank"] += new Action<int, decimal>(OnSetBankEvent);
-            eventHandler["Character.AddMoney"] += new Action<int, decimal>(OnAddMoneyEvent);
-            eventHandler["Character.AddBank"] += new Action<int, decimal>(OnAddBankEvent);
-            eventHandler["Character.RemoveMoney"] += new Action<int, decimal>(OnRemoveMoneyEvent);
-            eventHandler["Character.RemoveBank"] += new Action<int, decimal>(OnRemoveBankEvent);
+            Main.eventHandlers["Character.SetPed"] += new Action<int, uint, int>(OnSetPedEvent);
+            Main.eventHandlers["Character.Save"] += new Action<int, string>(OnSaveEvent);
+            Main.eventHandlers["Character.SetMoney"] += new Action<int, decimal>(OnSetMoneyEvent);
+            Main.eventHandlers["Character.SetBank"] += new Action<int, decimal>(OnSetBankEvent);
+            Main.eventHandlers["Character.AddMoney"] += new Action<int, decimal>(OnAddMoneyEvent);
+            Main.eventHandlers["Character.AddBank"] += new Action<int, decimal>(OnAddBankEvent);
+            Main.eventHandlers["Character.RemoveMoney"] += new Action<int, decimal>(OnRemoveMoneyEvent);
+            Main.eventHandlers["Character.RemoveBank"] += new Action<int, decimal>(OnRemoveBankEvent);
 
             #endregion
 
-            save.AddInQueue(this);
+            Main.saveManager.AddInQueue(this);
         }
 
-        public CharacterData GetCache(string rockstarId)
+        public CharacterData? GetCache(string rockstarId)
         {
-            if (characters.ContainsKey(rockstarId))
-                return characters[rockstarId];
+            if (_characters.ContainsKey(rockstarId))
+                return _characters[rockstarId];
 
             return null;
         }
 
         public async Task<CharacterData> Load(string rockstarId)
         {
-            var data = await sql.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
+            var data = await Main.sql.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
 
-            if (!characters.ContainsKey(rockstarId))
-                characters.Add(rockstarId, data[0]);
+            if (!_characters.ContainsKey(rockstarId))
+                _characters.Add(rockstarId, data[0]);
             else
-                characters[rockstarId] = data[0];
+                _characters[rockstarId] = data[0];
 
             return data[0];
         }
@@ -105,48 +95,48 @@ namespace Average.Server.Managers
         public async Task<bool> CacheExist(Player player, bool isLocal)
         {
             if (isLocal)
-                return characters.Values.ToList().Exists(x => x.RockstarId == player.Identifiers["license"]);
+                return _characters.Values.ToList().Exists(x => x.RockstarId == player.Identifiers["license"]);
             else
-                return await sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
+                return await Main.sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
         }
 
-        public async Task<bool?> Exist(Player player) => await sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
+        public async Task<bool?> Exist(Player player) => await Main.sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
 
-        public async Task Create(CharacterData data) => await sql.InsertOrUpdateAsync(tableName, data);
+        public async Task Create(CharacterData data) => await Main.sql.InsertOrUpdateAsync(tableName, data);
 
         public async Task Save(Player player)
         {
             var rockstarId = player.Identifiers["license"];
 
-            if (characters.ContainsKey(rockstarId))
+            if (_characters.ContainsKey(rockstarId))
             {
                 try
                 {
-                    var data = characters[rockstarId];
-                    await sql.InsertOrUpdateAsync(tableName, data);
-                    logger.Debug("[Character] Saved: " + rockstarId);
+                    var data = _characters[rockstarId];
+                    await Main.sql.InsertOrUpdateAsync(tableName, data);
+                    Log.Debug("[Character] Saved: " + rockstarId);
                 }
                 catch (Exception ex)
                 {
-                    logger.Error($"[Character] Error on saving character: {rockstarId}. Error: " + ex.Message);
+                    Log.Error($"[Character] Error on saving character: {rockstarId}. Error: " + ex.Message);
                 }
             }
         }
 
         public async Task SaveAll()
         {
-            for (int i = 0; i < characters.Count; i++)
+            for (int i = 0; i < _characters.Count; i++)
             {
-                var data = characters.ElementAt(i);
+                var data = _characters.ElementAt(i);
 
                 try
                 {
-                    await sql.InsertOrUpdateAsync(tableName, data.Value);
-                    logger.Debug("[Character] Saved: " + data.Key);
+                    await Main.sql.InsertOrUpdateAsync(tableName, data.Value);
+                    Log.Debug("[Character] Saved: " + data.Key);
                 }
                 catch (Exception ex)
                 {
-                    logger.Error($"[Character] Error on saving character: {data.Key}. Error: " + ex.Message);
+                    Log.Error($"[Character] Error on saving character: {data.Key}. Error: " + ex.Message);
                 }
             }
         }
@@ -155,41 +145,41 @@ namespace Average.Server.Managers
         {
             var rockstarId = player.Identifiers["license"];
 
-            if (characters.ContainsKey(rockstarId))
+            if (_characters.ContainsKey(rockstarId))
             {
-                characters[rockstarId] = data;
-                logger.Debug("[Character] Cache updated: " + rockstarId);
+                _characters[rockstarId] = data;
+                Log.Debug("[Character] Cache updated: " + rockstarId);
             }
         }
 
         #region Event
 
-        protected void OnSetPedEvent(int player, uint model, int variation) => players[player].TriggerEvent("Character.SetPed", model, variation);
+        private void OnSetPedEvent(int player, uint model, int variation) => Main.players[player].TriggerEvent("Character.SetPed", model, variation);
 
-        protected async void OnSaveEvent(int player, string json)
+        private void OnSaveEvent(int player, string json)
         {
             if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
             {
-                logger.Error("[Character] Unable to save character for player: " + players[player].Name + ", json contains an error.");
+                Log.Error("[Character] Unable to save character for player: " + Main.players[player].Name + ", json contains an error.");
                 return;
             }
 
-            UpdateCache(players[player], JsonConvert.DeserializeObject<CharacterData>(json));
+            UpdateCache(Main.players[player], JsonConvert.DeserializeObject<CharacterData>(json));
         }
 
-        protected async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await Save(e.Player);
+        private async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await Save(e.Player);
 
-        protected void OnSetMoneyEvent(int player, decimal amount) => players[player].TriggerEvent("Character.SetMoney", amount);
+        private void OnSetMoneyEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.SetMoney", amount);
 
-        protected void OnSetBankEvent(int player, decimal amount) => players[player].TriggerEvent("Character.SetBank", amount);
+        private void OnSetBankEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.SetBank", amount);
 
-        protected void OnAddMoneyEvent(int player, decimal amount) => players[player].TriggerEvent("Character.AddMoney", amount);
+        private void OnAddMoneyEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.AddMoney", amount);
 
-        protected void OnAddBankEvent(int player, decimal amount) => players[player].TriggerEvent("Character.AddBank", amount);
+        private void OnAddBankEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.AddBank", amount);
 
-        protected void OnRemoveMoneyEvent(int player, decimal amount) => players[player].TriggerEvent("Character.RemoveMoney", amount);
+        private void OnRemoveMoneyEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.RemoveMoney", amount);
 
-        protected void OnRemoveBankEvent(int player, decimal amount) => players[player].TriggerEvent("Character.RemoveBank", amount);
+        private void OnRemoveBankEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.RemoveBank", amount);
 
         #endregion
     }

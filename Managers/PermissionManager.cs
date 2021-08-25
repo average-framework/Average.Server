@@ -1,8 +1,5 @@
-﻿using Average.Server.Data;
-using CitizenFX.Core;
-using SDK.Server.Diagnostics;
+﻿using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
-using SDK.Server.Rpc;
 using SDK.Shared.DataModels;
 using System;
 using System.Collections.Generic;
@@ -12,38 +9,35 @@ namespace Average.Server.Managers
 {
     public class PermissionManager : IPermissionManager
     {
-        Logger logger;
-        PlayerList players;
+        private List<PermissionData> _permissions;
 
-        public List<PermissionData> Permissions { get; private set; }
-
-        public PermissionManager(Logger logger, RpcRequest rpc, SQL sql, EventHandlerDictionary eventHandler, PlayerList players)
+        public PermissionManager()
         {
-            this.logger = logger;
-            this.players = players;
-
-
-            #region Events
-
-            eventHandler["Permission.Set"] += new Action<int, string, int>(SetPermissionEvent);
+            Task.Factory.StartNew(async () =>
+            {
+                _permissions = await Main.sql.GetAllAsync<PermissionData>("permissions");
+                Log.Info("[Permission] loaded");
+            });
             
-            rpc.Event("Permission.GetAll").On((message, callback) => callback(Permissions));
+            #region Event
+
+            Main.eventHandlers["Permission.Set"] += new Action<int, string, int>(SetPermissionEvent);
 
             #endregion
 
-            Task.Factory.StartNew(async () =>
-            {
-                Permissions = await sql.GetAllAsync<PermissionData>("permissions");
-                logger.Info("[Permission] loaded");
-            });
+            #region Rpc
+
+            Main.rpc.Event("Permission.GetAll").On((message, callback) => callback(_permissions));
+
+            #endregion
         }
 
         #region Event
 
-        protected void SetPermissionEvent(int target, string permissionName, int permissionLevel)
+        private void SetPermissionEvent(int target, string permissionName, int permissionLevel)
         {
-            players[target].TriggerEvent("Permission.Set", permissionName, permissionLevel);
-            logger.Info($"Set permission: [{permissionName}, {permissionLevel}] to player: {players[target].Identifiers["license"]}");
+            Main.players[target].TriggerEvent("Permission.Set", permissionName, permissionLevel);
+            Log.Info($"Set permission: [{permissionName}, {permissionLevel}] to player: {Main.players[target].Identifiers["license"]}");
         }
 
         #endregion

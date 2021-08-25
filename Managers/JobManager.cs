@@ -1,56 +1,56 @@
 ﻿using CitizenFX.Core;
-using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
 using SDK.Shared;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using SDK.Server.Diagnostics;
 
 namespace Average.Server.Managers
 {
     public class JobManager : IJobManager
     {
-        Logger logger;
-        CharacterManager character;
-        PlayerList players;
-
-        public JobManager(Logger logger, CharacterManager character, EventHandlerDictionary eventHandler, PlayerList players)
+        public JobManager()
         {
-            this.logger = logger;
-            this.character = character;
-            this.players = players;
-
-            eventHandler["Job.RecruitPlayerToJobByRockstarId"] += new Action<int, string, string, string, int>(RecruitPlayerToJobByRockstarIdEvent);
-            eventHandler["Job.FiredPlayerToJobByRockstarId"] += new Action<int, string, string, string, int>(FiredPlayerToJobByRockstarIdEvent);
-            eventHandler["Job.PromotePlayerToJobByRockstarId"] += new Action<int, string, string, string, int>(PromotePlayerToJobByRockstarIdEvent);
-            eventHandler["Job.RecruitPlayerToJobByServerId"] += new Action<int, int, string, string, int>(RecruitPlayerToJobByServerIdEvent);
-            eventHandler["Job.FiredPlayerToJobByServerId"] += new Action<int, int, string, string, int>(FiredPlayerToJobByServerIdEvent);
-            eventHandler["Job.PromotePlayerToJobByServerId"] += new Action<int, int, string, string, int>(PromotePlayerToJobByServerIdEvent);
+            Main.eventHandlers["Job.RecruitPlayerToJobByRockstarId"] += new Action<int, string, string, string, int>(RecruitPlayerToJobByRockstarIdEvent);
+            Main.eventHandlers["Job.FiredPlayerToJobByRockstarId"] += new Action<int, string, string, string, int>(FiredPlayerToJobByRockstarIdEvent);
+            Main.eventHandlers["Job.PromotePlayerToJobByRockstarId"] += new Action<int, string, string, string, int>(PromotePlayerToJobByRockstarIdEvent);
+            Main.eventHandlers["Job.RecruitPlayerToJobByServerId"] += new Action<int, int, string, string, int>(RecruitPlayerToJobByServerIdEvent);
+            Main.eventHandlers["Job.FiredPlayerToJobByServerId"] += new Action<int, int, string, string, int>(FiredPlayerToJobByServerIdEvent);
+            Main.eventHandlers["Job.PromotePlayerToJobByServerId"] += new Action<int, int, string, string, int>(PromotePlayerToJobByServerIdEvent);
         }
 
         [Export("Job.SetJob")]
         public async Task SetJob(Player player, Player target, string jobName, string roleName, int roleLevel)
         {
             var targetRockstarId = target.Identifiers["license"];
-            await character.Load(targetRockstarId);
+            await Main.characterManager.Load(targetRockstarId);
 
-            var cache = character.GetCache(targetRockstarId);
-            cache.Job.Name = jobName;
-            cache.Job.Role.Name = roleName;
-            cache.Job.Role.Level = roleLevel;
-            character.UpdateCache(target, cache);
+            var cache = Main.characterManager.GetCache(targetRockstarId);
 
-            await character.Save(target);
+            if (cache != null)
+            {
+                cache.Job.Name = jobName;
+                cache.Job.Role.Name = roleName;
+                cache.Job.Role.Level = roleLevel;
+                Main.characterManager.UpdateCache(target, cache);
 
-            logger.Warn($"Job setted by {player.Name} for {target.Name}, job: {jobName}, rolename: {roleName}");
+                await Main.characterManager.Save(target);
+
+                Log.Warn($"Job setted by {player.Name} for {target.Name}, job: {jobName}, rolename: {roleName}");   
+            }
+            else
+            {
+                Log.Error(($"Unable to set job to player: {targetRockstarId}"));
+            }
         }
 
-        #region Events
+        #region Event
 
         private async void RecruitPlayerToJobByRockstarIdEvent(int player, string targetRockstarId, string jobName, string roleName, int roleLevel)
         {
-            var target = players.ToList().Find(x => x.Identifiers["license"] == targetRockstarId);
-            var p = players[player];
+            var target = Main.players.ToList().Find(x => x.Identifiers["license"] == targetRockstarId);
+            var p = Main.players[player];
 
             if (target == null || p == null)
                 return;
@@ -61,8 +61,8 @@ namespace Average.Server.Managers
 
         private async void FiredPlayerToJobByRockstarIdEvent(int player, string targetRockstarId, string jobName, string roleName, int roleLevel)
         {
-            var target = players.ToList().Find(x => x.Identifiers["license"] == targetRockstarId);
-            var p = players[player];
+            var target = Main.players.ToList().Find(x => x.Identifiers["license"] == targetRockstarId);
+            var p = Main.players[player];
 
             if (target == null || p == null)
                 return;
@@ -73,8 +73,8 @@ namespace Average.Server.Managers
 
         private async void PromotePlayerToJobByRockstarIdEvent(int player, string targetRockstarId, string jobName, string roleName, int roleLevel)
         {
-            var target = players.ToList().Find(x => x.Identifiers["license"] == targetRockstarId);
-            var p = players[player];
+            var target = Main.players.ToList().Find(x => x.Identifiers["license"] == targetRockstarId);
+            var p = Main.players[player];
 
             if (target == null || p == null)
                 return;
@@ -85,8 +85,8 @@ namespace Average.Server.Managers
 
         private async void RecruitPlayerToJobByServerIdEvent(int player, int serverId, string jobName, string roleName, int roleLevel)
         {
-            var target = players[serverId];
-            var p = players[player];
+            var target = Main.players[serverId];
+            var p = Main.players[player];
 
             if (target == null || p == null)
                 return;
@@ -98,8 +98,8 @@ namespace Average.Server.Managers
 
         private async void FiredPlayerToJobByServerIdEvent(int player, int serverId, string jobName, string roleName, int roleLevel)
         {
-            var target = players[serverId];
-            var p = players[player];
+            var target = Main.players[serverId];
+            var p = Main.players[player];
 
             if (target == null || p == null)
                 return;
@@ -111,8 +111,8 @@ namespace Average.Server.Managers
 
         private async void PromotePlayerToJobByServerIdEvent(int player, int serverId, string jobName, string roleName, int roleLevel)
         {
-            var target = players[serverId];
-            var p = players[player];
+            var target = Main.players[serverId];
+            var p = Main.players[player];
 
             if (target == null || p == null)
                 return;

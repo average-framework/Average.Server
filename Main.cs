@@ -11,9 +11,11 @@ using System.Reflection;
 
 namespace Average.Server
 {
-    internal class Main : BaseScript 
+    internal class Main : BaseScript
     {
-        internal static Logger logger;
+        internal static EventHandlerDictionary eventHandlers;
+        internal static PlayerList players;
+
         internal static CommandManager commandManager;
         internal static Framework framework;
         internal static ThreadManager threadManager;
@@ -29,46 +31,50 @@ namespace Average.Server
         internal static JobManager jobManager;
         internal static DoorManager doorManager;
         internal static SaveManager saveManager;
-
+        
         internal static PluginLoader loader;
 
+        internal static SQL sql;
+        
         CfxManager cfxManager;
 
         public Main()
         {
-            logger = new Logger();
-            logger.Clear();
+            eventHandlers = EventHandlers;
+            players = Players;
+            
+            Log.Clear();
 
             Watermark();
 
             var baseConfig = SDK.Server.Configuration.Parse("config.json");
-            var sql = new SQL(logger, new SQLConnection((string)baseConfig["MySQL"]["Host"], (int)baseConfig["MySQL"]["Port"], (string)baseConfig["MySQL"]["Database"], (string)baseConfig["MySQL"]["Username"], (string)baseConfig["MySQL"]["Password"]));
+            sql = new SQL(new SQLConnection((string)baseConfig["MySQL"]["Host"], (int)baseConfig["MySQL"]["Port"], (string)baseConfig["MySQL"]["Database"], (string)baseConfig["MySQL"]["Username"], (string)baseConfig["MySQL"]["Password"]));
             sql.Connect();
 
             // Internal Script
-            commandManager = new CommandManager(logger);
+            commandManager = new CommandManager();
             threadManager = new ThreadManager(c => Tick += c, c => Tick -= c);
-            eventManager = new EventManager(EventHandlers, logger);
-            syncManager = new SyncManager(logger, threadManager);
-            exportManager = new ExportManager(logger);
+            eventManager = new EventManager();
+            syncManager = new SyncManager();
+            exportManager = new ExportManager();
             rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
-            requestInternalManager = new RequestInternalManager(logger, eventManager);
-            requestManager = new RequestManager(requestInternalManager);
+            requestInternalManager = new RequestInternalManager();
+            requestManager = new RequestManager();
 
-            saveManager = new SaveManager(logger, threadManager, eventManager, EventHandlers, Players);
+            saveManager = new SaveManager();
 
-            user = new UserManager(logger, rpc, sql, Players);
-            permission = new PermissionManager(logger, rpc, sql, EventHandlers, Players);
-            characterManager = new CharacterManager(logger, rpc, sql, eventManager, Players, EventHandlers, saveManager);
-            jobManager = new JobManager(logger, characterManager, EventHandlers, Players);
-            doorManager = new DoorManager(logger, EventHandlers, eventManager, rpc);
-            cfxManager = new CfxManager(EventHandlers, logger, eventManager);
+            user = new UserManager();
+            permission = new PermissionManager();
+            characterManager = new CharacterManager();
+            jobManager = new JobManager();
+            doorManager = new DoorManager();
+            cfxManager = new CfxManager();
 
             // Framework Script
-            framework = new Framework(threadManager, eventManager, exportManager, syncManager, logger, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager, jobManager, doorManager, saveManager);
+            framework = new Framework(threadManager, eventManager, exportManager, syncManager, commandManager, Players, rpc, sql, user, permission, characterManager, requestManager, requestInternalManager, jobManager, doorManager, saveManager);
 
             // Plugin Loader
-            loader = new PluginLoader(logger, commandManager, rpc);
+            loader = new PluginLoader();
             loader.Load();
         }
 

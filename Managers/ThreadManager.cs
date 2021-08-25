@@ -4,15 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using SDK.Server.Diagnostics;
 
 namespace Average.Server.Managers
 {
     public class ThreadManager : IThreadManager
     {
-        List<Thread> threads = new List<Thread>();
+        private List<Thread> _threads = new List<Thread>();
 
-        Action<Func<Task>> attachCallback;
-        Action<Func<Task>> detachCallback;
+        private Action<Func<Task>> attachCallback;
+        private Action<Func<Task>> detachCallback;
 
         public ThreadManager(Action<Func<Task>> attachCallback, Action<Func<Task>> detachCallback)
         {
@@ -29,7 +30,7 @@ namespace Average.Server.Managers
                 if (threadAttr != null)
                 {
                     var thread = new Thread(method, threadAttr.StartDelay);
-                    Func<Task> func = null;
+                    Func<Task>? func = null;
 
                     func = async () =>
                     {
@@ -43,11 +44,11 @@ namespace Average.Server.Managers
 
                         await (Task)method.Invoke(classObj, new object[] { });
 
-                        var currentThreadIndex = threads.FindIndex(x => x.Func == func);
+                        var currentThreadIndex = _threads.FindIndex(x => x.Func == func);
 
                         if (currentThreadIndex != -1)
                         {
-                            var currentThread = threads[currentThreadIndex];
+                            var currentThread = _threads[currentThreadIndex];
 
                             if (threadAttr.RepeatCount > 0)
                             {
@@ -55,8 +56,8 @@ namespace Average.Server.Managers
 
                                 if (currentThread.RepeatedCount >= threadAttr.RepeatCount)
                                 {
-                                    threads[threads.FindIndex(x => x.Func == func)].IsRunning = false;
-                                    threads[threads.FindIndex(x => x.Func == func)].IsTerminated = true;
+                                    _threads[_threads.FindIndex(x => x.Func == func)].IsRunning = false;
+                                    _threads[_threads.FindIndex(x => x.Func == func)].IsTerminated = true;
 
                                     detachCallback(func);
                                 }
@@ -65,16 +66,16 @@ namespace Average.Server.Managers
                     };
 
                     thread.Func = func;
-                    threads.Add(thread);
+                    _threads.Add(thread);
 
                     attachCallback(func);
 
-                    Main.logger.Debug($"Registering [Thread] attribute to method: {method.Name}.");
+                    Log.Debug($"Registering [Thread] attribute to method: {method.Name}.");
                 }
             }
             else
             {
-                Main.logger.Error($"Unable to register [Thread] attribute: {method.Name}, you need to delete parameters: [{string.Join(", ", methodParams.Select(x => x.ParameterType.Name))}]");
+                Log.Error($"Unable to register [Thread] attribute: {method.Name}, you need to delete parameters: [{string.Join(", ", methodParams.Select(x => x.ParameterType.Name))}]");
             }
         }
 
@@ -84,21 +85,21 @@ namespace Average.Server.Managers
 
         public void UnregisterThread(string methodName)
         {
-            var thread = threads.Find(x => x.Method.Name == methodName);
+            var thread = _threads.Find(x => x.Method.Name == methodName);
 
             if (thread != null)
             {
                 detachCallback(thread.Func);
-                threads.Remove(thread);
+                _threads.Remove(thread);
 
-                Main.logger.Debug($"Unregistering [Thread] attribute to method: {methodName}.");
+                Log.Debug($"Unregistering [Thread] attribute to method: {methodName}.");
             }
             else
             {
-                Main.logger.Debug($"Unable to unregistering [Thread] attribute from method: {methodName}.");
+                Log.Debug($"Unable to unregistering [Thread] attribute from method: {methodName}.");
             }
         }
 
-        public IEnumerable<Thread> GetThreads() => threads.AsEnumerable();
+        public IEnumerable<Thread> GetThreads() => _threads.AsEnumerable();
     }
 }
