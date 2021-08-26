@@ -13,8 +13,7 @@ namespace Average.Server.Managers
     {
         private List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
 
-        private void RegisterCommandInternal(string command, object classObj, MethodInfo method,
-            ServerCommandAttribute commandAttr)
+        private void RegisterCommandInternal(string command, object classObj, MethodInfo method)
         {
             var methodParams = method.GetParameters();
 
@@ -26,9 +25,7 @@ namespace Average.Server.Managers
                 {
                     try
                     {
-                        args.ForEach(x =>
-                            newArgs.Add(Convert.ChangeType(x,
-                                methodParams[args.FindIndex(p => p == x)].ParameterType)));
+                        args.ForEach(x => newArgs.Add(Convert.ChangeType(x, methodParams[args.FindIndex(p => p == x)].ParameterType)));
                         method.Invoke(classObj, newArgs.ToArray());
                     }
                     catch
@@ -51,7 +48,7 @@ namespace Average.Server.Managers
         {
             if (commandAttr == null) return;
 
-            RegisterCommandInternal(commandAttr.Command, classObj, method, commandAttr);
+            RegisterCommandInternal(commandAttr.Command, classObj, method);
             _commands.Add(commandAttr);
         }
 

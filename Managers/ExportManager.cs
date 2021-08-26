@@ -37,8 +37,7 @@ namespace Average.Server.Managers
                 else
                     Log.Debug($"Unable to call export: {methodName}, this export does not exists.");
 
-                var instance = (T)Activator.CreateInstance(typeof(T));
-                return instance;
+                return (T)Activator.CreateInstance(typeof(T));
             }
             catch (Exception ex)
             {
@@ -52,16 +51,23 @@ namespace Average.Server.Managers
         {
             var methodParams = method.GetParameters();
 
-            if (!_exports.ContainsKey(exportAttr.Name))
+            try
             {
-                var action = Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
-                _exports.Add(exportAttr.Name, action);
+                if (!_exports.ContainsKey(exportAttr.Name))
+                {
+                    var action = Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] {method.ReturnType}).ToArray()), classObj, method);
+                    _exports.Add(exportAttr.Name, action);
 
-                Log.Debug($"Registering [Export] attribute: {exportAttr.Name} on method: {method.Name}, args count: {methodParams.Count()}.");
+                    Log.Debug($"Registering [Export] attribute: {exportAttr.Name} on method: {method.Name}, args count: {methodParams.Count()}.");
+                }
+                else
+                {
+                    Log.Error($"Unable to register [Export] attribute: {exportAttr.Name} on method: {method.Name}, an export have already been registered with this name.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Log.Error($"Unable to register [Export] attribute: {exportAttr.Name} on method: {method.Name}, an export have already been registered with this name.");
+                Log.Error($"Export error: {ex.Message}\n{ex.StackTrace}");
             }
         }
     }

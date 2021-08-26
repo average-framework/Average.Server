@@ -102,7 +102,7 @@ namespace Average.Server.Managers
         {
             var methodParams = method.GetParameters();
 
-            var action = Action.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
+            var action = Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
             RegisterInternalEvent(eventAttr.Event, action);
 
             Log.Debug($"Registering [Event] attribute: {eventAttr.Event} on method: {method.Name}, args count: {methodParams.Count()}");
@@ -110,8 +110,7 @@ namespace Average.Server.Managers
 
         private void InternalTriggerEvent(string eventName, [FromSource] Player player, List<object> args)
         {
-            var newArgs = new List<object>();
-            newArgs.Add(int.Parse(player.Handle));
+            var newArgs = new List<object> {int.Parse(player.Handle)};
 
             foreach (var arg in args)
                 newArgs.Add(arg);

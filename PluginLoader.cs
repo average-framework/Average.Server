@@ -35,7 +35,7 @@ namespace Average.Server
 
         public async Task IsReady()
         {
-            while (!isReady) await BaseScript.Delay(0);
+            while (!isReady) await Delay(0);
         }
 
         private IEnumerable<string> GetPluginsPath()
@@ -150,6 +150,30 @@ namespace Average.Server
             //    }
             //}
 
+            var mainAsm = Main.instance.GetType().Assembly;
+            
+            foreach (var type in mainAsm.GetTypes())
+            {
+                // If the type is not good, try catch
+                try
+                {
+                    if (type != Main.instance.GetType())
+                    {
+                        var classObj = Activator.CreateInstance(type);
+                        RegisterThreads(type, classObj);
+                        RegisterEvents(type, classObj);
+                        RegisterExports(type, classObj);
+                        RegisterSyncs(type, classObj);
+                        RegisterGetSyncs(type, classObj);
+                        RegisterCommands(type, classObj);   
+                    }
+                }
+                catch
+                {
+                    
+                }
+            }
+            
             foreach (var file in ValidatePlugins())
             {
                 var currentDirPath = Path.GetDirectoryName(file);
@@ -300,9 +324,7 @@ namespace Average.Server
                 var exportAttr = method.GetCustomAttribute<ExportAttribute>();
 
                 if (exportAttr != null)
-                {
                     Main.exportManager.RegisterExport(method, exportAttr, classObj);
-                }
             }
         }
 

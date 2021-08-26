@@ -35,11 +35,14 @@ namespace Average.Server
         internal static PluginLoader loader;
 
         internal static SQL sql;
+
+        internal static Main instance;
         
         CfxManager cfxManager;
 
         public Main()
         {
+            instance = this;
             eventHandlers = EventHandlers;
             players = Players;
             
