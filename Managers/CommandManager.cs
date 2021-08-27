@@ -9,15 +9,15 @@ using SDK.Server.Diagnostics;
 
 namespace Average.Server.Managers
 {
-    public class CommandManager : ICommandManager
+    public class CommandManager : InternalPlugin, ICommandManager
     {
-        private List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
+        private static List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
 
-        private void RegisterCommandInternal(string command, object classObj, MethodInfo method)
+        internal static void RegisterCommandInternal(ServerCommandAttribute cmdAttr, object classObj, MethodInfo method)
         {
             var methodParams = method.GetParameters();
 
-            API.RegisterCommand(command, new Action<int, List<object>, string>(async (source, args, raw) =>
+            API.RegisterCommand(cmdAttr.Command, new Action<int, List<object>, string>(async (source, args, raw) =>
             {
                 var newArgs = new List<object>();
 
@@ -27,6 +27,7 @@ namespace Average.Server.Managers
                     {
                         args.ForEach(x => newArgs.Add(Convert.ChangeType(x, methodParams[args.FindIndex(p => p == x)].ParameterType)));
                         method.Invoke(classObj, newArgs.ToArray());
+                        _commands.Add(cmdAttr);
                     }
                     catch
                     {
@@ -37,19 +38,11 @@ namespace Average.Server.Managers
                 {
                     var usage = "";
                     methodParams.ToList().ForEach(x => usage += $"<[{x.ParameterType.Name}] {x.Name}> ");
-                    Log.Error($"Invalid command usage: {command} {usage}.");
+                    Log.Error($"Invalid command usage: {cmdAttr.Command} {usage}.");
                 }
             }), false);
-
-            Log.Debug($"Registering [Command] attribute: {command} on method: {method.Name}");
-        }
-
-        public void RegisterCommand(ServerCommandAttribute commandAttr, MethodInfo method, object classObj)
-        {
-            if (commandAttr == null) return;
-
-            RegisterCommandInternal(commandAttr.Command, classObj, method);
-            _commands.Add(commandAttr);
+            
+            Log.Debug($"Registering [Command] attribute: {cmdAttr.Command} on method: {method.Name}");
         }
 
         public IEnumerable<ServerCommandAttribute> GetCommands() => _commands.AsEnumerable();

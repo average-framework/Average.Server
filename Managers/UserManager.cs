@@ -3,31 +3,36 @@ using SDK.Server.Interfaces;
 using SDK.Shared.DataModels;
 using System;
 using System.Threading.Tasks;
+using Average.Server.Data;
 using SDK.Server.Diagnostics;
 
 namespace Average.Server.Managers
 {
-    public class UserManager : IUserManager
+    public class UserManager : InternalPlugin, IUserManager
     {
-        public UserManager()
+        public override void OnInitialized()
         {
-            Main.rpc.Event("User.GetUser").On(async (message, callback) =>
+            #region Rpc
+
+            Rpc.Event("User.GetUser").On(async (message, callback) =>
             {
                 Log.Debug("Getted user");
-                var data = await GetUser(Main.players[message.Target]);
+                var data = await GetUser(Players[message.Target]);
                 callback(data);
             });
+
+            #endregion
         }
 
         public async Task<UserData> GetUser(Player player)
         {
-            var data = await Main.sql.GetAllAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
+            var data = await SQL.GetAllAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
             return data[0];
         }
 
-        public async Task<bool> Exist(Player player) => await Main.sql.ExistsAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
+        public async Task<bool> Exist(Player player) => await SQL.ExistsAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
 
-        public async void CreateAccount(Player player) => await Main.sql.InsertAsync("users", new UserData
+        public async void CreateAccount(Player player) => await SQL.InsertAsync("users", new UserData
         {
             RockstarId = player.Identifiers["license"],
             Name = player.Name,
@@ -51,7 +56,7 @@ namespace Average.Server.Managers
             Save(data);
         }
 
-        public async void Save(UserData data) => await Main.sql.InsertOrUpdateAsync("users", data);
+        public async void Save(UserData data) => await SQL.InsertOrUpdateAsync("users", data);
 
         public async Task<DateTime> GetLastConnectionTime(Player player)
         {

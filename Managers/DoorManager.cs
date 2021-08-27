@@ -7,11 +7,11 @@ using System.Collections.Generic;
 
 namespace Average.Server.Managers
 {
-    public class DoorManager : IDoorManager
+    public class DoorManager : InternalPlugin, IDoorManager
     {
-        private readonly List<Door> _doors;
+        private List<Door> _doors;
 
-        public DoorManager()
+        public override void OnInitialized()
         {
             _doors = SDK.Server.Configuration.Parse<List<Door>>("configs/custom_doors.json");
 
@@ -23,7 +23,7 @@ namespace Average.Server.Managers
 
             #region Rpc
 
-            Main.rpc.Event("Door.GetDoors").On((message, callback) => callback(_doors.ToArray()));
+            Rpc.Event("Door.GetDoors").On((message, callback) => callback(_doors.ToArray()));
 
             #endregion
         }
@@ -41,7 +41,7 @@ namespace Average.Server.Managers
         public void SetDoorState(Door door)
         {
             door.IsLocked = !door.IsLocked;
-            Main.eventManager.EmitClients("Door.SetDoorState", door.Position, door.IsLocked);
+            Event.EmitClients("Door.SetDoorState", door.Position, door.IsLocked);
         }
 
         #endregion

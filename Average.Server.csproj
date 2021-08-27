@@ -79,6 +79,7 @@
     <Compile Include="Managers\PermissionManager.cs" />
     <Compile Include="Managers\SaveManager.cs" />
     <Compile Include="Managers\UserManager.cs" />
+    <Compile Include="InternalPlugin.cs" />
     <Compile Include="PluginLoader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Managers\SyncManager.cs" />

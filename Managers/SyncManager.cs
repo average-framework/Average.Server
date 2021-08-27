@@ -11,20 +11,20 @@ using SDK.Server.Diagnostics;
 
 namespace Average.Server.Managers
 {
-    public class SyncManager : ISyncManager
+    public class SyncManager : InternalPlugin, ISyncManager
     {
-        private Dictionary<string, SyncPropertyState> _propertiesSyncs;
-        private Dictionary<string, SyncFieldState> _fieldsSyncs;
+        private static Dictionary<string, SyncPropertyState> _propertiesSyncs;
+        private static Dictionary<string, SyncFieldState> _fieldsSyncs;
 
-        private List<GetSyncPropertyState> _propertiesGetSyncs;
-        private List<GetSyncFieldState> _fieldsGetSyncs;
+        private static List<GetSyncPropertyState> _propertiesGetSyncs;
+        private static List<GetSyncFieldState> _fieldsGetSyncs;
 
-        private Dictionary<string, SyncPropertyState> _networkedPropertiesSyncs;
-        private Dictionary<string, SyncFieldState> _networkedFieldsSyncs;
+        private static Dictionary<string, SyncPropertyState> _networkedPropertiesSyncs;
+        private static Dictionary<string, SyncFieldState> _networkedFieldsSyncs;
 
         private const int SyncRate = 60;
-
-        public SyncManager()
+        
+        public override void OnInitialized()
         {
             _propertiesSyncs = new Dictionary<string, SyncPropertyState>();
             _propertiesGetSyncs = new List<GetSyncPropertyState>();
@@ -34,8 +34,10 @@ namespace Average.Server.Managers
 
             _fieldsSyncs = new Dictionary<string, SyncFieldState>();
             _fieldsGetSyncs = new List<GetSyncFieldState>();
-
-            Main.threadManager.StartThread(Update);
+            
+            Log.Warn("Cmd count: " + Command.GetCommands().Count());
+            // Log.Warn($"Is null: {(Thread == null)}");
+            // Thread.StartThread(Update);
         }
 
         private async Task Update()
@@ -154,7 +156,7 @@ namespace Average.Server.Managers
             }
         }
 
-        public void RegisterSync(ref PropertyInfo property, SyncAttribute syncAttr, object classObj)
+        internal static void RegisterInternalSync(ref PropertyInfo property, SyncAttribute syncAttr, object classObj)
         {
             if (!_propertiesSyncs.ContainsKey(syncAttr.Name))
             {
@@ -174,7 +176,7 @@ namespace Average.Server.Managers
             }
         }
 
-        public void RegisterSync(ref FieldInfo field, SyncAttribute syncAttr, object classObj)
+        internal static void RegisterInternalSync(ref FieldInfo field, SyncAttribute syncAttr, object classObj)
         {
             if (!_fieldsSyncs.ContainsKey(syncAttr.Name))
             {
@@ -187,7 +189,7 @@ namespace Average.Server.Managers
             }
         }
 
-        public void RegisterGetSync(ref PropertyInfo property, GetSyncAttribute getSyncAttr, object classObj)
+        internal static void RegisterInternalGetSync(ref PropertyInfo property, GetSyncAttribute getSyncAttr, object classObj)
         {
             if (property.CanWrite && property.CanRead)
             {
@@ -200,13 +202,13 @@ namespace Average.Server.Managers
             }
         }
 
-        public void RegisterGetSync(ref FieldInfo field, GetSyncAttribute getSyncAttr, object classObj)
+        internal static void RegisterInternalGetSync(ref FieldInfo field, GetSyncAttribute getSyncAttr, object classObj)
         {
             _fieldsGetSyncs.Add(new GetSyncFieldState(getSyncAttr, field, classObj));
             Log.Debug($"Registering [GetSync] attribute: {getSyncAttr.Name} on field: {field.Name}.");
         }
 
-        public void RegisterNetworkSync(ref PropertyInfo property, NetworkSyncAttribute syncAttr, object classObj)
+        internal static void RegisterInternalNetworkSync(ref PropertyInfo property, NetworkSyncAttribute syncAttr, object classObj)
         {
             if (!_networkedPropertiesSyncs.ContainsKey(syncAttr.Name))
             {
@@ -226,7 +228,7 @@ namespace Average.Server.Managers
             }
         }
 
-        public void RegisterNetworkSync(ref FieldInfo field, NetworkSyncAttribute syncAttr, object classObj)
+        internal static void RegisterInternalNetworkSync(ref FieldInfo field, NetworkSyncAttribute syncAttr, object classObj)
         {
             if (!_networkedFieldsSyncs.ContainsKey(syncAttr.Name))
             {

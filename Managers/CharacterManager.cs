@@ -7,24 +7,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Average.Server.Data;
 
 namespace Average.Server.Managers
 {
-    public class CharacterManager : ICharacterManager, ISaveable
+    public class CharacterManager : InternalPlugin, ICharacterManager, ISaveable
     {
         private const string tableName = "characters";
 
         private Dictionary<string, CharacterData> _characters = new Dictionary<string, CharacterData>();
-
-        public CharacterManager()
+        
+        public override void OnInitialized()
         {
             #region Rpc
 
-            Main.rpc.Event("Character.Exist").On(async (message, callback) =>
+            Rpc.Event("Character.Exist").On(async (message, callback) =>
             {
                 try
                 {
-                    var player = Main.players[message.Target];
+                    var player = Players[message.Target];
                     var characterExist = await Exist(player);
                     callback(characterExist.ToString().ToLower());
 
@@ -36,11 +37,11 @@ namespace Average.Server.Managers
                 }
             });
 
-            Main.rpc.Event("Character.Load").On(async (message, callback) =>
+            Rpc.Event("Character.Load").On(async (message, callback) =>
             {
                 try
                 {
-                    var player = Main.players[message.Target];
+                    var player = Players[message.Target];
                     var data = await Load(player.Identifiers["license"]);
                     callback(data);
 
@@ -56,7 +57,7 @@ namespace Average.Server.Managers
 
             #region Event
 
-            Main.eventManager.PlayerDisconnecting += PlayerDisconnecting;
+            Event.PlayerDisconnecting += PlayerDisconnecting;
 
             Main.eventHandlers["Character.SetPed"] += new Action<int, uint, int>(OnSetPedEvent);
             Main.eventHandlers["Character.Save"] += new Action<int, string>(OnSaveEvent);
@@ -69,7 +70,7 @@ namespace Average.Server.Managers
 
             #endregion
 
-            Main.saveManager.AddInQueue(this);
+            Save.AddInQueue(this);
         }
 
         public CharacterData? GetCache(string rockstarId)
@@ -82,7 +83,7 @@ namespace Average.Server.Managers
 
         public async Task<CharacterData> Load(string rockstarId)
         {
-            var data = await Main.sql.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
+            var data = await SQL.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
 
             if (!_characters.ContainsKey(rockstarId))
                 _characters.Add(rockstarId, data[0]);
@@ -97,14 +98,14 @@ namespace Average.Server.Managers
             if (isLocal)
                 return _characters.Values.ToList().Exists(x => x.RockstarId == player.Identifiers["license"]);
             else
-                return await Main.sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
+                return await SQL.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
         }
 
-        public async Task<bool?> Exist(Player player) => await Main.sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
+        public async Task<bool?> Exist(Player player) => await SQL.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
 
-        public async Task Create(CharacterData data) => await Main.sql.InsertOrUpdateAsync(tableName, data);
+        public async Task Create(CharacterData data) => await SQL.InsertOrUpdateAsync(tableName, data);
 
-        public async Task Save(Player player)
+        public async Task SaveData(Player player)
         {
             var rockstarId = player.Identifiers["license"];
 
@@ -113,7 +114,7 @@ namespace Average.Server.Managers
                 try
                 {
                     var data = _characters[rockstarId];
-                    await Main.sql.InsertOrUpdateAsync(tableName, data);
+                    await SQL.InsertOrUpdateAsync(tableName, data);
                     Log.Debug("[Character] Saved: " + rockstarId);
                 }
                 catch (Exception ex)
@@ -131,7 +132,7 @@ namespace Average.Server.Managers
 
                 try
                 {
-                    await Main.sql.InsertOrUpdateAsync(tableName, data.Value);
+                    await SQL.InsertOrUpdateAsync(tableName, data.Value);
                     Log.Debug("[Character] Saved: " + data.Key);
                 }
                 catch (Exception ex)
@@ -154,32 +155,32 @@ namespace Average.Server.Managers
 
         #region Event
 
-        private void OnSetPedEvent(int player, uint model, int variation) => Main.players[player].TriggerEvent("Character.SetPed", model, variation);
+        private void OnSetPedEvent(int player, uint model, int variation) => Players[player].TriggerEvent("Character.SetPed", model, variation);
 
         private void OnSaveEvent(int player, string json)
         {
             if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
             {
-                Log.Error("[Character] Unable to save character for player: " + Main.players[player].Name + ", json contains an error.");
+                Log.Error("[Character] Unable to save character for player: " + Players[player].Name + ", json contains an error.");
                 return;
             }
 
-            UpdateCache(Main.players[player], JsonConvert.DeserializeObject<CharacterData>(json));
+            UpdateCache(Players[player], JsonConvert.DeserializeObject<CharacterData>(json));
         }
 
-        private async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await Save(e.Player);
+        private async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await SaveData(e.Player);
 
-        private void OnSetMoneyEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.SetMoney", amount);
+        private void OnSetMoneyEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.SetMoney", amount);
 
-        private void OnSetBankEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.SetBank", amount);
+        private void OnSetBankEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.SetBank", amount);
 
-        private void OnAddMoneyEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.AddMoney", amount);
+        private void OnAddMoneyEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.AddMoney", amount);
 
-        private void OnAddBankEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.AddBank", amount);
+        private void OnAddBankEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.AddBank", amount);
 
-        private void OnRemoveMoneyEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.RemoveMoney", amount);
+        private void OnRemoveMoneyEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.RemoveMoney", amount);
 
-        private void OnRemoveBankEvent(int player, decimal amount) => Main.players[player].TriggerEvent("Character.RemoveBank", amount);
+        private void OnRemoveBankEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.RemoveBank", amount);
 
         #endregion
     }

@@ -2,15 +2,13 @@
 using SDK.Shared;
 using System;
 using System.Threading.Tasks;
-using CitizenFX.Core;
-using SDK.Server;
 using SDK.Server.Diagnostics;
 
 namespace Average.Server.Managers
 {
-    public class JobManager : IJobManager
+    public class JobManager : InternalPlugin, IJobManager
     {
-        public JobManager()
+        public override void OnInitialized()
         {
             #region Event
 
@@ -24,24 +22,24 @@ namespace Average.Server.Managers
         [Export("Job.SetJob")]
         public async Task SetJob(int player, int target, string jobName, string roleName, int roleLevel)
         {
-            var p = Main.players[player];
-            var t = Main.players[target];
+            var p = Players[player];
+            var t = Players[target];
 
             if (p == null || t == null) return;
             
             var targetRockstarId = t.Identifiers["license"];
-            await Main.characterManager.Load(targetRockstarId);
+            await Character.Load(targetRockstarId);
 
-            var cache = Main.characterManager.GetCache(targetRockstarId);
+            var cache = Character.GetCache(targetRockstarId);
 
             if (cache != null)
             {
                 cache.Job.Name = jobName;
                 cache.Job.Role.Name = roleName;
                 cache.Job.Role.Level = roleLevel;
-                Main.characterManager.UpdateCache(t, cache);
+                Character.UpdateCache(t, cache);
                 
-                await Main.characterManager.Save(t);
+                await Character.SaveData(t);
 
                 Log.Warn($"Job setted by {p.Name} for {t.Name}, job: {jobName}, rolename: {roleName}");   
             }
@@ -55,8 +53,8 @@ namespace Average.Server.Managers
         
         private async void RecruitPlayerToJobByServerIdEvent(int player, int target, string jobName, string roleName, int roleLevel)
         {
-            var t = Main.players[target];
-            var p = Main.players[player];
+            var t = Players[target];
+            var p = Players[player];
 
             if (t == null || p == null) return;
 
@@ -67,8 +65,8 @@ namespace Average.Server.Managers
 
         private async void FiredPlayerToJobByServerIdEvent(int player, int target, string jobName, string roleName, int roleLevel)
         {
-            var t = Main.players[target];
-            var p = Main.players[player];
+            var t = Players[target];
+            var p = Players[player];
 
             if (t == null || p == null) return;
 
@@ -79,8 +77,8 @@ namespace Average.Server.Managers
 
         private async void PromotePlayerToJobByServerIdEvent(int player, int target, string jobName, string roleName, int roleLevel)
         {
-            var t = Main.players[target];
-            var p = Main.players[player];
+            var t = Players[target];
+            var p = Players[player];
 
             if (t == null || p == null) return;
 

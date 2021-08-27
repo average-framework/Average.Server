@@ -10,13 +10,17 @@ using System.Threading.Tasks;
 
 namespace Average.Server.Managers
 {
-    public class RequestInternalManager : IRequestInternalManager
+    public class RequestInternalManager : InternalPlugin, IRequestInternalManager
     {
         private Dictionary<int, Dictionary<string, dynamic>> _responseDictionary = new Dictionary<int, Dictionary<string, dynamic>>();
 
-        public RequestInternalManager()
+        public override void OnInitialized()
         {
-            Main.eventManager.HttpResponse += HttpResponse;
+            #region Event
+
+            Event.HttpResponse += HttpResponse;
+
+            #endregion
         }
 
         public void HttpResponse(object sender, HttpResponseEventArgs e)

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Average.Server.Managers
 {
-    public class RequestManager : IRequestManager
+    public class RequestManager : InternalPlugin, IRequestManager
     {
         public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>
         {
@@ -17,7 +17,7 @@ namespace Average.Server.Managers
         public async Task<RequestResponse> Http(string url, string method = "GET", string data = "", Dictionary<string, string> headers = null)
         {
             headers = (headers == null) ? new Dictionary<string, string>() : headers;
-            var response = await Main.requestInternalManager.Http(url, method, data, headers);
+            var response = await RequestInternal.Http(url, method, data, headers);
             return ParseRequestResponseInternal(response);
         }
 

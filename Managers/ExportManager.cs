@@ -9,9 +9,9 @@ using System.Reflection;
 
 namespace Average.Server.Managers
 {
-    public class ExportManager : IExportManager
+    public class ExportManager : InternalPlugin, IExportManager
     {
-        private Dictionary<string, Delegate> _exports = new Dictionary<string, Delegate>();
+        private static Dictionary<string, Delegate> _exports = new Dictionary<string, Delegate>();
         
         public void CallMethod(string methodName, params object[] args)
         {
@@ -47,7 +47,7 @@ namespace Average.Server.Managers
             return (T)Activator.CreateInstance(typeof(T));
         }
 
-        public void RegisterExport(MethodInfo method, ExportAttribute exportAttr, object classObj)
+        internal static void RegisterInternalExport(MethodInfo method, ExportAttribute exportAttr, object classObj)
         {
             var methodParams = method.GetParameters();
 

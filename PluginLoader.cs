@@ -1,8 +1,6 @@
-﻿using Average.Server.Managers;
-using CitizenFX.Core;
+﻿using CitizenFX.Core;
 using Newtonsoft.Json;
 using SDK.Server;
-using SDK.Server.Plugins;
 using SDK.Shared;
 using SDK.Shared.Plugins;
 using SDK.Shared.Rpc;
@@ -13,7 +11,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Average.Server.Data;
+using Average.Server.Managers;
 using SDK.Server.Diagnostics;
+using SDK.Server.Rpc;
 using static CitizenFX.Core.Native.API;
 using static SDK.Server.Rpc.RpcRequest;
 
@@ -25,13 +26,18 @@ namespace Average.Server
         private string BASE_RESOURCE_PATH = GetResourcePath(Constant.RESOURCE_NAME);
 
         private readonly List<PluginInfo> _clientPlugins = new List<PluginInfo>();
+        private readonly List<InternalPlugin> _internalPlugins = new List<InternalPlugin>();
         private readonly List<Plugin> _plugins = new List<Plugin>();
 
 
-        public PluginLoader()
-        {
-            Main.rpc.Event("avg.internal.get_plugins").On(GetPluginsEvent);
-        }
+        // public PluginLoader()
+        // {
+        //     #region Rpc
+        //
+        //     Main.rpc.Event("avg.internal.get_plugins").On(GetPluginsEvent);
+        //
+        //     #endregion
+        // }
 
         public async Task IsReady()
         {
@@ -40,7 +46,8 @@ namespace Average.Server
 
         private IEnumerable<string> GetPluginsPath()
         {
-            var pluginsDirectoryPath = string.Join("/", BASE_RESOURCE_PATH, SDK.Shared.Constant.BASE_PLUGIN_DIRECTORY_NAME);
+            var pluginsDirectoryPath =
+                string.Join("/", BASE_RESOURCE_PATH, SDK.Shared.Constant.BASE_PLUGIN_DIRECTORY_NAME);
             return Directory.GetDirectories(pluginsDirectoryPath);
         }
 
@@ -93,6 +100,7 @@ namespace Average.Server
                             {
                                 Log.Error($"[{dirInfo.Name.ToUpper()}] Invalid plugin info.");
                             }
+
                             break;
                     }
                 }
@@ -129,7 +137,8 @@ namespace Average.Server
             }
             catch
             {
-                throw new FormatException($"[ERROR][{fileInfo.Name.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} have an invalid format.");
+                throw new FormatException(
+                    $"[ERROR][{fileInfo.Name.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} have an invalid format.");
             }
         }
 
@@ -138,6 +147,62 @@ namespace Average.Server
             return Directory.GetFiles(filePath);
         }
 
+        internal void LoadInternalScripts()
+        {
+            var mainAsm = Main.instance.GetType().Assembly;
+            var internalPlugins = mainAsm.GetTypes().Where(x => !x.IsAbstract && x.IsClass && x.IsSubclassOf(typeof(InternalPlugin))).ToList();
+
+            foreach (var type in internalPlugins)
+            {
+                try
+                {
+                    var script = (InternalPlugin) Activator.CreateInstance(type);
+
+                    RegisterThreads(type, script);
+                    RegisterEvents(type, script);
+                    RegisterExports(type, script);
+                    RegisterSyncs(type, script);
+                    RegisterGetSyncs(type, script);
+                    RegisterCommands(type, script);
+                    RegisterInternalPlugin(script);
+
+                    Log.Warn("Registering script: " + script.Name);
+                }
+                catch
+                {
+                    Log.Error($"Unable to register script: {type}");
+                }
+            }
+
+            foreach (var script in _internalPlugins)
+            {
+                try
+                {
+                    script.Players = Players;
+                    script.Rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(new PlayerList()), new RpcSerializer());
+                    script.Character = GetInternalInstance<CharacterManager>();
+                    script.Command = GetInternalInstance<CommandManager>();
+                    script.Event = GetInternalInstance<EventManager>();
+                    script.Export = GetInternalInstance<ExportManager>();
+                    script.Permission = GetInternalInstance<PermissionManager>();
+                    script.Request = GetInternalInstance<RequestManager>();
+                    script.RequestInternal = GetInternalInstance<RequestInternalManager>();
+                    script.Save = GetInternalInstance<SaveManager>();
+                    script.Sync = GetInternalInstance<SyncManager>();
+                    script.Thread = GetInternalInstance<ThreadManager>();
+                    script.User = GetInternalInstance<UserManager>();
+                    script.Job = GetInternalInstance<JobManager>();
+                    script.Door = GetInternalInstance<DoorManager>();
+                    script.OnInitialized();
+                    Log.Info($"Script: {script.Name} OnInitialized called successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Unable to call OnInitialized. Error: {ex.Message}\n{ex.StackTrace}");
+                }
+            }
+        }
+        
         public void Load()
         {
             //foreach (var dir in Directory.GetDirectories(Path.Combine(GetResourcePath(GetCurrentResourceName()), "plugins")))
@@ -150,30 +215,8 @@ namespace Average.Server
             //    }
             //}
 
-            var mainAsm = Main.instance.GetType().Assembly;
-            
-            foreach (var type in mainAsm.GetTypes())
-            {
-                // If the type is not good, try catch
-                try
-                {
-                    if (type != Main.instance.GetType())
-                    {
-                        var classObj = Activator.CreateInstance(type);
-                        RegisterThreads(type, classObj);
-                        RegisterEvents(type, classObj);
-                        RegisterExports(type, classObj);
-                        RegisterSyncs(type, classObj);
-                        RegisterGetSyncs(type, classObj);
-                        RegisterCommands(type, classObj);   
-                    }
-                }
-                catch
-                {
-                    
-                }
-            }
-            
+            LoadInternalScripts();
+
             foreach (var file in ValidatePlugins())
             {
                 var currentDirPath = Path.GetDirectoryName(file);
@@ -181,74 +224,29 @@ namespace Average.Server
                 var fileInfo = new FileInfo(file);
                 var pluginInfo = GetPluginInfo(fileInfo);
 
-                if (pluginInfo != null)
+                if (pluginInfo is null) continue;
+
+                // If this plugin is a client plugin
+                if (!string.IsNullOrEmpty(pluginInfo.Client))
+                    _clientPlugins.Add(pluginInfo);
+
+                if (!string.IsNullOrEmpty(pluginInfo.Server))
                 {
-                    if (!string.IsNullOrEmpty(pluginInfo.Client))
+                    try
                     {
-                        // Is client only
-                        _clientPlugins.Add(pluginInfo);
-                    }
+                        var serverFile = Path.Combine(currentDirPath, pluginInfo.Server);
+                        var asm = Assembly.LoadFrom(serverFile);
+                        var asmName = asm.GetName().ToString().Split(',')[0];
 
-                    if (!string.IsNullOrEmpty(pluginInfo.Server))
-                    {
-                        try
+                        Log.Info($"Loading {asmName} ...");
+
+                        var plugins = asm.GetTypes().Where(x => !x.IsAbstract && x.IsClass && x.IsSubclassOf(typeof(Plugin))).ToList();
+
+                        foreach (var type in plugins)
                         {
-                            var serverFile = Path.Combine(currentDirPath, pluginInfo.Server);
-                            var asm = Assembly.LoadFrom(serverFile);
-                            var asmName = asm.GetName().ToString().Split(',')[0];
-
-                            Log.Info($"Loading {asmName} ...");
-
-                            var types = asm.GetTypes().Where(x => !x.IsAbstract && x.IsClass && x.IsSubclassOf(typeof(Plugin))).ToList();
-                            var mainScriptCount = types.Select(type => type.GetCustomAttribute<MainScriptAttribute>()).Count(attr => attr != null);
-
-                            if (mainScriptCount > 1)
+                            try
                             {
-                                Log.Error("Unable to load multiples [MainScript] attribute in same plugin. Fix this error to continue.");
-                                return;
-                            }
-
-                            if (mainScriptCount == 0)
-                            {
-                                Log.Error("Unable to load this plugin, he does not contains [MainScript] attribute. Fix this error to continue.");
-                                return;
-                            }
-
-                            foreach (var type in types)
-                            {
-                                Plugin? script = null;
-
-                                if (type.GetCustomAttribute<MainScriptAttribute>() != null)
-                                {
-                                    try
-                                    {
-                                        // Activate asm instance
-                                        script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
-                                        RegisterPlugin(script, type);
-
-                                        Log.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
-                                    }
-                                    catch (InvalidCastException ex)
-                                    {
-                                        Log.Error($"Unable to load {asm.GetName().Name}");
-                                    }
-                                }
-                                else
-                                {
-                                    try
-                                    {
-                                        script = (Plugin)Activator.CreateInstance(type, Main.framework, pluginInfo);
-                                        RegisterPlugin(script, type);
-
-                                        Log.Info($"Plugin {asm.GetName().Name} -> script: {script.Name} successfully loaded.");
-                                    }
-                                    catch
-                                    {
-                                        Log.Error($"Unable to load script: {script.Name}");
-                                    }
-                                }
-
-                                if (script == null) continue;
+                                var script = (Plugin) Activator.CreateInstance(type);
 
                                 RegisterThreads(type, script);
                                 RegisterEvents(type, script);
@@ -256,160 +254,194 @@ namespace Average.Server
                                 RegisterSyncs(type, script);
                                 RegisterGetSyncs(type, script);
                                 RegisterCommands(type, script);
+                                RegisterPlugin(script);
+
+                                Log.Info($"Script: {script.Name} registered successfully.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error($"Unable to registering script: {type}. Error: {ex.Message}\n{ex.StackTrace}");
                             }
                         }
-                        catch
+                        
+                        foreach (var script in _plugins)
                         {
-                            Log.Error($"Unable to load this plugin: {pluginInfo.Server} because this plugin does not exist or is an invalid Average Framework plugin.");
+                            try
+                            {
+                                script.Players = Players;
+                                script.Rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(new PlayerList()), new RpcSerializer());
+                                script.Character = GetInternalInstance<CharacterManager>();
+                                script.Command = GetInternalInstance<CommandManager>();
+                                script.Event = GetInternalInstance<EventManager>();
+                                script.Export = GetInternalInstance<ExportManager>();
+                                script.Permission = GetInternalInstance<PermissionManager>();
+                                script.Request = GetInternalInstance<RequestManager>();
+                                script.Save = GetInternalInstance<SaveManager>();
+                                script.Sync = GetInternalInstance<SyncManager>();
+                                script.Thread = GetInternalInstance<ThreadManager>();
+                                script.User = GetInternalInstance<UserManager>();
+                                script.Job = GetInternalInstance<JobManager>();
+                                script.Door = GetInternalInstance<DoorManager>();
+                                script.PluginInfo = pluginInfo;
+                                script.LoadConfiguration();
+                                script.OnInitialized();
+                                Log.Info($"Script: {script.GetType()} OnInitialized called successfully.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error($"Unable to call OnInitialized. Error: {ex.Message}\n{ex.StackTrace}");
+                            }
                         }
                     }
-                    else
+                    catch
                     {
-                        //Log.Error($"[{currentDirName.ToUpper()}] {Constant.BASE_PLUGIN_MANIFEST_FILENAME} does not contains value for the \"Server\" key. Set the value like this: \"your_plugin.server.net.dll\".");
+                        Log.Error(
+                            $"Unable to load this plugin: {pluginInfo.Server} because this plugin does not exist or is an invalid Average Framework plugin.");
                     }
                 }
             }
-
+            
             isReady = true;
+        }
+
+        private const BindingFlags REFLECTION_FLAGS =
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance |
+            BindingFlags.FlattenHierarchy;
+
+        internal T GetInternalInstance<T>()
+        {
+            var result = _internalPlugins.Find(x => x.GetType() == typeof(T));
+            return (T) Convert.ChangeType(result, typeof(T));
         }
 
         private void RegisterCommands(Type type, object classObj)
         {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-
             // Load registered commands
-            foreach (var method in type.GetMethods(flags))
+            foreach (var method in type.GetMethods(REFLECTION_FLAGS))
             {
                 var cmdAttr = method.GetCustomAttribute<ServerCommandAttribute>();
-                Main.commandManager.RegisterCommand(cmdAttr, method, classObj);
+                if (cmdAttr != null)
+                    CommandManager.RegisterCommandInternal(cmdAttr, classObj, method);
             }
         }
 
         private void RegisterThreads(Type type, object classObj)
         {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-
-            foreach (var method in type.GetMethods(flags))
+            foreach (var method in type.GetMethods(REFLECTION_FLAGS))
             {
                 var threadAttr = method.GetCustomAttribute<ThreadAttribute>();
 
                 if (threadAttr != null)
-                {
-                    Main.threadManager.RegisterThread(method, threadAttr, classObj);
-                }
+                    ThreadManager.RegisterInternalThread(method, threadAttr, classObj);
             }
         }
 
         private void RegisterEvents(Type type, object classObj)
         {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-
-            foreach (var method in type.GetMethods(flags))
+            foreach (var method in type.GetMethods(REFLECTION_FLAGS))
             {
                 var eventAttr = method.GetCustomAttribute<ServerEventAttribute>();
 
                 if (eventAttr != null)
-                {
-                    Main.eventManager.RegisterEvent(method, eventAttr, classObj);
-                }
+                    EventManager.RegisterInternalEvent(method, eventAttr, classObj);
             }
         }
 
         private void RegisterExports(Type type, object classObj)
         {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
-
-            foreach (var method in type.GetMethods(flags))
+            foreach (var method in type.GetMethods(REFLECTION_FLAGS))
             {
                 var exportAttr = method.GetCustomAttribute<ExportAttribute>();
 
                 if (exportAttr != null)
-                    Main.exportManager.RegisterExport(method, exportAttr, classObj);
+                    ExportManager.RegisterInternalExport(method, exportAttr, classObj);
             }
         }
 
         private void RegisterSyncs(Type type, object classObj)
         {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+            var properties = type.GetProperties(REFLECTION_FLAGS);
+            var fields = type.GetFields(REFLECTION_FLAGS);
 
             // Registering syncs
-            for (int i = 0; i < type.GetProperties(flags).Count(); i++)
+            for (int i = 0; i < properties.Count(); i++)
             {
-                var property = type.GetProperties(flags)[i];
+                var property = properties[i];
                 var syncAttr = property.GetCustomAttribute<SyncAttribute>();
 
                 if (syncAttr != null)
-                {
-                    Main.syncManager.RegisterSync(ref property, syncAttr, classObj);
-                }
+                    SyncManager.RegisterInternalSync(ref property, syncAttr, classObj);
             }
 
-            for (int i = 0; i < type.GetFields(flags).Count(); i++)
+            for (int i = 0; i < fields.Count(); i++)
             {
-                var field = type.GetFields(flags)[i];
+                var field = fields[i];
                 var syncAttr = field.GetCustomAttribute<SyncAttribute>();
 
                 if (syncAttr != null)
-                {
-                    Main.syncManager.RegisterSync(ref field, syncAttr, classObj);
-                }
+                    SyncManager.RegisterInternalSync(ref field, syncAttr, classObj);
             }
 
             // Registering networkSyncs
-            for (int i = 0; i < type.GetProperties(flags).Count(); i++)
+            for (int i = 0; i < properties.Count(); i++)
             {
-                var property = type.GetProperties(flags)[i];
+                var property = properties[i];
                 var syncAttr = property.GetCustomAttribute<NetworkSyncAttribute>();
 
                 if (syncAttr != null)
-                {
-                    Main.syncManager.RegisterNetworkSync(ref property, syncAttr, classObj);
-                }
+                    SyncManager.RegisterInternalNetworkSync(ref property, syncAttr, classObj);
             }
 
             // Registering networkSyncs
-            for (int i = 0; i < type.GetFields(flags).Count(); i++)
+            for (int i = 0; i < fields.Count(); i++)
             {
-                var field = type.GetFields(flags)[i];
+                var field = fields[i];
                 var syncAttr = field.GetCustomAttribute<NetworkSyncAttribute>();
 
                 if (syncAttr != null)
-                {
-                    Main.syncManager.RegisterNetworkSync(ref field, syncAttr, classObj);
-                }
+                    SyncManager.RegisterInternalNetworkSync(ref field, syncAttr, classObj);
             }
         }
 
         private void RegisterGetSyncs(Type type, object classObj)
         {
-            var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+            var properties = type.GetProperties(REFLECTION_FLAGS);
+            var fields = type.GetFields(REFLECTION_FLAGS);
 
             // Registering getSyncs
-            for (int i = 0; i < type.GetProperties(flags).Count(); i++)
+            for (int i = 0; i < properties.Count(); i++)
             {
-                var property = type.GetProperties(flags)[i];
+                var property = properties[i];
                 var getSyncAttr = property.GetCustomAttribute<GetSyncAttribute>();
 
                 if (getSyncAttr != null)
-                {
-                    Main.syncManager.RegisterGetSync(ref property, getSyncAttr, classObj);
-                }
+                    SyncManager.RegisterInternalGetSync(ref property, getSyncAttr, classObj);
             }
 
             // Registering getSyncs
-            for (int i = 0; i < type.GetFields(flags).Count(); i++)
+            for (int i = 0; i < fields.Count(); i++)
             {
-                var field = type.GetFields(flags)[i];
+                var field = fields[i];
                 var getSyncAttr = field.GetCustomAttribute<GetSyncAttribute>();
 
                 if (getSyncAttr != null)
-                {
-                    Main.syncManager.RegisterGetSync(ref field, getSyncAttr, classObj);
-                }
+                    SyncManager.RegisterInternalGetSync(ref field, getSyncAttr, classObj);
             }
         }
 
-        private void RegisterPlugin(Plugin script, Type classType)
+        private void RegisterInternalPlugin(InternalPlugin script)
+        {
+            //BaseScript.RegisterScript(script);
+            _internalPlugins.Add(script);
+        }
+
+        private void UnloadInternalScript(InternalPlugin script)
+        {
+            //BaseScript.UnregisterScript(script);
+            _internalPlugins.Remove(script);
+        }
+
+        private void RegisterPlugin(Plugin script)
         {
             //BaseScript.RegisterScript(script);
             _plugins.Add(script);
