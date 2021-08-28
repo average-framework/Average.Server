@@ -14,7 +14,7 @@ namespace Average.Server
     internal class Main : BaseScript
     {
         internal static SQL sql;
-        private static RpcRequest rpc;
+        internal static RpcRequest rpc;
 
         internal static Action<Func<Task>> attachCallback;
         internal static Action<Func<Task>> detachCallback;
@@ -24,19 +24,19 @@ namespace Average.Server
 
         #region Internal Scripts
 
-        private readonly CharacterManager character = new CharacterManager();
-        private readonly CommandManager command = new CommandManager();
-        private readonly EventManager evnt = new EventManager();
-        private readonly ExportManager export = new ExportManager();
-        private readonly PermissionManager permission = new PermissionManager();
-        private readonly RequestManager request = new RequestManager();
-        private readonly RequestInternalManager requestInternal = new RequestInternalManager();
-        private readonly SaveManager save = new SaveManager();
-        private readonly SyncManager sync = new SyncManager();
-        private readonly ThreadManager thread = new ThreadManager();
-        private readonly UserManager user = new UserManager();
-        private readonly JobManager job = new JobManager();
-        private readonly DoorManager door = new DoorManager();
+        internal static readonly CharacterManager character = new CharacterManager();
+        internal static readonly CommandManager command = new CommandManager();
+        internal static readonly EventManager evnt = new EventManager();
+        internal static readonly ExportManager export = new ExportManager();
+        internal static readonly PermissionManager permission = new PermissionManager();
+        internal static readonly RequestManager request = new RequestManager();
+        internal static readonly RequestInternalManager requestInternal = new RequestInternalManager();
+        internal static readonly SaveManager save = new SaveManager();
+        internal static readonly SyncManager sync = new SyncManager();
+        internal static readonly ThreadManager thread = new ThreadManager();
+        internal static readonly UserManager user = new UserManager();
+        internal static readonly JobManager job = new JobManager();
+        internal static readonly DoorManager door = new DoorManager();
 
         #endregion
         
@@ -101,7 +101,7 @@ namespace Average.Server
                 
                 script.OnInitialized();
                 
-                Log.Write("Script", $"% {script.Name} % registered successfully.", new Log.TextColor(ConsoleColor.Blue, ConsoleColor.White));
+                Log.Write("Internal", $"% {script.Name} % registered successfully.", new Log.TextColor(ConsoleColor.Blue, ConsoleColor.White));
             }
             catch (Exception ex)
             {
