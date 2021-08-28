@@ -36,7 +36,7 @@ namespace Average.Server.Managers
             #region Event
 
             Main.eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);
-            Main.eventHandlers["avg.internal.trigger_event"] += new Action<string, Player, List<object>>(TriggerInternalEvent);
+            Main.eventHandlers["avg.internal.trigger_event"] += new Action<Player, string, List<object>>(TriggerInternalEvent);
 
             #endregion
         }
@@ -111,8 +111,10 @@ namespace Average.Server.Managers
             Log.Debug($"Registering [Event] attribute: {eventAttr.Event} on method: {method.Name}, args count: {methodParams.Count()}");
         }
 
-        internal void TriggerInternalEvent(string eventName, [FromSource] Player player, List<object> args)
+        internal void TriggerInternalEvent([FromSource] Player player, string eventName, List<object> args)
         {
+            Log.Warn("Trying to call: " + eventName);
+            
             var newArgs = new List<object> {int.Parse(player.Handle)};
 
             foreach (var arg in args)
