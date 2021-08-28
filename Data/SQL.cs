@@ -7,18 +7,19 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
+using SDK.Server.Interfaces;
 
 namespace Average.Server.Data
 {
-    public static class SQL
+    public class SQL : ISQL
     {
-        private static MySqlConnection connection;
-        private static SQLConnection connectionInfo;
+        private MySqlConnection connection;
+        private SQLConnection connectionInfo;
 
-        public static bool IsOpen { get; set; }
-        public static bool IsWorking { get; set; }
+        public bool IsOpen { get; set; }
+        public bool IsWorking { get; set; }
 
-        public static void Init()
+        public SQL()
         {
             var baseConfig = SDK.Server.Configuration.Parse("config.json");
 
@@ -27,12 +28,12 @@ namespace Average.Server.Data
                 (string) baseConfig["MySQL"]["Password"]);
         }
 
-        public static void Connect()
+        public async void Connect()
         {
             try
             {
-                connection = new MySqlConnection($"SERVER={connectionInfo.Host};PORT={connectionInfo.Port};DATABASE={connectionInfo.Database};UID={connectionInfo.Username};PASSWORD={connectionInfo.Password};CHARSET=utf8;");
-                connection.Open();
+                connection = new MySqlConnection($"SERVER={connectionInfo.Host};PORT={connectionInfo.Port};DATABASE={connectionInfo.Database};UID={connectionInfo.Username};PASSWORD={connectionInfo.Password};");
+                await connection.OpenAsync();
 
                 IsOpen = true;
 
@@ -44,15 +45,12 @@ namespace Average.Server.Data
             }
         }
 
-        public static async Task Wait()
+        public async Task Wait()
         {
-            while (IsWorking)
-            {
-                await Task.Delay(0);
-            }
+            while (IsWorking) await Task.Delay(0);
         }
 
-        public static async Task<List<T>> GetAllAsync<T>(string table)
+        public async Task<List<T>> GetAllAsync<T>(string table)
         {
             IsWorking = true;
 
@@ -68,7 +66,7 @@ namespace Average.Server.Data
             return results;
         }
 
-        public static async Task<List<T>> GetAllAsync<T>(string table, Func<T, bool> predicate)
+        public async Task<List<T>> GetAllAsync<T>(string table, Func<T, bool> predicate)
         {
             IsWorking = true;
 
@@ -93,7 +91,7 @@ namespace Average.Server.Data
             return results;
         }
 
-        public static async Task<bool> ExistsAsync<T>(string table, Func<T, bool> predicate)
+        public async Task<bool> ExistsAsync<T>(string table, Func<T, bool> predicate)
         {
             IsWorking = true;
 
@@ -119,7 +117,7 @@ namespace Average.Server.Data
             return exists;
         }
 
-        public static async Task<bool> DeleteAllAsync<T>(string table, Func<T, bool> predicate)
+        public async Task<bool> DeleteAllAsync<T>(string table, Func<T, bool> predicate)
         {
             IsWorking = true;
 
@@ -157,7 +155,7 @@ namespace Average.Server.Data
             return isDeleted;
         }
 
-        public static async Task InsertAsync(string table, object value)
+        public async Task InsertAsync(string table, object value)
         {
             IsWorking = true;
 
@@ -196,7 +194,7 @@ namespace Average.Server.Data
             IsWorking = false;
         }
 
-        public static async Task InsertOrUpdateAsync(string table, object newValue)
+        public async Task InsertOrUpdateAsync(string table, object newValue)
         {
             if (!IsOpen) return;
 
@@ -238,7 +236,7 @@ namespace Average.Server.Data
             IsWorking = false;
         }
 
-        public static async Task<bool> UpdateAsync<T>(string table, Func<T, bool> predicate, T newValue)
+        public async Task<bool> UpdateAsync<T>(string table, Func<T, bool> predicate, T newValue)
         {
             IsWorking = true;
 
@@ -301,7 +299,7 @@ namespace Average.Server.Data
             return isUpdated;
         }
 
-        private static async Task<List<T>> MapDeserialize<T>(DbDataReader reader)
+        private async Task<List<T>> MapDeserialize<T>(DbDataReader reader)
         {
             IsWorking = true;
 
@@ -334,8 +332,8 @@ namespace Average.Server.Data
             return JsonConvert.DeserializeObject<List<T>>(JsonConvert.SerializeObject(list));
         }
 
-        private static Dictionary<string, object> MapSerialize(object value) => JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(value));
+        private Dictionary<string, object> MapSerialize(object value) => JsonConvert.DeserializeObject<Dictionary<string, object>>(JsonConvert.SerializeObject(value));
 
-        private static bool IsJson(string value) => value.StartsWith("{") && value.EndsWith("}") || value.StartsWith("[") && value.EndsWith("]");
+        private bool IsJson(string value) => value.StartsWith("{") && value.EndsWith("}") || value.StartsWith("[") && value.EndsWith("]");
     }
 }

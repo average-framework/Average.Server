@@ -16,20 +16,20 @@ namespace Average.Server.Managers
         {
             Task.Factory.StartNew(async () =>
             {
-                _permissions = await SQL.GetAllAsync<PermissionData>("permissions");
-                Log.Info("[Permission] loaded");
+                _permissions = await Sql.GetAllAsync<PermissionData>("permissions");
+                Log.Write("Permission", "loaded");
             });
             
             #region Event
-
+            
             Main.eventHandlers["Permission.Set"] += new Action<int, string, int>(SetPermissionEvent);
-
+            
             #endregion
-
+            
             #region Rpc
-
+            
             Rpc.Event("Permission.GetAll").On((message, callback) => callback(_permissions));
-
+            
             #endregion
         }
 

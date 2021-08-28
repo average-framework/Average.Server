@@ -28,16 +28,14 @@ namespace Average.Server.Managers
         {
             _propertiesSyncs = new Dictionary<string, SyncPropertyState>();
             _propertiesGetSyncs = new List<GetSyncPropertyState>();
-
+            
             _networkedPropertiesSyncs = new Dictionary<string, SyncPropertyState>();
             _networkedFieldsSyncs = new Dictionary<string, SyncFieldState>();
-
+            
             _fieldsSyncs = new Dictionary<string, SyncFieldState>();
             _fieldsGetSyncs = new List<GetSyncFieldState>();
             
-            Log.Warn("Cmd count: " + Command.GetCommands().Count());
-            // Log.Warn($"Is null: {(Thread == null)}");
-            // Thread.StartThread(Update);
+            Thread.StartThread(Update);
         }
 
         private async Task Update()

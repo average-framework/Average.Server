@@ -8,6 +8,8 @@ namespace Average.Server.Managers
     {
         public override void OnInitialized()
         {
+            #region Event
+
             Main.eventHandlers["playerConnecting"] += new Action<Player, string, dynamic, dynamic>(OnPlayerConnecting);
             Main.eventHandlers["playerDropped"] += new Action<Player, string>(OnPlayerDisconnecting);
             Main.eventHandlers["onResourceStop"] += new Action<string>(OnResourceStop);
@@ -22,6 +24,8 @@ namespace Average.Server.Managers
             Main.eventHandlers["entityRemoved"] += new Action<int>(OnEntityRemoved);
             Main.eventHandlers["playerEnteredScope"] += new Action<object>(OnPlayerEnteredScope);
             Main.eventHandlers["playerLeftScope"] += new Action<object>(OnPlayerLeftScope);
+
+            #endregion
         }
 
         #region Event

@@ -3,7 +3,6 @@ using SDK.Server.Interfaces;
 using SDK.Shared.DataModels;
 using System;
 using System.Threading.Tasks;
-using Average.Server.Data;
 using SDK.Server.Diagnostics;
 
 namespace Average.Server.Managers
@@ -26,13 +25,13 @@ namespace Average.Server.Managers
 
         public async Task<UserData> GetUser(Player player)
         {
-            var data = await SQL.GetAllAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
+            var data = await Sql.GetAllAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
             return data[0];
         }
 
-        public async Task<bool> Exist(Player player) => await SQL.ExistsAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
+        public async Task<bool> Exist(Player player) => await Sql.ExistsAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
 
-        public async void CreateAccount(Player player) => await SQL.InsertAsync("users", new UserData
+        public async void CreateAccount(Player player) => await Sql.InsertAsync("users", new UserData
         {
             RockstarId = player.Identifiers["license"],
             Name = player.Name,
@@ -56,7 +55,7 @@ namespace Average.Server.Managers
             Save(data);
         }
 
-        public async void Save(UserData data) => await SQL.InsertOrUpdateAsync("users", data);
+        public async void Save(UserData data) => await Sql.InsertOrUpdateAsync("users", data);
 
         public async Task<DateTime> GetLastConnectionTime(Player player)
         {

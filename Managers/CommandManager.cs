@@ -13,7 +13,7 @@ namespace Average.Server.Managers
     {
         private static List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
 
-        internal static void RegisterCommandInternal(ServerCommandAttribute cmdAttr, object classObj, MethodInfo method)
+        internal static void RegisterInternalCommand(ServerCommandAttribute cmdAttr, object classObj, MethodInfo method)
         {
             var methodParams = method.GetParameters();
 

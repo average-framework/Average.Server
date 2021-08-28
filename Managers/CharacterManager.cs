@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Average.Server.Data;
 
 namespace Average.Server.Managers
 {
@@ -83,7 +82,7 @@ namespace Average.Server.Managers
 
         public async Task<CharacterData> Load(string rockstarId)
         {
-            var data = await SQL.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
+            var data = await Sql.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
 
             if (!_characters.ContainsKey(rockstarId))
                 _characters.Add(rockstarId, data[0]);
@@ -98,12 +97,12 @@ namespace Average.Server.Managers
             if (isLocal)
                 return _characters.Values.ToList().Exists(x => x.RockstarId == player.Identifiers["license"]);
             else
-                return await SQL.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
+                return await Sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
         }
 
-        public async Task<bool?> Exist(Player player) => await SQL.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
+        public async Task<bool?> Exist(Player player) => await Sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
 
-        public async Task Create(CharacterData data) => await SQL.InsertOrUpdateAsync(tableName, data);
+        public async Task Create(CharacterData data) => await Sql.InsertOrUpdateAsync(tableName, data);
 
         public async Task SaveData(Player player)
         {
@@ -114,7 +113,7 @@ namespace Average.Server.Managers
                 try
                 {
                     var data = _characters[rockstarId];
-                    await SQL.InsertOrUpdateAsync(tableName, data);
+                    await Sql.InsertOrUpdateAsync(tableName, data);
                     Log.Debug("[Character] Saved: " + rockstarId);
                 }
                 catch (Exception ex)
@@ -132,7 +131,7 @@ namespace Average.Server.Managers
 
                 try
                 {
-                    await SQL.InsertOrUpdateAsync(tableName, data.Value);
+                    await Sql.InsertOrUpdateAsync(tableName, data.Value);
                     Log.Debug("[Character] Saved: " + data.Key);
                 }
                 catch (Exception ex)

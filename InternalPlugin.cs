@@ -3,34 +3,59 @@ using Average.Server.Data;
 using Average.Server.Managers;
 using CitizenFX.Core;
 using SDK.Server.Rpc;
+using SDK.Shared.Plugins;
 
 namespace Average.Server
 {
-    public abstract class InternalPlugin
+    public abstract class InternalPlugin : IPlugin
     {
         public string Name { get; }
-        
-        public PlayerList Players { get; set; }
-        public RpcRequest Rpc { get; set; }
-        public ThreadManager Thread { get; set; }
-        public CharacterManager Character { get; set; }
-        public CommandManager Command { get; set; }
-        public EventManager Event { get; set; }
-        public ExportManager Export { get; set; }
-        public PermissionManager Permission { get; set; }
-        public SaveManager Save { get; set; }
-        public SyncManager Sync { get; set; }
-        public UserManager User { get; set; }
-        public RequestManager Request { get; set; }
-        public RequestInternalManager RequestInternal { get; set; }
-        public JobManager Job { get; set; }
-        public DoorManager Door { get; set; }
+
+        protected SQL Sql { get; private set; }
+        protected PlayerList Players { get; private set; }
+        protected RpcRequest Rpc { get; private set; }
+        protected ThreadManager Thread { get; private set; }
+        protected CharacterManager Character { get; private set; }
+        protected CommandManager Command { get; private set; }
+        protected EventManager Event { get; private set; }
+        protected ExportManager Export { get; private set; }
+        protected PermissionManager Permission { get; private set; }
+        protected SaveManager Save { get; private set; }
+        protected SyncManager Sync { get; private set; }
+        protected UserManager User { get; private set; }
+        protected RequestManager Request { get; private set; }
+        protected RequestInternalManager RequestInternal { get; private set; }
+        protected JobManager Job { get; private set; }
+        protected DoorManager Door { get; private set; }
 
         public InternalPlugin()
         {
             Name = GetType().Name;
         }
-        
+
+        public void SetDependencies(SQL sql, PlayerList players, RpcRequest rpc, ThreadManager thread,
+            CharacterManager character, CommandManager command, EventManager @event, ExportManager export,
+            PermissionManager permission, SaveManager save, SyncManager sync, UserManager user, RequestManager request,
+            RequestInternalManager requestInternal, JobManager job, DoorManager door)
+        {
+            Sql = sql;
+            Players = players;
+            Rpc = rpc;
+            Thread = thread;
+            Character = character;
+            Command = command;
+            Event = @event;
+            Export = export;
+            Permission = permission;
+            Save = save;
+            Sync = sync;
+            User = user;
+            Request = request;
+            RequestInternal = requestInternal;
+            Job = job;
+            Door = door;
+        }
+
         public virtual void OnInitialized()
         {
             

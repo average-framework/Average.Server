@@ -15,7 +15,7 @@ namespace Average.Server.Managers
         private static Action<Func<Task>> attachCallback;
         private static Action<Func<Task>> detachCallback;
 
-        public ThreadManager()
+        public override void OnInitialized()
         {
             attachCallback = Main.attachCallback;
             detachCallback = Main.detachCallback;
