@@ -37,6 +37,7 @@ namespace Average.Server
         internal static readonly UserManager user = new UserManager();
         internal static readonly JobManager job = new JobManager();
         internal static readonly DoorManager door = new DoorManager();
+        internal static readonly CfxManager cfx = new CfxManager();
 
         #endregion
         
@@ -70,6 +71,7 @@ namespace Average.Server
             LoadInternalScript(job);
             LoadInternalScript(character);
             LoadInternalScript(door);
+            LoadInternalScript(cfx);
 
             // Plugin Loader
             loader.Load();

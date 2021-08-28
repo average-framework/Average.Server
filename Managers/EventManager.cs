@@ -113,8 +113,6 @@ namespace Average.Server.Managers
 
         internal void TriggerInternalEvent([FromSource] Player player, string eventName, List<object> args)
         {
-            Log.Warn("Trying to call: " + eventName);
-            
             var newArgs = new List<object> {int.Parse(player.Handle)};
 
             foreach (var arg in args)
@@ -202,7 +200,7 @@ namespace Average.Server.Managers
             Emit("EntityCreating", handle);
         }
 
-        internal async void  OnEntityRemoved(int handle)
+        internal async void OnEntityRemoved(int handle)
         {
             await Main.loader.IsReady();
             EntityRemoved?.Invoke(this, new EntityRemovedEventArgs(handle));
