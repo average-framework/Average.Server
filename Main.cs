@@ -6,7 +6,9 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Average.Server.Managers;
+using Newtonsoft.Json.Linq;
 using SDK.Server.Rpc;
+using SDK.Shared.Extensions;
 using SDK.Shared.Rpc;
 
 namespace Average.Server
@@ -41,9 +43,19 @@ namespace Average.Server
         internal static readonly StorageManager storage = new StorageManager();
 
         #endregion
+
+        public readonly bool isDebugEnabled;
+
+        private readonly JObject _baseConfig;
         
         public Main()
         {
+            _baseConfig = SDK.Server.Configuration.Parse("config.json");
+
+            isDebugEnabled = (bool)_baseConfig["IsDebugModeEnabled"];
+
+            Log.IsDebug = isDebugEnabled;
+            
             eventHandlers = EventHandlers;
             
             attachCallback = c => Tick += c;
