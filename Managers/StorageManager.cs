@@ -18,7 +18,7 @@ namespace Average.Server.Managers
     {
         private const string tableName = "storages";
         
-        private Dictionary<string, StorageData> _storages = new Dictionary<string, StorageData>();
+        private readonly Dictionary<string, StorageData> _storages = new Dictionary<string, StorageData>();
 
         public static List<StorageItemInfo> RegisteredItems { get; private set; }
         
@@ -156,9 +156,9 @@ namespace Average.Server.Managers
         }
         
         [ServerEvent("Storage.GiveItemToPlayer")]
-        private void OnGiveItemToPlayerEvent(int player, int targetServerId, string itemJson, int itemCount, bool showDiscordNotification)
+        private void OnGiveItemToPlayerEvent(int player, int targetServerId, string itemJson, int itemCount)
         {
-            Players[targetServerId].TriggerEvent("Storage.GiveItemToPlayer", itemJson, itemCount, showDiscordNotification);
+            Players[targetServerId].TriggerEvent("Storage.GiveItemToPlayer", itemJson, itemCount);
         }
 
         [ServerEvent("Storage.RemoveItem")]
@@ -206,16 +206,30 @@ namespace Average.Server.Managers
 
         private async void OnGetInventoryEvent(string license, RpcRequest.RpcCallback callback)
         {
-            var storage = await Load($"player_{license}");
-            while (storage is null) await BaseScript.Delay(0);
-            callback(storage);
+            try
+            {
+                var storage = await Load(license);
+                while (storage is null) await BaseScript.Delay(0);
+                callback(storage);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[Storage] Unable to load inventory. This license exist ? [{license}]. Error: {ex.Message}\n{ex.StackTrace}.");
+            }
         }
         
         private async void OnGetChestEvent(string storageId, RpcRequest.RpcCallback callback)
         {
-            var storage = await Load(storageId);
-            while (storage is null) await BaseScript.Delay(0);
-            callback(storage);
+            try
+            {
+                var storage = await Load(storageId);
+                while (storage is null) await BaseScript.Delay(0);
+                callback(storage);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[Storage] Unable to load chest. This storage id exist ? [{storageId}]. Error: {ex.Message}\n{ex.StackTrace}.");
+            }
         }
 
         private void OnHasFreeSpaceEvent(int targetServerId, RpcRequest.RpcCallback callback)

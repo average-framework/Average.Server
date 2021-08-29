@@ -129,7 +129,7 @@ namespace Average.Server.Managers
             PlayerConnecting?.Invoke(this, new PlayerConnectingEventArgs(player, kick, deferrals));
             Emit("PlayerConnecting", int.Parse(player.Handle), kick, deferrals);
         }
-
+        
         internal async void OnPlayerDisconnecting(Player player, string reason)
         {
             await Main.loader.IsReady();

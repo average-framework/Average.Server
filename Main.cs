@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Average.Server.Managers;
 using Newtonsoft.Json.Linq;
 using SDK.Server.Rpc;
-using SDK.Shared.Extensions;
 using SDK.Shared.Rpc;
 
 namespace Average.Server
@@ -22,6 +21,7 @@ namespace Average.Server
         internal static Action<Func<Task>> detachCallback;
 
         internal static EventHandlerDictionary eventHandlers;
+        internal static PlayerList players;
         internal static PluginLoader loader;
 
         #region Internal Scripts
@@ -55,16 +55,19 @@ namespace Average.Server
             isDebugEnabled = (bool)_baseConfig["IsDebugModeEnabled"];
 
             Log.IsDebug = isDebugEnabled;
-            
+
             eventHandlers = EventHandlers;
+            players = Players;
             
+            rpc = new RpcRequest(new RpcHandler(eventHandlers), new RpcTrigger(players), new RpcSerializer());
+
             attachCallback = c => Tick += c;
             detachCallback = c => Tick -= c;
             
             Log.Clear();
             Watermark();
 
-            rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
+            // rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
             
             sql = new SQL();
             sql.Connect();
@@ -105,7 +108,7 @@ namespace Average.Server
         {
             try
             {
-                script.SetDependencies(sql, Players, rpc, thread, character, command, evnt, export, permission, save, sync, user, request, requestInternal, job, door, storage);
+                script.SetDependencies(sql, Players, new RpcRequest(new RpcHandler(eventHandlers), new RpcTrigger(Players), new RpcSerializer()), thread, character, command, evnt, export, permission, save, sync, user, request, requestInternal, job, door, storage);
                 
                 loader.RegisterThreads(script.GetType(), script);
                 loader.RegisterEvents(script.GetType(), script);

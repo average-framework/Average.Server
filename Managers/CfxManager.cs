@@ -1,5 +1,4 @@
 ﻿using CitizenFX.Core;
-using SDK.Server.Diagnostics;
 using System;
 
 namespace Average.Server.Managers
@@ -32,7 +31,6 @@ namespace Average.Server.Managers
 
         private void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic setKickReason, dynamic deferrals)
         {
-            Log.Info($"{playerName} is connected to the server.");
             Event.OnPlayerConnecting(player, setKickReason, deferrals);
         }
 

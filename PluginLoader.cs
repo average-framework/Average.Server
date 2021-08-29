@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Average.Server.Managers;
 using SDK.Server.Diagnostics;
+using SDK.Server.Rpc;
 using static CitizenFX.Core.Native.API;
 using static SDK.Server.Rpc.RpcRequest;
 
@@ -159,7 +160,7 @@ namespace Average.Server
             try
             {
                 var script = (Plugin) Activator.CreateInstance(type);
-                script.SetDependencies(Main.sql, Players, Main.rpc, Main.thread, Main.character, Main.command, Main.evnt, Main.export, Main.permission, Main.save, Main.sync, Main.user, Main.request, Main.requestInternal, Main.job, Main.door, Main.storage, pluginInfo);
+                script.SetDependencies(Main.sql, Players, new RpcRequest(new RpcHandler(Main.eventHandlers), new RpcTrigger(Main.players), new RpcSerializer()), Main.thread, Main.character, Main.command, Main.evnt, Main.export, Main.permission, Main.save, Main.sync, Main.user, Main.request, Main.requestInternal, Main.job, Main.door, Main.storage, pluginInfo);
                 
                 RegisterThreads(script.GetType(), script);
                 RegisterEvents(script.GetType(), script);
