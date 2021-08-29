@@ -186,7 +186,7 @@ namespace Average.Server.Managers
 
             if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
             {
-                Log.Error("[Storage] Unable to save storage for player: " + Players[player].Name + ", json contains an error.");
+                Log.Error($"[Storage] Unable to save storage for player: {Players[player].Name}. Json have an invalid format.");
                 return;
             }
 
@@ -235,12 +235,12 @@ namespace Average.Server.Managers
                     }
                     else
                     {
-                        Log.Error("[Storage] This cache doesn't exist: " + "player_" + license);
+                        Log.Error($"[Storage] This cache doesn't exist: [{cache.StorageId}].");
                     }
                 }
                 else
                 {
-                    Log.Error("[Storage] This target doesn't exist: " + "player_" + license);
+                    Log.Error($"[Storage] This target doesn't exist: [{targetServerId}]");
                 }
             }
             catch (Exception ex)
