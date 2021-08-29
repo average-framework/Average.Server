@@ -27,6 +27,7 @@ namespace Average.Server
         protected RequestInternalManager RequestInternal { get; private set; }
         protected JobManager Job { get; private set; }
         protected DoorManager Door { get; private set; }
+        protected StorageManager Storage { get; private set; }
 
         public InternalPlugin()
         {
@@ -36,7 +37,7 @@ namespace Average.Server
         public void SetDependencies(SQL sql, PlayerList players, RpcRequest rpc, ThreadManager thread,
             CharacterManager character, CommandManager command, EventManager @event, ExportManager export,
             PermissionManager permission, SaveManager save, SyncManager sync, UserManager user, RequestManager request,
-            RequestInternalManager requestInternal, JobManager job, DoorManager door)
+            RequestInternalManager requestInternal, JobManager job, DoorManager door, StorageManager storage)
         {
             Sql = sql;
             Players = players;
@@ -54,6 +55,7 @@ namespace Average.Server
             RequestInternal = requestInternal;
             Job = job;
             Door = door;
+            Storage = storage;
         }
 
         public virtual void OnInitialized()

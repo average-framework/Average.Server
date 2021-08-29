@@ -38,6 +38,7 @@ namespace Average.Server
         internal static readonly JobManager job = new JobManager();
         internal static readonly DoorManager door = new DoorManager();
         internal static readonly CfxManager cfx = new CfxManager();
+        internal static readonly StorageManager storage = new StorageManager();
 
         #endregion
         
@@ -70,6 +71,7 @@ namespace Average.Server
             LoadInternalScript(user);
             LoadInternalScript(job);
             LoadInternalScript(character);
+            LoadInternalScript(storage);
             LoadInternalScript(door);
             LoadInternalScript(cfx);
 
@@ -91,7 +93,7 @@ namespace Average.Server
         {
             try
             {
-                script.SetDependencies(sql, Players, rpc, thread, character, command, evnt, export, permission, save, sync, user, request, requestInternal, job, door);
+                script.SetDependencies(sql, Players, rpc, thread, character, command, evnt, export, permission, save, sync, user, request, requestInternal, job, door, storage);
                 
                 loader.RegisterThreads(script.GetType(), script);
                 loader.RegisterEvents(script.GetType(), script);
