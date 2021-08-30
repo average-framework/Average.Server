@@ -174,9 +174,9 @@ namespace Average.Server.Managers
         }
 
         [ServerEvent("Storage.GiveMoneyToPlayer")]
-        private void OnGiveMoneyToPlayerEvent(int player, int targetServerId, decimal amount)
+        private void OnGiveMoneyToPlayerEvent(int player, int targetServerId, string amount)
         {
-            Players[targetServerId].TriggerEvent("Storage.GiveMoneyToPlayer", amount);
+            Event.EmitClient(Players[targetServerId], "Storage.GiveMoneyToPlayer", amount);
         }
         
         [ServerEvent("Storage.Save")]
@@ -193,6 +193,12 @@ namespace Average.Server.Managers
             UpdateCache(Players[player], storage);
             await BaseScript.Delay(0);
             Event.EmitClients("Storage.Updated", storage.StorageId);
+        }
+        
+        [ServerEvent("Storage.RefreshChest")]
+        private void OnRefreshChestEvent(int player, string storageId)
+        {
+            Event.EmitClients("Storage.RefreshChest", storageId);
         }
         
         [ServerEvent("PlayerDisconnecting")]

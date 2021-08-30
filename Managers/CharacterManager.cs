@@ -82,14 +82,27 @@ namespace Average.Server.Managers
 
         public async Task<CharacterData> Load(string rockstarId)
         {
-            var data = await Sql.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
-
-            if (!_characters.ContainsKey(rockstarId))
-                _characters.Add(rockstarId, data[0]);
+            if (_characters.ContainsKey(rockstarId))
+            {
+                return _characters[rockstarId];
+            }
             else
-                _characters[rockstarId] = data[0];
+            {
+                var data = await Sql.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
 
-            return data[0];
+                if (!_characters.ContainsKey(rockstarId))
+                {
+                    _characters.Add(rockstarId, data[0]);
+                }
+                else
+                {
+                    _characters[rockstarId] = data[0];
+                }
+
+                return data[0];
+            }
+
+            return null;
         }
 
         public async Task<bool> CacheExist(Player player, bool isLocal)
@@ -149,6 +162,10 @@ namespace Average.Server.Managers
             {
                 _characters[rockstarId] = data;
                 Log.Debug("[Character] Cache updated: " + rockstarId);
+            }
+            else
+            {
+                _characters.Add(rockstarId, data);
             }
         }
 

@@ -60,9 +60,9 @@ namespace Average.Server.Managers
             BaseScript.TriggerClientEvent("avg.internal.trigger_event", eventName, args);
         }
 
-        public void EmitClient(Player player, string eventName, object[] args)
+        public void EmitClient([FromSource] Player player, string eventName, params object[] args)
         {
-            player.TriggerEvent("avg.internal.trigger_event", eventName, player, args);
+            player.TriggerEvent("avg.internal.trigger_event", eventName, args);
         }
 
         internal static void RegisterInternalEvent(string eventName, Delegate action)
@@ -108,16 +108,13 @@ namespace Average.Server.Managers
             var action = Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
             RegisterInternalEvent(eventAttr.Event, action);
 
-            Log.Debug($"Registering [Event] attribute: {eventAttr.Event} on method: {method.Name}, args count: {methodParams.Count()}");
+            Log.Debug($"Registering [Event] attribute: {eventAttr.Event} on method: {method.Name}, args count: {methodParams.Count()}, [{string.Join(", ", methodParams.Select(x => x.ParameterType))}]");
         }
 
         internal void TriggerInternalEvent([FromSource] Player player, string eventName, List<object> args)
         {
             var newArgs = new List<object> {int.Parse(player.Handle)};
-
-            foreach (var arg in args)
-                newArgs.Add(arg);
-
+            args.ForEach(x => newArgs.Add(x));
             Emit(eventName, newArgs.ToArray());
         }
         
