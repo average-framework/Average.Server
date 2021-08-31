@@ -195,10 +195,10 @@ namespace Average.Server.Managers
             Event.EmitClients("Storage.Updated", storage.StorageId);
         }
         
-        [ServerEvent("Storage.RefreshChest")]
-        private void OnRefreshChestEvent(int player, string storageId)
+        [ServerEvent("Storage.Refresh")]
+        private void OnRefreshEvent(int player, string storageId)
         {
-            Event.EmitClients("Storage.RefreshChest", storageId);
+            Event.EmitClients("Storage.Refresh", storageId);
         }
         
         [ServerEvent("PlayerDisconnecting")]
