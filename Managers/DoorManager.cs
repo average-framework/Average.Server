@@ -4,6 +4,9 @@ using SDK.Server.Interfaces;
 using SDK.Server.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+using SDK.Server;
 
 namespace Average.Server.Managers
 {
@@ -15,20 +18,12 @@ namespace Average.Server.Managers
         {
             _doors = SDK.Server.Configuration.Parse<List<Door>>("configs/custom_doors.json");
 
-            #region Event
-
-            Main.eventHandlers["Door.SetDoorState"] += new Action<Vector3>(SetDoorStateEvent);
-
-            #endregion
-
             #region Rpc
 
-            Rpc.Event("Door.GetDoors").On((message, callback) => callback(_doors.ToArray()));
+            Rpc.Event("Door.GetAll").On((message, callback) => callback(_doors));
 
             #endregion
         }
-
-        #region Export
 
         public Door? Get(Vector3 position)
         {
@@ -44,11 +39,10 @@ namespace Average.Server.Managers
             Event.EmitClients("Door.SetDoorState", door.Position, door.IsLocked);
         }
 
-        #endregion
-
         #region Event
 
-        private void SetDoorStateEvent(Vector3 position)
+        [ServerEvent("Door.SetDoorState")]
+        private void SetDoorStateEvent(int player, Vector3 position)
         {
             var door = Get(position);
 
