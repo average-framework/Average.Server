@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Permissions;
 using System.Threading.Tasks;
 using CitizenFX.Core;
 using Newtonsoft.Json;
@@ -138,6 +137,8 @@ namespace Average.Server.Managers
         {
             var license = player.Identifiers["license"];
 
+            var json = JsonConvert.SerializeObject(data, Formatting.Indented);
+            
             var isPlayerLicense = false;
             
             if (Players.Any(x => x.Identifiers["license"] == license))
@@ -145,8 +146,6 @@ namespace Average.Server.Managers
                 // is a player license
                 isPlayerLicense = true;
             }
-            
-            Log.Warn("info: " + isPlayerLicense + ", " + (!isPlayerLicense && _storages.ContainsKey(license)) + ", " + (isPlayerLicense && _storages.Keys.Contains(license)));
             
             if (!isPlayerLicense && _storages.ContainsKey(license))
             {
@@ -171,7 +170,7 @@ namespace Average.Server.Managers
         {
             try
             {
-                await Sql.DeleteAllAsync<StorageData>("storages", x => x.StorageId == storageId);
+                await Sql.DeleteAllAsync("storages", $"StorageId=\"{storageId}\"");
             }
             catch (Exception ex)
             {

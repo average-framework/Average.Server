@@ -1,29 +1,29 @@
 ﻿using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using SDK.Server.Diagnostics;
-using SDK.Shared.DataModels;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using SDK.Server.Interfaces;
+using SDK.Shared.DataModels;
 
 namespace Average.Server.Data
 {
     public class SQL : ISQL
     {
-        private MySqlConnection connection;
-        private SQLConnection connectionInfo;
+        private MySqlConnection _connection;
+        private readonly SQLConnection _connectionInfo;
 
-        public bool IsOpen { get; set; }
-        public bool IsWorking { get; set; }
+        public bool IsOpen { get; private set; }
+        public bool IsWorking { get; private set; }
 
         public SQL()
         {
             var baseConfig = SDK.Server.Configuration.Parse("config.json");
 
-            connectionInfo = new SQLConnection((string) baseConfig["MySQL"]["Host"], (int) baseConfig["MySQL"]["Port"],
+            _connectionInfo = new SQLConnection((string) baseConfig["MySQL"]["Host"], (int) baseConfig["MySQL"]["Port"],
                 (string) baseConfig["MySQL"]["Database"], (string) baseConfig["MySQL"]["Username"],
                 (string) baseConfig["MySQL"]["Password"]);
         }
@@ -32,8 +32,8 @@ namespace Average.Server.Data
         {
             try
             {
-                connection = new MySqlConnection($"SERVER={connectionInfo.Host};PORT={connectionInfo.Port};DATABASE={connectionInfo.Database};UID={connectionInfo.Username};PASSWORD={connectionInfo.Password};");
-                await connection.OpenAsync();
+                _connection = new MySqlConnection($"SERVER={_connectionInfo.Host};PORT={_connectionInfo.Port};DATABASE={_connectionInfo.Database};UID={_connectionInfo.Username};PASSWORD={_connectionInfo.Password};");
+                await _connection.OpenAsync();
 
                 IsOpen = true;
 
@@ -57,7 +57,7 @@ namespace Average.Server.Data
             if (!IsOpen)
                 return new List<T>();
 
-            var cmd = connection.CreateCommand();
+            var cmd = _connection.CreateCommand();
             cmd.CommandText = $"SELECT * FROM {table}";
             var reader = await cmd.ExecuteReaderAsync();
             var results = await MapDeserialize<T>(reader);
@@ -73,7 +73,7 @@ namespace Average.Server.Data
             if (!IsOpen)
                 return new List<T>();
 
-            var cmd = connection.CreateCommand();
+            var cmd = _connection.CreateCommand();
             cmd.CommandText = $"SELECT * FROM {table}";
             var reader = await cmd.ExecuteReaderAsync();
             var result = await MapDeserialize<T>(reader);
@@ -98,7 +98,7 @@ namespace Average.Server.Data
             if (!IsOpen)
                 return false;
 
-            var cmd = connection.CreateCommand();
+            var cmd = _connection.CreateCommand();
             cmd.CommandText = $"SELECT * FROM {table}";
             var reader = await cmd.ExecuteReaderAsync();
             var result = await MapDeserialize<T>(reader);
@@ -117,42 +117,29 @@ namespace Average.Server.Data
             return exists;
         }
 
-        public async Task<bool> DeleteAllAsync<T>(string table, Func<T, bool> predicate)
+        public async Task<bool> DeleteAllAsync(string table, string where)
         {
             IsWorking = true;
 
             if (!IsOpen)
                 return false;
 
-            var cmd = connection.CreateCommand();
-            cmd.CommandText = $"SELECT * FROM {table}";
-            var reader = await cmd.ExecuteReaderAsync();
-            var result = await MapDeserialize<T>(reader);
-            var isDeleted = false;
-
-            for (int i = 0; i < result.Count; i++)
+            var isUpdated = false;
+            
+            try
             {
-                if (result[i].GetType().GetInterfaces().ToList().Find(x => x == typeof(IDataEditable)) != null)
-                {
-                    if (predicate.Invoke(result[i]))
-                    {
-                        var data = result[i] as IDataEditable;
-                        var delCmd = connection.CreateCommand();
-                        delCmd.CommandText = $"DELETE FROM {table} WHERE Id=\"{data.Id}\"";
-                        await delCmd.ExecuteNonQueryAsync();
-                        isDeleted = true;
-                    }
-                }
-                else
-                {
-                    var temp = (T)Activator.CreateInstance(typeof(T));
-                    Log.Error($"[SQL] Unable to delete this value because the {temp.GetType().Name} type does not inherits from IDataDeletable");
-                    return false;
-                }
+                var cmd = _connection.CreateCommand();
+                cmd.CommandText = $"DELETE FROM {table} WHERE {where}";
+                await cmd.ExecuteNonQueryAsync();
+                isUpdated = true;
             }
-
+            catch (Exception ex)
+            {
+                Log.Error($"[SQL] Unable to delete this value at {where}. Error: {ex.Message}\n{ex.StackTrace}.");
+            }
+            
             IsWorking = false;
-            return isDeleted;
+            return isUpdated;
         }
 
         public async Task InsertAsync(string table, object value)
@@ -165,7 +152,7 @@ namespace Average.Server.Data
             try
             {
                 var result = MapSerialize(value);
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
 
                 for (var i = 0; i < result.Count; i++)
                 {
@@ -224,7 +211,7 @@ namespace Average.Server.Data
                 var keys = string.Join(",", result.Keys);
                 var values = string.Join(",", result.Values);
                 var duplicates = string.Join(", ", duplicateDict.Values);
-                var cmd = connection.CreateCommand();
+                var cmd = _connection.CreateCommand();
                 cmd.CommandText = $"INSERT INTO {table}({keys}) VALUES({values}) ON DUPLICATE KEY UPDATE {duplicates}";
                 await cmd.ExecuteNonQueryAsync();
             }
@@ -236,7 +223,7 @@ namespace Average.Server.Data
             IsWorking = false;
         }
 
-        public async Task<bool> UpdateAsync<T>(string table, Func<T, bool> predicate, T newValue)
+        public async Task<bool> UpdateAsync<T>(string table, string where, T newValue)
         {
             IsWorking = true;
 
@@ -247,52 +234,31 @@ namespace Average.Server.Data
 
             try
             {
-                var cmd = connection.CreateCommand();
-                cmd.CommandText = $"SELECT * FROM {table}";
-                var reader = await cmd.ExecuteReaderAsync();
-                var results = await MapDeserialize<T>(reader);
+                var result = MapSerialize(newValue);
 
-                for (int i = 0; i < results.Count; i++)
+                for (var o = 0; o < result.Count; o++)
                 {
-                    if (results[i].GetType().GetInterfaces().ToList().Find(x => x == typeof(IDataEditable)) != null)
+                    var val = result.ElementAt(o);
+                                
+                    if (val.Value.GetType() == typeof(double) || val.Value.GetType() == typeof(float) || val.Value.GetType() == typeof(decimal) || val.Value.GetType() == typeof(int))
                     {
-                        if (predicate.Invoke(results[i]))
-                        {
-                            var result = MapSerialize(newValue);
-
-                            for (var o = 0; o < result.Count; o++)
-                            {
-                                var val = result.ElementAt(o);
-
-                                if (val.Value.GetType() == typeof(double) || val.Value.GetType() == typeof(float) || val.Value.GetType() == typeof(decimal) || val.Value.GetType() == typeof(int))
-                                {
-                                    result[val.Key] = $"{val.Key}={val.Value.ToString().Replace(",", ".")}";
-                                }
-                                else
-                                {
-                                    result[val.Key] = $"{val.Key}='{val.Value}'";
-                                }
-                            }
-
-                            var data = results[i] as IDataEditable;
-                            var values = string.Join(",", result.Values);
-                            var updateCmd = connection.CreateCommand();
-                            updateCmd.CommandText = $"UPDATE {table} SET {values} WHERE Id=\"{data.Id}\"";
-                            await updateCmd.ExecuteNonQueryAsync();
-                            isUpdated = true;
-                        }
+                        result[val.Key] = $"{val.Key}={val.Value.ToString().Replace(",", ".")}";
                     }
                     else
                     {
-                        var temp = (T)Activator.CreateInstance(typeof(T));
-                        Log.Error($"[SQL] Unable to update this value because the {temp.GetType().Name} type does not inherits from IDataDeletable");
-                        return false;
+                        result[val.Key] = $"{val.Key}='{val.Value}'";
                     }
                 }
+
+                var values = string.Join(",", result.Values);
+                var updateCmd = _connection.CreateCommand();
+                updateCmd.CommandText = $"UPDATE {table} SET {values} WHERE {where}";
+                await updateCmd.ExecuteNonQueryAsync();
+                isUpdated = true;
             }
             catch (Exception ex)
             {
-                Log.Error("[SQL] Unable to update this value: " + ex.Message);
+                Log.Error($"[SQL] Unable to update this value at where: {where}. Error: {ex.Message}\n{ex.StackTrace}.");
             }
 
             IsWorking = false;
