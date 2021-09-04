@@ -45,12 +45,12 @@ namespace Average.Server.Managers
         {
             if (_events.ContainsKey(eventName))
             {
-                Log.Debug($"Calling event: {eventName}.");
+                // Log.Debug($"Calling event: {eventName}.");
                 _events[eventName].ForEach(x => x.DynamicInvoke(args));
             }
             else
             {
-                Log.Debug($"Calling external event: {eventName}.");
+                // Log.Debug($"Calling external event: {eventName}.");
                 BaseScript.TriggerEvent(eventName, args);
             }
         }
@@ -72,7 +72,7 @@ namespace Average.Server.Managers
             else
                 _events[eventName].Add(action);
 
-            Log.Debug($"Registering internal event: {eventName}");
+            // Log.Debug($"Registering internal event: {eventName}");
         }
 
         internal void UnregisterInternalEvent(string eventName)

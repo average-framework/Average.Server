@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SDK.Server;
 
 namespace Average.Server.Managers
 {
@@ -57,15 +58,6 @@ namespace Average.Server.Managers
             #region Event
 
             Event.PlayerDisconnecting += PlayerDisconnecting;
-
-            Main.eventHandlers["Character.SetPed"] += new Action<int, uint, int>(OnSetPedEvent);
-            Main.eventHandlers["Character.Save"] += new Action<int, string>(OnSaveEvent);
-            Main.eventHandlers["Character.SetMoney"] += new Action<int, decimal>(OnSetMoneyEvent);
-            Main.eventHandlers["Character.SetBank"] += new Action<int, decimal>(OnSetBankEvent);
-            Main.eventHandlers["Character.AddMoney"] += new Action<int, decimal>(OnAddMoneyEvent);
-            Main.eventHandlers["Character.AddBank"] += new Action<int, decimal>(OnAddBankEvent);
-            Main.eventHandlers["Character.RemoveMoney"] += new Action<int, decimal>(OnRemoveMoneyEvent);
-            Main.eventHandlers["Character.RemoveBank"] += new Action<int, decimal>(OnRemoveBankEvent);
 
             #endregion
 
@@ -141,10 +133,12 @@ namespace Average.Server.Managers
             for (int i = 0; i < _characters.Count; i++)
             {
                 var data = _characters.ElementAt(i);
+                var cache = GetCache(data.Value.RockstarId);
+                if (cache == null) return;
 
                 try
                 {
-                    await Sql.InsertOrUpdateAsync(tableName, data.Value);
+                    await Sql.InsertOrUpdateAsync(tableName, cache);
                     Log.Debug("[Character] Saved: " + data.Key);
                 }
                 catch (Exception ex)
@@ -171,8 +165,35 @@ namespace Average.Server.Managers
 
         #region Event
 
+        [ServerEvent("Character.SavePosition")]
+        private void SavePositionEvent(int player, Vector3 coords, float heading)
+        {
+            var p = Players[player];
+            if (p == null) return;
+            var cache = GetCache(p.Identifiers["license"]);
+            if (cache == null) return;
+            cache.Position.X = coords.X;
+            cache.Position.Y = coords.Y;
+            cache.Position.Z = coords.Z;
+            cache.Position.H = heading;
+            
+            UpdateCache(p, cache);
+        }
+        
+        [ServerEvent("Character.SetPed")]
         private void OnSetPedEvent(int player, uint model, int variation) => Players[player].TriggerEvent("Character.SetPed", model, variation);
 
+        [ServerEvent("Character.Create")]
+        private async void OnCreateEvent(int player, string json)
+        {
+            var p = Players[player];
+            if (p == null) return;
+            var character = JsonConvert.DeserializeObject<CharacterData>(json);
+            UpdateCache(p, character);
+            await Sql.InsertAsync(tableName, character);
+        }
+        
+        [ServerEvent("Character.Save")]
         private void OnSaveEvent(int player, string json)
         {
             if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
@@ -186,16 +207,22 @@ namespace Average.Server.Managers
 
         private async void PlayerDisconnecting(object sender, SDK.Server.Events.PlayerDisconnectingEventArgs e) => await SaveData(e.Player);
 
+        [ServerEvent("Character.SetMoney")]
         private void OnSetMoneyEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.SetMoney", amount);
 
+        [ServerEvent("Character.SetBank")]
         private void OnSetBankEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.SetBank", amount);
 
+        [ServerEvent("Character.AddMoney")]
         private void OnAddMoneyEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.AddMoney", amount);
 
+        [ServerEvent("Character.AddBank")]
         private void OnAddBankEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.AddBank", amount);
 
+        [ServerEvent("Character.RemoveMoney")]
         private void OnRemoveMoneyEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.RemoveMoney", amount);
 
+        [ServerEvent("Character.RemoveBank")]
         private void OnRemoveBankEvent(int player, decimal amount) => Players[player].TriggerEvent("Character.RemoveBank", amount);
 
         #endregion

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Permissions;
 using System.Threading.Tasks;
 using CitizenFX.Core;
 using Newtonsoft.Json;
@@ -138,6 +139,10 @@ namespace Average.Server.Managers
                 _storages[license] = data;
                 Log.Debug($"[Character] Cache updated: {license}.");
             }
+            else
+            {
+                _storages.Add(license, data);
+            }
         }
         
         #region Event
@@ -177,6 +182,16 @@ namespace Average.Server.Managers
         private void OnGiveMoneyToPlayerEvent(int player, int targetServerId, string amount)
         {
             Event.EmitClient(Players[targetServerId], "Storage.GiveMoneyToPlayer", amount);
+        }
+
+        [ServerEvent("Storage.Create")]
+        private async void OnCreateEvent(int player, string json)
+        {
+            var p = Players[player];
+            if (p == null) return;
+            var storage = JsonConvert.DeserializeObject<StorageData>(json);
+            UpdateCache(p, storage);
+            await Sql.InsertAsync(tableName, storage);
         }
         
         [ServerEvent("Storage.Save")]
@@ -220,7 +235,16 @@ namespace Average.Server.Managers
             }
             catch (Exception ex)
             {
-                Log.Error($"[Storage] Unable to load inventory. This license exist ? [{license}]. Error: {ex.Message}\n{ex.StackTrace}.");
+                var storage = GetCache(license);
+                
+                if (storage != null)
+                {
+                    callback(storage);
+                }
+                else
+                {
+                    Log.Error($"[Storage] Unable to load inventory. This license exist ? [{license}]. Error: {ex.Message}\n{ex.StackTrace}.");
+                }
             }
         }
         

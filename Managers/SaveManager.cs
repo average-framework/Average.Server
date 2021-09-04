@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SDK.Server;
+using SDK.Shared;
 using static CitizenFX.Core.Native.API;
 
 namespace Average.Server.Managers
@@ -32,12 +34,6 @@ namespace Average.Server.Managers
                 
             #endregion
 
-            #region Event
-
-            Main.eventHandlers["Save.All"] += new Action<int>(SaveAllEvent);
-            
-            #endregion
-            
             Thread.StartThread(Update);
         }
 
@@ -87,6 +83,7 @@ namespace Average.Server.Managers
 
         #region Event
 
+        [ServerEvent("Save.All")]
         private async void SaveAllEvent(int player)
         {
             var p = Players[player];
