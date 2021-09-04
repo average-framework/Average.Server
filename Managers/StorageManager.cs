@@ -80,18 +80,27 @@ namespace Average.Server.Managers
         
         public async Task<StorageData> Load(string storageId)
         {
-            var data = await Sql.GetAllAsync<StorageData>(tableName, x => x.StorageId == storageId);
-
-            if (!_storages.ContainsKey(storageId))
+            if (_storages.ContainsKey(storageId))
             {
-                _storages.Add(storageId, data[0]);
+                return _storages[storageId];
             }
             else
             {
-                _storages[storageId] = data[0];
+                var data = await Sql.GetAllAsync<StorageData>(tableName, x => x.StorageId == storageId);
+
+                if (!_storages.ContainsKey(storageId))
+                {
+                    _storages.Add(storageId, data[0]);
+                }
+                else
+                {
+                    _storages[storageId] = data[0];
+                }
+
+                return data[0];
             }
 
-            return data[0];
+            return null;
         }
         
         public async Task SaveData(Player player)
@@ -135,32 +144,16 @@ namespace Average.Server.Managers
         
         public void UpdateCache(Player player, StorageData data)
         {
-            var license = player.Identifiers["license"];
-
-            var json = JsonConvert.SerializeObject(data, Formatting.Indented);
-            
-            var isPlayerLicense = false;
-            
-            if (Players.Any(x => x.Identifiers["license"] == license))
+            if (_storages.ContainsKey(data.StorageId))
             {
-                // is a player license
-                isPlayerLicense = true;
-            }
-            
-            if (!isPlayerLicense && _storages.ContainsKey(license))
-            {
-                _storages[license] = data;
-                Log.Debug($"[Storage] Cache updated: {license}.");
-            }
-            else if (isPlayerLicense && _storages.Keys.Contains(license))
-            {
-                _storages["player_" + license] = data;
-                Log.Debug($"[Storage] Cache updated: {license}.");
+                _storages[data.StorageId] = data;
             }
             else
             {
-                _storages.Add(license, data);
+                _storages.Add(data.StorageId, data);
             }
+
+            Log.Debug($"[Storage] Cache updated: {data.StorageId}.");
         }
         
         #region Event
@@ -215,8 +208,12 @@ namespace Average.Server.Managers
         [ServerEvent("Storage.Save")]
         private async void OnSaveEvent(int player, string json)
         {
+            Log.Warn("Save: " + json);
+            
             var storage = JsonConvert.DeserializeObject<StorageData>(json);
 
+            Log.Warn("storage: " + storage.StorageId + ", " + string.Join("\n- ", storage.Items.Select(x => x.Name)));
+            
             if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
             {
                 Log.Error($"[Storage] Unable to save storage for player: {Players[player].Name}. Json have an invalid format.");
@@ -248,7 +245,6 @@ namespace Average.Server.Managers
             try
             {
                 var storage = await Load(license);
-                while (storage is null) await BaseScript.Delay(0);
                 callback(storage);
             }
             catch (Exception ex)
