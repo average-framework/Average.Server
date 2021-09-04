@@ -35,6 +35,8 @@ namespace Average.Server.Managers
             Rpc.Event("Storage.HasFreeSpace").On<int>(OnHasFreeSpaceEvent);
             
             #endregion
+            
+            Save.AddInQueue(this);
         }
 
         public StorageItemInfo GetItemInfo(string itemName)
@@ -117,11 +119,13 @@ namespace Average.Server.Managers
             for (int i = 0; i < _storages.Count; i++)
             {
                 var data = _storages.ElementAt(i);
-
+                var cache = GetCache(data.Value.StorageId);
+                if (cache == null) return;
+                
                 try
                 {
-                    await Sql.InsertOrUpdateAsync(tableName, data.Value);
-                    Log.Debug($"[Storage] Saved: {data.Key}.");
+                    await Sql.InsertOrUpdateAsync(tableName, cache);
+                    Log.Debug($"[Storage] Saved: {data.Key}, {data.Value.StorageId}.");
                 }
                 catch (Exception ex)
                 {
@@ -134,10 +138,25 @@ namespace Average.Server.Managers
         {
             var license = player.Identifiers["license"];
 
-            if (_storages.ContainsKey(license))
+            var isPlayerLicense = false;
+            
+            if (Players.Any(x => x.Identifiers["license"] == license))
+            {
+                // is a player license
+                isPlayerLicense = true;
+            }
+            
+            Log.Warn("info: " + isPlayerLicense + ", " + (!isPlayerLicense && _storages.ContainsKey(license)) + ", " + (isPlayerLicense && _storages.Keys.Contains(license)));
+            
+            if (!isPlayerLicense && _storages.ContainsKey(license))
             {
                 _storages[license] = data;
-                Log.Debug($"[Character] Cache updated: {license}.");
+                Log.Debug($"[Storage] Cache updated: {license}.");
+            }
+            else if (isPlayerLicense && _storages.Keys.Contains(license))
+            {
+                _storages["player_" + license] = data;
+                Log.Debug($"[Storage] Cache updated: {license}.");
             }
             else
             {
