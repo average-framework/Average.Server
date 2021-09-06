@@ -80,7 +80,7 @@ namespace Average.Server.Managers
             }
             else
             {
-                var data = await Sql.GetAllAsync<CharacterData>(tableName, x => x.RockstarId == rockstarId);
+                var data = await Sql.GetAllAsync<CharacterData>(tableName, $"RockstarId=\"{rockstarId}\"");
 
                 if (!_characters.ContainsKey(rockstarId))
                 {

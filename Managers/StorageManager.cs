@@ -86,7 +86,7 @@ namespace Average.Server.Managers
             }
             else
             {
-                var data = await Sql.GetAllAsync<StorageData>(tableName, x => x.StorageId == storageId);
+                var data = await Sql.GetAllAsync<StorageData>(tableName, $"StorageId=\"{storageId}\"");
 
                 if (!_storages.ContainsKey(storageId))
                 {

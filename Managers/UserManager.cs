@@ -25,7 +25,7 @@ namespace Average.Server.Managers
 
         public async Task<UserData> GetUser(Player player)
         {
-            var data = await Sql.GetAllAsync<UserData>("users", x => x.RockstarId == player.Identifiers["license"]);
+            var data = await Sql.GetAllAsync<UserData>("users", $"RockstarId=\"{player.Identifiers["license"]}\"");
             return data[0];
         }
 

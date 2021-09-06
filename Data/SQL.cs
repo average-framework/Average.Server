@@ -66,7 +66,7 @@ namespace Average.Server.Data
             return results;
         }
 
-        public async Task<List<T>> GetAllAsync<T>(string table, Func<T, bool> predicate)
+        public async Task<List<T>> GetAllAsync<T>(string table, string where)
         {
             IsWorking = true;
 
@@ -74,21 +74,12 @@ namespace Average.Server.Data
                 return new List<T>();
 
             var cmd = _connection.CreateCommand();
-            cmd.CommandText = $"SELECT * FROM {table}";
+            cmd.CommandText = $"SELECT * FROM {table} WHERE {where}";
             var reader = await cmd.ExecuteReaderAsync();
             var result = await MapDeserialize<T>(reader);
-            var results = new List<T>();
-
-            for (int i = 0; i < result.Count; i++)
-            {
-                if (predicate.Invoke(result[i]))
-                {
-                    results.Add(result[i]);
-                }
-            }
 
             IsWorking = false;
-            return results;
+            return result;
         }
 
         public async Task<bool> ExistsAsync<T>(string table, Func<T, bool> predicate)
