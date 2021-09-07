@@ -13,9 +13,9 @@ namespace Average.Server.Managers
 {
     public class CharacterManager : InternalPlugin, ICharacterManager, ISaveable
     {
-        private const string tableName = "characters";
+        public const string TableName = "characters";
 
-        private Dictionary<string, CharacterData> _characters = new Dictionary<string, CharacterData>();
+        private readonly Dictionary<string, CharacterData> _characters = new Dictionary<string, CharacterData>();
         
         public override void OnInitialized()
         {
@@ -45,7 +45,7 @@ namespace Average.Server.Managers
                     var data = await Load(player.Identifiers["license"]);
                     callback(data);
 
-                    Log.Debug($"[Character] Getted character");
+                    Log.Debug($"[Character] Getted character: {data.RockstarId}.");
                 }
                 catch
                 {
@@ -80,7 +80,7 @@ namespace Average.Server.Managers
             }
             else
             {
-                var data = await Sql.GetAllAsync<CharacterData>(tableName, $"RockstarId=\"{rockstarId}\"");
+                var data = await Sql.GetAllAsync<CharacterData>(TableName, $"RockstarId=\"{rockstarId}\"");
 
                 if (!_characters.ContainsKey(rockstarId))
                 {
@@ -102,12 +102,12 @@ namespace Average.Server.Managers
             if (isLocal)
                 return _characters.Values.ToList().Exists(x => x.RockstarId == player.Identifiers["license"]);
             else
-                return await Sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
+                return await Sql.ExistsAsync<CharacterData>(TableName, x => x.RockstarId == player.Identifiers["license"]);
         }
 
-        public async Task<bool?> Exist(Player player) => await Sql.ExistsAsync<CharacterData>(tableName, x => x.RockstarId == player.Identifiers["license"]);
+        public async Task<bool?> Exist(Player player) => await Sql.ExistsAsync<CharacterData>(TableName, x => x.RockstarId == player.Identifiers["license"]);
 
-        public async Task Create(CharacterData data) => await Sql.InsertOrUpdateAsync(tableName, data);
+        public async Task Create(CharacterData data) => await Sql.InsertOrUpdateAsync(TableName, data);
 
         public async Task SaveData(Player player)
         {
@@ -118,7 +118,7 @@ namespace Average.Server.Managers
                 try
                 {
                     var data = _characters[rockstarId];
-                    await Sql.InsertOrUpdateAsync(tableName, data);
+                    await Sql.InsertOrUpdateAsync(TableName, data);
                     Log.Debug("[Character] Saved: " + rockstarId);
                 }
                 catch (Exception ex)
@@ -138,7 +138,7 @@ namespace Average.Server.Managers
 
                 try
                 {
-                    await Sql.InsertOrUpdateAsync(tableName, cache);
+                    await Sql.InsertOrUpdateAsync(TableName, cache);
                     Log.Debug("[Character] Saved: " + data.Key);
                 }
                 catch (Exception ex)
@@ -190,7 +190,7 @@ namespace Average.Server.Managers
             if (p == null) return;
             var character = JsonConvert.DeserializeObject<CharacterData>(json);
             UpdateCache(p, character);
-            await Sql.InsertAsync(tableName, character);
+            await Sql.InsertAsync(TableName, character);
         }
         
         [ServerEvent("Character.Save")]

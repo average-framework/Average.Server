@@ -41,6 +41,7 @@ namespace Average.Server
         internal static readonly DoorManager door = new DoorManager();
         internal static readonly CfxManager cfx = new CfxManager();
         internal static readonly StorageManager storage = new StorageManager();
+        internal static readonly EnterpriseManager enterprise = new EnterpriseManager();
 
         #endregion
 
@@ -89,6 +90,7 @@ namespace Average.Server
             LoadInternalScript(storage);
             LoadInternalScript(door);
             LoadInternalScript(cfx);
+            LoadInternalScript(enterprise);
 
             // Plugin Loader
             loader.Load();
@@ -108,7 +110,7 @@ namespace Average.Server
         {
             try
             {
-                script.SetDependencies(sql, Players, new RpcRequest(new RpcHandler(eventHandlers), new RpcTrigger(Players), new RpcSerializer()), thread, character, command, evnt, export, permission, save, sync, user, request, requestInternal, job, door, storage);
+                script.SetDependencies(sql, Players, new RpcRequest(new RpcHandler(eventHandlers), new RpcTrigger(Players), new RpcSerializer()), thread, character, command, evnt, export, permission, save, sync, user, request, requestInternal, job, door, storage, enterprise);
                 
                 loader.RegisterThreads(script.GetType(), script);
                 loader.RegisterEvents(script.GetType(), script);

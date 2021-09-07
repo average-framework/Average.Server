@@ -160,7 +160,7 @@ namespace Average.Server
             try
             {
                 var script = (Plugin) Activator.CreateInstance(type);
-                script.SetDependencies(Main.sql, Players, new RpcRequest(new RpcHandler(Main.eventHandlers), new RpcTrigger(Main.players), new RpcSerializer()), Main.thread, Main.character, Main.command, Main.evnt, Main.export, Main.permission, Main.save, Main.sync, Main.user, Main.request, Main.requestInternal, Main.job, Main.door, Main.storage, pluginInfo);
+                script.SetDependencies(Main.sql, Players, new RpcRequest(new RpcHandler(Main.eventHandlers), new RpcTrigger(Main.players), new RpcSerializer()), Main.thread, Main.character, Main.command, Main.evnt, Main.export, Main.permission, Main.save, Main.sync, Main.user, Main.request, Main.requestInternal, Main.job, Main.door, Main.storage, Main.enterprise, pluginInfo);
                 
                 RegisterThreads(script.GetType(), script);
                 RegisterEvents(script.GetType(), script);
