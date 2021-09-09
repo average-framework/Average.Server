@@ -9,7 +9,6 @@ namespace Average.Server.Managers
 {
     public class JobManager : InternalPlugin, IJobManager
     {
-        [Export("Job.SetJob")]
         public async Task SetJob(int player, int target, string jobName, string roleName, int roleLevel)
         {
             var p = Players[player];
@@ -31,11 +30,11 @@ namespace Average.Server.Managers
                 
                 await Character.SaveData(t);
 
-                Log.Warn($"Job setted by {p.Name} for {t.Name}, job: {jobName}, rolename: {roleName}");   
+                Log.Warn($"[Job] Job set by {p.Name} for {t.Name}, job: {jobName}, rolename: {roleName}");   
             }
             else
             {
-                Log.Error(($"Unable to set job to player: {targetRockstarId}"));
+                Log.Error(($"[Job] Unable to set job to player: {targetRockstarId}"));
             }
         }
 
@@ -50,8 +49,7 @@ namespace Average.Server.Managers
             if (t == null || p == null) return;
 
             var targetRockstarId = t.Identifiers["license"];
-            // Event.EmitClient(player.ToPlayer(), "Job.RecruitPlayerByRockstarId", targetRockstarId, jobName, roleName, roleLevel);
-            t.TriggerEvent("Job.RecruitPlayerByRockstarId", targetRockstarId, jobName, roleName, roleLevel);
+            Event.EmitClient(player.ToPlayer(), "Job.RecruitPlayerByRockstarId", targetRockstarId, jobName, roleName, roleLevel);
             await SetJob(player, target, jobName, roleName, roleLevel);
         }
 
@@ -77,7 +75,7 @@ namespace Average.Server.Managers
             if (t == null || p == null) return;
 
             var targetRockstarId = t.Identifiers["license"];
-            t.TriggerEvent("Job.PromotePlayerByRockstarId", targetRockstarId, jobName, roleName, roleLevel);
+            Event.EmitClient(player.ToPlayer(), "Job.PromotePlayerByRockstarId", targetRockstarId, jobName, roleName, roleLevel);
             await SetJob(player, target, jobName, roleName, roleLevel);
         }
 
