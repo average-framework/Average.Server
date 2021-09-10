@@ -206,7 +206,7 @@ namespace Average.Server.Managers
         }
         
         [ServerEvent("Storage.Save")]
-        private async void OnSaveEvent(int player, string json)
+        private async void OnSaveEvent(int player, string json, bool updateInDb)
         {
             Log.Warn("Save: " + json);
             
@@ -221,6 +221,10 @@ namespace Average.Server.Managers
             }
 
             UpdateCache(Players[player], storage);
+            
+            if (updateInDb)
+                await Sql.InsertOrUpdateAsync(tableName, storage);
+            
             await BaseScript.Delay(0);
             Event.EmitClients("Storage.Updated", storage.StorageId);
         }
