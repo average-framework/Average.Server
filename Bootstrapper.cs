@@ -1,5 +1,7 @@
 ﻿using Average.Server.Framework.Database;
+using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Managers;
 using Average.Server.Handlers;
 using Average.Server.Managers;
@@ -11,8 +13,6 @@ using MemBus;
 using MemBus.Configurators;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
-using SDK.Server.Diagnostics;
-using SDK.Server.Interfaces;
 using System.Linq;
 
 namespace Average.Server
@@ -32,7 +32,7 @@ namespace Average.Server
             _eventHandlers = eventHandlers;
             _players = players;
 
-            _baseConfig = SDK.Server.Configuration.ParseToObj("config.json");
+            _baseConfig = FileExtensions.ReadFileFromRootDir("config.json").ToJObject();
 
             MigrateDatabase();
             Init();

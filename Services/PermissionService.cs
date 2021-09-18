@@ -1,12 +1,11 @@
-﻿using Average.Server.Framework.Extensions;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
+using Average.Server.Framework.Interfaces;
 using CitizenFX.Core;
-using SDK.Server.Diagnostics;
-using SDK.Server.Extensions;
-using SDK.Server.Interfaces;
 
 namespace Average.Server.Managers
 {
-    internal class PermissionService : IPermissionManager, IService
+    internal class PermissionService : IService
     {
         public PermissionService()
         {

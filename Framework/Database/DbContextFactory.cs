@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Average.Server.Framework.Extensions;
+using Newtonsoft.Json.Linq;
 
 namespace Average.Server.Framework.Database
 {
@@ -9,7 +10,7 @@ namespace Average.Server.Framework.Database
 
         public DbContextFactory()
         {
-            _baseConfig = SDK.Server.Configuration.ParseToObj("config.json");
+            _baseConfig = FileExtensions.ReadFileFromRootDir("config.json").ToJObject();
             _connectionString = $"Server={(string)_baseConfig["MySQL"]["Host"]};Port={(int)_baseConfig["MySQL"]["Port"]};Database={(string)_baseConfig["MySQL"]["Database"]};Uid={(string)_baseConfig["MySQL"]["Username"]};Pwd={(string)_baseConfig["MySQL"]["Password"]};";
         }
 

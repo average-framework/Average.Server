@@ -1,9 +1,9 @@
-﻿using CitizenFX.Core;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Events;
+using Average.Server.Framework.Request;
+using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using Newtonsoft.Json;
-using SDK.Server.Diagnostics;
-using SDK.Server.Events;
-using SDK.Shared.Request;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

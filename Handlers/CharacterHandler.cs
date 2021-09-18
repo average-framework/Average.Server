@@ -1,6 +1,6 @@
-﻿using Average.Server.Managers;
+﻿using Average.Server.Framework.Interfaces;
+using Average.Server.Managers;
 using CitizenFX.Core;
-using SDK.Server.Interfaces;
 
 namespace Average.Server.Handlers
 {

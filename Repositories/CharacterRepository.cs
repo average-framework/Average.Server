@@ -1,7 +1,7 @@
-﻿using Average.Server.Framework.Database;
-using SDK.Server.Diagnostics;
-using SDK.Server.Interfaces;
-using SDK.Shared.DataModels;
+﻿using Average.Server.DataModels;
+using Average.Server.Framework.Database;
+using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 
 namespace Average.Server.Repositories
 {

@@ -1,5 +1,5 @@
-﻿using Average.Server.Services;
-using SDK.Server.Interfaces;
+﻿using Average.Server.Framework.Interfaces;
+using Average.Server.Services;
 
 namespace Average.Server.Handlers
 {

@@ -1,5 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SDK.Shared.Interfaces;
+﻿using Average.Server.Framework.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;

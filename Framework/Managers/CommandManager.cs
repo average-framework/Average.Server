@@ -1,7 +1,7 @@
-﻿using CitizenFX.Core.Native;
+﻿using Average.Server.Framework.Attributes;
+using Average.Server.Framework.Diagnostics;
+using CitizenFX.Core.Native;
 using DryIoc;
-using SDK.Server;
-using SDK.Server.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;

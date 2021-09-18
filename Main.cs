@@ -1,10 +1,11 @@
-﻿using CitizenFX.Core;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
+using Average.Server.Framework.Rpc;
+using Average.Shared.Rpc;
+using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using DryIoc;
 using Newtonsoft.Json.Linq;
-using SDK.Server.Diagnostics;
-using SDK.Server.Rpc;
-using SDK.Shared.Rpc;
 using System;
 using System.Threading.Tasks;
 
@@ -29,7 +30,7 @@ namespace Average.Server
             Logger.Clear();
             Watermark();
 
-            _baseConfig = SDK.Server.Configuration.ParseToObj("config.json");
+            _baseConfig = FileExtensions.ReadFileFromRootDir("config.json").ToJObject();
 
             _isDebugEnabled = (bool)_baseConfig["IsDebugModeEnabled"];
 

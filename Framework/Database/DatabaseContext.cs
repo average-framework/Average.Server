@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Average.Server.DataModels;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using SDK.Shared.DataModels;
 
 namespace Average.Server.Framework.Database
 {

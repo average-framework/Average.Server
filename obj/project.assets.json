@@ -485,52 +485,13 @@
           "lib/net461/System.Threading.Tasks.Extensions.dll": {}
         }
       },
-      "Average.Client/1.0.0": {
-        "type": "project",
-        "dependencies": {
-          "SDK.Client": "1.0.0",
-          "SDK.Shared": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/Average.Client.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Average.Client.dll": {}
-        }
-      },
-      "SDK.Client/1.0.0": {
-        "type": "project",
-        "dependencies": {
-          "SDK.Shared": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/SDK.Client.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/SDK.Client.dll": {}
-        }
-      },
-      "SDK.Server/1.0.0": {
-        "type": "project",
-        "dependencies": {
-          "Average.Client": "1.0.0",
-          "SDK.Client": "1.0.0",
-          "SDK.Shared": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/SDK.Server.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/SDK.Server.dll": {}
-        }
-      },
-      "SDK.Shared/1.0.0": {
+      "Average.Shared/1.0.0": {
         "type": "project",
         "compile": {
-          "bin/placeholder/SDK.Shared.dll": {}
+          "bin/placeholder/Average.Shared.dll": {}
         },
         "runtime": {
-          "bin/placeholder/SDK.Shared.dll": {}
+          "bin/placeholder/Average.Shared.dll": {}
         }
       }
     }
@@ -1424,29 +1385,15 @@
         "version.txt"
       ]
     },
-    "Average.Client/1.0.0": {
+    "Average.Shared/1.0.0": {
       "type": "project",
-      "path": "../Average.Client/Average.Client.csproj",
-      "msbuildProject": "../Average.Client/Average.Client.csproj"
-    },
-    "SDK.Client/1.0.0": {
-      "type": "project",
-      "path": "../SDK.Client/SDK.Client.csproj",
-      "msbuildProject": "../SDK.Client/SDK.Client.csproj"
-    },
-    "SDK.Server/1.0.0": {
-      "type": "project",
-      "path": "../SDK.Server/SDK.Server.csproj",
-      "msbuildProject": "../SDK.Server/SDK.Server.csproj"
-    },
-    "SDK.Shared/1.0.0": {
-      "type": "project",
-      "path": "../SDK.Shared/SDK.Shared.csproj",
-      "msbuildProject": "../SDK.Shared/SDK.Shared.csproj"
+      "path": "../Average.Shared/Average.Shared.csproj",
+      "msbuildProject": "../Average.Shared/Average.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     ".NETFramework,Version=v4.8": [
+      "Average.Shared >= 1.0.0",
       "DryIoc >= 4.8.1",
       "MemBus >= 4.0.1",
       "Microsoft.CSharp >= 4.7.0",
@@ -1459,9 +1406,7 @@
       "Microsoft.Extensions.DependencyInjection >= 5.0.2",
       "Microsoft.XmlSerializer.Generator >= 1.0.0",
       "Newtonsoft.Json >= 13.0.1",
-      "Pomelo.EntityFrameworkCore.MySql >= 3.2.6",
-      "SDK.Server >= 1.0.0",
-      "SDK.Shared >= 1.0.0"
+      "Pomelo.EntityFrameworkCore.MySql >= 3.2.6"
     ]
   },
   "packageFolders": {
@@ -1470,11 +1415,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server.2\\Average.Server.csproj",
+      "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
       "projectName": "average.server.net",
-      "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server.2\\Average.Server.csproj",
+      "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
       "packagesPath": "C:\\Users\\bub.bl\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server.2\\obj\\",
+      "outputPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\bub.bl\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -1491,11 +1436,8 @@
         "net48": {
           "targetAlias": "net48",
           "projectReferences": {
-            "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Server\\SDK.Server.csproj": {
-              "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Server\\SDK.Server.csproj"
-            },
-            "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj": {
-              "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj"
+            "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Shared\\Average.Shared.csproj": {
+              "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Shared\\Average.Shared.csproj"
             }
           }
         }
@@ -1567,7 +1509,7 @@
             "version": "[3.2.6, )"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.400\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.100-rc.1.21458.32\\RuntimeIdentifierGraph.json"
       }
     }
   }

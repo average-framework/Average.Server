@@ -1,39 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server.2\\Average.Server.csproj": {}
+    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Client\\Average.Client.csproj": {
-      "restore": {
-        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Client\\Average.Client.csproj",
-        "projectName": "Average.Client",
-        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Client\\Average.Client.csproj",
-        "frameworks": {
-          "net48": {
-            "projectReferences": {
-              "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Client\\SDK.Client.csproj": {
-                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Client\\SDK.Client.csproj"
-              },
-              "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj": {
-                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj"
-              }
-            }
-          }
-        }
-      },
-      "frameworks": {
-        "net48": {}
-      }
-    },
-    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server.2\\Average.Server.csproj": {
+    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server.2\\Average.Server.csproj",
+        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
         "projectName": "average.server.net",
-        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server.2\\Average.Server.csproj",
+        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
         "packagesPath": "C:\\Users\\bub.bl\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server.2\\obj\\",
+        "outputPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\bub.bl\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -50,11 +28,8 @@
           "net48": {
             "targetAlias": "net48",
             "projectReferences": {
-              "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Server\\SDK.Server.csproj": {
-                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Server\\SDK.Server.csproj"
-              },
-              "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj": {
-                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj"
+              "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Shared\\Average.Shared.csproj": {
+                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Shared\\Average.Shared.csproj"
               }
             }
           }
@@ -126,59 +101,20 @@
               "version": "[3.2.6, )"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.400\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.100-rc.1.21458.32\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Client\\SDK.Client.csproj": {
+    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Shared\\Average.Shared.csproj": {
       "restore": {
-        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Client\\SDK.Client.csproj",
-        "projectName": "SDK.Client",
-        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Client\\SDK.Client.csproj",
+        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Shared\\Average.Shared.csproj",
+        "projectName": "Average.Shared",
+        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Shared\\Average.Shared.csproj",
         "frameworks": {
           "net48": {
-            "projectReferences": {
-              "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj": {
-                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj"
-              }
-            }
+            "projectReferences": {}
           }
         }
-      },
-      "frameworks": {
-        "net48": {}
-      }
-    },
-    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Server\\SDK.Server.csproj": {
-      "restore": {
-        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Server\\SDK.Server.csproj",
-        "projectName": "SDK.Server",
-        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Server\\SDK.Server.csproj",
-        "frameworks": {
-          "net48": {
-            "projectReferences": {
-              "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Client\\Average.Client.csproj": {
-                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Client\\Average.Client.csproj"
-              },
-              "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Client\\SDK.Client.csproj": {
-                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Client\\SDK.Client.csproj"
-              },
-              "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj": {
-                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj"
-              }
-            }
-          }
-        }
-      },
-      "frameworks": {
-        "net48": {}
-      }
-    },
-    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj": {
-      "restore": {
-        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj",
-        "projectName": "SDK.Shared",
-        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\SDK.Shared\\SDK.Shared.csproj"
       },
       "frameworks": {
         "net48": {}

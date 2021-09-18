@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "RGur/JdludJClz2VxFR9PjLuZmQV9WFSdcNnGMokIzbVBlvmqoobATb7I81i29s3HlfZ9pREO8TWptQSuI4ALw==",
+  "dgSpecHash": "aYJbRJjtiaOIM7icxGzl8aUUWiT/z1dT3rYapR3g8gXBBRYKn0YK2U9Sgwfs/wSH/ryWS4Dzm0HUsF5KBBC+4w==",
   "success": true,
-  "projectFilePath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server.2\\Average.Server.csproj",
+  "projectFilePath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\bub.bl\\.nuget\\packages\\dryioc\\4.8.1\\dryioc.4.8.1.nupkg.sha512",
     "C:\\Users\\bub.bl\\.nuget\\packages\\membus\\4.0.1\\membus.4.0.1.nupkg.sha512",

@@ -1,6 +1,5 @@
-﻿using SDK.Server.Diagnostics;
-using SDK.Server.Interfaces;
-using SDK.Shared.Request;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Request;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Average.Server.Framework.Managers
 {
-    internal class RequestManager : IRequestManager
+    internal class RequestManager
     {
         private readonly RequestInternalManager _request;
 

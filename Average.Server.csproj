@@ -86,11 +86,10 @@
       <DotNetCliToolReference Include="Microsoft.XmlSerializer.Generator" Version="1.0.0" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\SDK.Server\SDK.Server.csproj" />
-      <ProjectReference Include="..\SDK.Shared\SDK.Shared.csproj" />
+      <Folder Include="Migrations\" />
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="Migrations\" />
+      <ProjectReference Include="..\Average.Shared\Average.Shared.csproj" />
     </ItemGroup>
     <ItemGroup>
       <Reference Include="CitizenFX.Core">

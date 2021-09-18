@@ -1,7 +1,7 @@
-﻿using CitizenFX.Core;
-using SDK.Server;
-using SDK.Server.Diagnostics;
-using SDK.Server.Events;
+﻿using Average.Server.Framework.Attributes;
+using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Events;
+using CitizenFX.Core;
 using System;
 using System.Linq;
 using System.Linq.Expressions;

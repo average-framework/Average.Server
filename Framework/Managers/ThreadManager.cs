@@ -1,6 +1,6 @@
-﻿using DryIoc;
-using SDK.Server.Diagnostics;
-using SDK.Shared.Threading;
+﻿using Average.Server.Framework.Attributes;
+using Average.Server.Framework.Diagnostics;
+using DryIoc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +11,24 @@ namespace Average.Server.Framework.Managers
 {
     public class ThreadManager
     {
+        public class Thread
+        {
+            public bool isStartDelayTriggered;
+
+            public int StartDelay { get; }
+            public int RepeatedCount { get; set; }
+            public Func<Task> Func { get; set; }
+            public bool IsRunning { get; set; } = true;
+            public bool IsTerminated { get; set; } = false;
+            public MethodInfo Method { get; }
+
+            public Thread(MethodInfo method, int startDelay)
+            {
+                Method = method;
+                StartDelay = startDelay;
+            }
+        }
+
         private readonly List<Thread> _threads = new List<Thread>();
 
         private readonly IContainer _container;
