@@ -1,14 +1,14 @@
 ﻿using Average.Server.Data;
+using Average.Server.Managers;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
-using SDK.Server.Diagnostics;
-using System;
-using System.Reflection;
-using System.Threading.Tasks;
-using Average.Server.Managers;
+using DryIoc;
 using Newtonsoft.Json.Linq;
+using SDK.Server.Diagnostics;
 using SDK.Server.Rpc;
 using SDK.Shared.Rpc;
+using System;
+using System.Threading.Tasks;
 
 namespace Average.Server
 {
@@ -20,115 +20,109 @@ namespace Average.Server
         internal static Action<Func<Task>> attachCallback;
         internal static Action<Func<Task>> detachCallback;
 
-        internal static EventHandlerDictionary eventHandlers;
-        internal static PlayerList players;
-        internal static PluginLoader loader;
+        //internal static PluginLoader loader;
 
         #region Internal Scripts
 
-        internal static readonly CharacterManager character = new CharacterManager();
-        internal static readonly CommandManager command = new CommandManager();
-        internal static readonly EventManager evnt = new EventManager();
-        internal static readonly ExportManager export = new ExportManager();
-        internal static readonly PermissionManager permission = new PermissionManager();
-        internal static readonly RequestManager request = new RequestManager();
-        internal static readonly RequestInternalManager requestInternal = new RequestInternalManager();
-        internal static readonly SaveManager save = new SaveManager();
-        internal static readonly SyncManager sync = new SyncManager();
-        internal static readonly ThreadManager thread = new ThreadManager();
-        internal static readonly UserManager user = new UserManager();
-        internal static readonly JobManager job = new JobManager();
-        internal static readonly DoorManager door = new DoorManager();
-        internal static readonly CfxManager cfx = new CfxManager();
-        internal static readonly StorageManager storage = new StorageManager();
-        internal static readonly EnterpriseManager enterprise = new EnterpriseManager();
+        //internal static readonly EventManager evnt = new EventManager();
+        //internal static readonly ExportManager export = new ExportManager();
+        //internal static readonly PermissionManager permission = new PermissionManager();
+        //internal static readonly RequestManager request = new RequestManager();
+        //internal static readonly RequestInternalManager requestInternal = new RequestInternalManager();
+        //internal static readonly SaveManager save = new SaveManager();
+        //internal static readonly SyncManager sync = new SyncManager();
+        //internal static readonly ThreadManager thread = new ThreadManager();
+        //internal static readonly JobManager job = new JobManager();
+        //internal static readonly DoorManager door = new DoorManager();
+        //internal static readonly CfxManager cfx = new CfxManager();
+        //internal static readonly StorageManager storage = new StorageManager();
+        //internal static readonly EnterpriseManager enterprise = new EnterpriseManager();
 
         #endregion
 
         public readonly bool isDebugEnabled;
 
         private readonly JObject _baseConfig;
-        
+
+        private readonly IContainer _container;
+        private readonly Bootstrapper _boostrap;
+
         public Main()
         {
-            _baseConfig = SDK.Server.Configuration.Parse("config.json");
+            Logger.Clear();
+            Watermark();
+
+            _container = new Container().With(rules => rules.WithFactorySelector(Rules.SelectLastRegisteredFactory()));
+            _boostrap = new Bootstrapper(_container, EventHandlers, Players);
+
+            _baseConfig = SDK.Server.Configuration.ParseToObj("config.json");
 
             isDebugEnabled = (bool)_baseConfig["IsDebugModeEnabled"];
 
-            Log.IsDebug = isDebugEnabled;
+            Logger.IsDebug = isDebugEnabled;
 
-            eventHandlers = EventHandlers;
-            players = Players;
-            
-            rpc = new RpcRequest(new RpcHandler(eventHandlers), new RpcTrigger(players), new RpcSerializer());
+            rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
 
             attachCallback = c => Tick += c;
             detachCallback = c => Tick -= c;
-            
-            Log.Clear();
-            Watermark();
 
             // rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
-            
-            sql = new SQL();
-            sql.Connect();
 
-            loader = new PluginLoader();
-            // loader.Preload();
+            //sql = new SQL();
+            //sql.Connect();
 
-            LoadInternalScript(request);
-            LoadInternalScript(permission);
-            LoadInternalScript(evnt);
-            LoadInternalScript(export);
-            LoadInternalScript(thread);
-            LoadInternalScript(command);
-            LoadInternalScript(sync);
-            LoadInternalScript(save);
-            LoadInternalScript(user);
-            LoadInternalScript(job);
-            LoadInternalScript(character);
-            LoadInternalScript(storage);
-            LoadInternalScript(door);
-            LoadInternalScript(cfx);
-            LoadInternalScript(enterprise);
+            //loader = new PluginLoader();
+
+            //LoadInternalScript(request);
+            //LoadInternalScript(permission);
+            //LoadInternalScript(evnt);
+            //LoadInternalScript(export);
+            //LoadInternalScript(thread);
+            //LoadInternalScript(command);
+            //LoadInternalScript(sync);
+            //LoadInternalScript(save);
+            //LoadInternalScript(user);
+            //LoadInternalScript(job);
+            //LoadInternalScript(character);
+            //LoadInternalScript(storage);
+            //LoadInternalScript(door);
+            //LoadInternalScript(cfx);
+            //LoadInternalScript(enterprise);
 
             // Plugin Loader
-            loader.Load();
+            //loader.Load();
         }
 
         #region Console Command
 
-        [Command("clear")]
-        private void ClearCommand()
-        {
-            Console.Clear();
-        }
+        //[Command("clear")]
+        //private void ClearCommand() => Console.Clear();
 
         #endregion
-        
-        internal void LoadInternalScript(InternalPlugin script)
-        {
-            try
-            {
-                script.SetDependencies(sql, Players, new RpcRequest(new RpcHandler(eventHandlers), new RpcTrigger(Players), new RpcSerializer()), thread, character, command, evnt, export, permission, save, sync, user, request, requestInternal, job, door, storage, enterprise);
-                
-                loader.RegisterThreads(script.GetType(), script);
-                loader.RegisterEvents(script.GetType(), script);
-                loader.RegisterExports(script.GetType(), script);
-                loader.RegisterSyncs(script.GetType(), script);
-                loader.RegisterGetSyncs(script.GetType(), script);
-                loader.RegisterCommands(script.GetType(), script);
-                loader.RegisterInternalPlugin(script);
-                
-                script.OnInitialized();
-                
-                Log.Write("Internal", $"% {script.Name} % registered successfully.", new Log.TextColor(ConsoleColor.Blue, ConsoleColor.White));
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Unable to loading script: {script.Name}. Error: {ex.Message}\n{ex.StackTrace}.");
-            }
-        }
+
+        //internal void LoadInternalScript(InternalPlugin script)
+        //{
+        //    try
+        //    {
+        //        script.SetDependencies(sql, Players, new RpcRequest(new RpcHandler(eventHandlers), new RpcTrigger(Players), new RpcSerializer()), thread, character, command, evnt, export, permission, save, sync, user, request, requestInternal, job, door, storage, enterprise);
+
+        //        loader.RegisterThreads(script.GetType(), script);
+        //        loader.RegisterEvents(script.GetType(), script);
+        //        loader.RegisterExports(script.GetType(), script);
+        //        loader.RegisterSyncs(script.GetType(), script);
+        //        loader.RegisterGetSyncs(script.GetType(), script);
+        //        loader.RegisterCommands(script.GetType(), script);
+        //        loader.RegisterInternalPlugin(script);
+
+        //        script.OnInitialized();
+
+        //        Log.Write("Internal", $"% {script.Name} % registered successfully.", new Log.TextColor(ConsoleColor.Blue, ConsoleColor.White));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Log.Error($"Unable to loading script: {script.Name}. Error: {ex.Message}\n{ex.StackTrace}.");
+        //    }
+        //}
 
         internal void Watermark()
         {
@@ -145,7 +139,7 @@ namespace Average.Server
             Console.WriteLine("     AAAAA      AAAAA VVVVVVVVV       GGGGGGGGGGGGGGGGGGGG");
             Console.WriteLine("    AAAAA       AAAAA VVVVVVVV       GGGGGGGGGGGGGGGGG");
             Console.WriteLine("    --------------------------------------------------------");
-            Console.WriteLine($"    | VERSION {Assembly.GetExecutingAssembly().GetName().Version} | EARLY BUILD | {API.GetConvar("sv_maxclients", "")} SLOTS      |");
+            Console.WriteLine($"    |                 DEV BUILD | {API.GetConvar("sv_maxclients", "")} SLOTS                 |");
             Console.WriteLine("    --------------------------------------------------------");
             Console.WriteLine("");
         }

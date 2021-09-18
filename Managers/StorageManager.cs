@@ -1,316 +1,316 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CitizenFX.Core;
-using Newtonsoft.Json;
-using SDK.Server;
-using SDK.Server.Diagnostics;
-using SDK.Server.Interfaces;
-using SDK.Server.Models;
-using SDK.Server.Rpc;
-using SDK.Shared.DataModels;
-using SDK.Shared.Rpc;
+﻿//using CitizenFX.Core;
+//using Newtonsoft.Json;
+//using SDK.Server;
+//using SDK.Server.Diagnostics;
+//using SDK.Server.Interfaces;
+//using SDK.Server.Models;
+//using SDK.Server.Rpc;
+//using SDK.Shared.DataModels;
+//using SDK.Shared.Rpc;
+//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Threading.Tasks;
 
-namespace Average.Server.Managers
-{
-    public class StorageManager : InternalPlugin, IStorageManager, ISaveable
-    {
-        private const string tableName = "storages";
-        
-        private readonly Dictionary<string, StorageData> _storages = new Dictionary<string, StorageData>();
+//namespace Average.Server.Managers
+//{
+//    public class StorageManager : InternalPlugin, IStorageManager, ISaveable
+//    {
+//        private const string tableName = "storages";
 
-        public static List<StorageItemInfo> RegisteredItems { get; private set; }
-        
-        public override void OnInitialized()
-        {
-            RegisteredItems = SDK.Server.Configuration.Parse<List<StorageItemInfo>>("configs/storage_items.json");
+//        private readonly Dictionary<string, StorageData> _storages = new Dictionary<string, StorageData>();
 
-            #region Event
+//        public static List<StorageItemInfo> RegisteredItems { get; private set; }
 
-            Rpc.Event("Storage.GetRegisteredItems").On(OnGetRegisteredItemsEvent);
-            Rpc.Event("Storage.GetInventory").On<string>(OnGetInventoryEvent);
-            Rpc.Event("Storage.GetChest").On<string>(OnGetChestEvent);
-            Rpc.Event("Storage.HasFreeSpace").On<int>(OnHasFreeSpaceEvent);
-            
-            #endregion
-            
-            Save.AddInQueue(this);
-        }
+//        public override void OnInitialized()
+//        {
+//            RegisteredItems = SDK.Server.Configuration.Parse<List<StorageItemInfo>>("configs/storage_items.json");
 
-        public StorageItemInfo GetItemInfo(string itemName)
-        {
-            return RegisteredItems.Find(x => x.Name == itemName);
-        }
-        
-        public double CalculateWeight(StorageData storage)
-        {
-            var weight = 0d;
-            storage.Items.ForEach(x => weight += x.Count * GetItemInfo(x.Name).Weight);
-            return weight;
-        }
-        
-        public bool HasFreeSpace(StorageData storage) => CalculateWeight(storage) <= storage.MaxWeight;
+//            #region Event
 
-        public StorageData? GetCache(string storageId)
-        {
-            if (_storages.ContainsKey(storageId))
-            {
-                return _storages[storageId];
-            }
-            
-            return null;
-        }
+//            Rpc.Event("Storage.GetRegisteredItems").On(OnGetRegisteredItemsEvent);
+//            Rpc.Event("Storage.GetInventory").On<string>(OnGetInventoryEvent);
+//            Rpc.Event("Storage.GetChest").On<string>(OnGetChestEvent);
+//            Rpc.Event("Storage.HasFreeSpace").On<int>(OnHasFreeSpaceEvent);
 
-        public async Task<bool> CacheExist(string storageId, bool isLocal)
-        {
-            if (isLocal)
-            {
-                return _storages.Values.ToList().Exists(x => x.StorageId == storageId);
-            }
-            else
-            {
-                return await Sql.ExistsAsync<StorageData>(tableName, x => x.StorageId == storageId);
-            }
-        }
+//            #endregion
 
-        public async Task<bool?> Exist(string storageId) => await Sql.ExistsAsync<StorageData>(tableName, x => x.StorageId == storageId);
-        
-        public async Task Create(StorageData data) => await Sql.InsertOrUpdateAsync(tableName, data);
-        
-        public async Task<StorageData> Load(string storageId)
-        {
-            if (_storages.ContainsKey(storageId))
-            {
-                return _storages[storageId];
-            }
-            else
-            {
-                var data = await Sql.GetAllAsync<StorageData>(tableName, $"StorageId=\"{storageId}\"");
+//            Save.AddInQueue(this);
+//        }
 
-                if (!_storages.ContainsKey(storageId))
-                {
-                    _storages.Add(storageId, data[0]);
-                }
-                else
-                {
-                    _storages[storageId] = data[0];
-                }
+//        public StorageItemInfo GetItemInfo(string itemName)
+//        {
+//            return RegisteredItems.Find(x => x.Name == itemName);
+//        }
 
-                return data[0];
-            }
+//        public double CalculateWeight(StorageData storage)
+//        {
+//            var weight = 0d;
+//            storage.Items.ForEach(x => weight += x.Count * GetItemInfo(x.Name).Weight);
+//            return weight;
+//        }
 
-            return null;
-        }
-        
-        public async Task SaveData(Player player)
-        {
-            var license = player.Identifiers["license"];
+//        public bool HasFreeSpace(StorageData storage) => CalculateWeight(storage) <= storage.MaxWeight;
 
-            if (_storages.ContainsKey(license))
-            {
-                try
-                {
-                    var data = _storages[license];
-                    await Sql.InsertOrUpdateAsync(tableName, data);
-                    Log.Debug($"[Storage] Saved: {license}.");
-                }
-                catch (Exception ex)
-                {
-                    Log.Error($"[Storage] Error on saving storage: {license}. Error: {ex.Message}.");
-                }
-            }
-        }
-        
-        public async Task SaveAll()
-        {
-            for (int i = 0; i < _storages.Count; i++)
-            {
-                var data = _storages.ElementAt(i);
-                var cache = GetCache(data.Value.StorageId);
-                if (cache == null) return;
-                
-                try
-                {
-                    await Sql.InsertOrUpdateAsync(tableName, cache);
-                    Log.Debug($"[Storage] Saved: {data.Key}, {data.Value.StorageId}.");
-                }
-                catch (Exception ex)
-                {
-                    Log.Error($"[Storage] Error on saving storage: {data.Key}. Error: {ex.Message}.");
-                }
-            }
-        }
-        
-        public void UpdateCache(Player player, StorageData data)
-        {
-            if (_storages.ContainsKey(data.StorageId))
-            {
-                _storages[data.StorageId] = data;
-            }
-            else
-            {
-                _storages.Add(data.StorageId, data);
-            }
+//        public StorageData? GetCache(string storageId)
+//        {
+//            if (_storages.ContainsKey(storageId))
+//            {
+//                return _storages[storageId];
+//            }
 
-            Log.Debug($"[Storage] Cache updated: {data.StorageId}.");
-        }
-        
-        #region Event
+//            return null;
+//        }
 
-        [ServerEvent("Storage.Remove")]
-        private async void OnRemoveEvent(int player, string storageId)
-        {
-            try
-            {
-                await Sql.DeleteAllAsync("storages", $"StorageId=\"{storageId}\"");
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"$[Storage] Unable to delete storage. Error: {ex.Message}.");
-            }
-        }
-        
-        [ServerEvent("Storage.GiveItemToPlayer")]
-        private void OnGiveItemToPlayerEvent(int player, int targetServerId, string itemJson, int itemCount)
-        {
-            Players[targetServerId].TriggerEvent("Storage.GiveItemToPlayer", itemJson, itemCount);
-        }
+//        public async Task<bool> CacheExist(string storageId, bool isLocal)
+//        {
+//            if (isLocal)
+//            {
+//                return _storages.Values.ToList().Exists(x => x.StorageId == storageId);
+//            }
+//            else
+//            {
+//                return await Sql.ExistsAsync<StorageData>(tableName, x => x.StorageId == storageId);
+//            }
+//        }
 
-        [ServerEvent("Storage.RemoveItem")]
-        private void OnRemoveItemEvent(int player, int targetServerId, string itemName, int itemCount)
-        {
-            Players[targetServerId].TriggerEvent("Storage.RemoveItem", itemName, itemCount);
-        }
-        
-        [ServerEvent("Storage.RemoveItemById")]
-        private void OnRemoveItemByIdEvent(int player, int targetServerId, string itemId, int itemCount)
-        {
-            Players[targetServerId].TriggerEvent("Storage.RemoveItemById", itemId, itemCount);
-        }
+//        public async Task<bool?> Exist(string storageId) => await Sql.ExistsAsync<StorageData>(tableName, x => x.StorageId == storageId);
 
-        [ServerEvent("Storage.GiveMoneyToPlayer")]
-        private void OnGiveMoneyToPlayerEvent(int player, int targetServerId, string amount)
-        {
-            Event.EmitClient(Players[targetServerId], "Storage.GiveMoneyToPlayer", amount);
-        }
+//        public async Task Create(StorageData data) => await Sql.InsertOrUpdateAsync(tableName, data);
 
-        [ServerEvent("Storage.Create")]
-        private async void OnCreateEvent(int player, string json)
-        {
-            var p = Players[player];
-            if (p == null) return;
-            var storage = JsonConvert.DeserializeObject<StorageData>(json);
-            UpdateCache(p, storage);
-            await Sql.InsertAsync(tableName, storage);
-        }
-        
-        [ServerEvent("Storage.Save")]
-        private async void OnSaveEvent(int player, string json, bool updateInDb)
-        {
-            Log.Warn("Save: " + json);
-            
-            var storage = JsonConvert.DeserializeObject<StorageData>(json);
+//        public async Task<StorageData> Load(string storageId)
+//        {
+//            if (_storages.ContainsKey(storageId))
+//            {
+//                return _storages[storageId];
+//            }
+//            else
+//            {
+//                var data = await Sql.GetAllAsync<StorageData>(tableName, $"StorageId=\"{storageId}\"");
 
-            Log.Warn("storage: " + storage.StorageId + ", " + string.Join("\n- ", storage.Items.Select(x => x.Name)));
-            
-            if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
-            {
-                Log.Error($"[Storage] Unable to save storage for player: {Players[player].Name}. Json have an invalid format.");
-                return;
-            }
+//                if (!_storages.ContainsKey(storageId))
+//                {
+//                    _storages.Add(storageId, data[0]);
+//                }
+//                else
+//                {
+//                    _storages[storageId] = data[0];
+//                }
 
-            UpdateCache(Players[player], storage);
-            
-            if (updateInDb)
-                await Sql.InsertOrUpdateAsync(tableName, storage);
-            
-            await BaseScript.Delay(0);
-            Event.EmitClients("Storage.Updated", storage.StorageId);
-        }
-        
-        [ServerEvent("Storage.Refresh")]
-        private void OnRefreshEvent(int player, string storageId)
-        {
-            Event.EmitClients("Storage.Refresh", storageId);
-        }
-        
-        [ServerEvent("PlayerDisconnecting")]
-        private async void OnPlayerDisconnectingEvent(int player, string reason) => await SaveData(Players[player]);
+//                return data[0];
+//            }
 
-        #endregion
+//            return null;
+//        }
 
-        #region Rpc
+//        public async Task SaveData(Player player)
+//        {
+//            var license = player.Identifiers["license"];
 
-        private void OnGetRegisteredItemsEvent(RpcMessage message, RpcRequest.RpcCallback callback) => callback(RegisteredItems);
+//            if (_storages.ContainsKey(license))
+//            {
+//                try
+//                {
+//                    var data = _storages[license];
+//                    await Sql.InsertOrUpdateAsync(tableName, data);
+//                    Log.Debug($"[Storage] Saved: {license}.");
+//                }
+//                catch (Exception ex)
+//                {
+//                    Log.Error($"[Storage] Error on saving storage: {license}. Error: {ex.Message}.");
+//                }
+//            }
+//        }
 
-        private async void OnGetInventoryEvent(string license, RpcRequest.RpcCallback callback)
-        {
-            try
-            {
-                var storage = await Load(license);
-                callback(storage);
-            }
-            catch (Exception ex)
-            {
-                var storage = GetCache(license);
-                
-                if (storage != null)
-                {
-                    callback(storage);
-                }
-                else
-                {
-                    Log.Error($"[Storage] Unable to load inventory. This license exist ? [{license}]. Error: {ex.Message}\n{ex.StackTrace}.");
-                }
-            }
-        }
-        
-        private async void OnGetChestEvent(string storageId, RpcRequest.RpcCallback callback)
-        {
-            try
-            {
-                var storage = await Load(storageId);
-                while (storage is null) await BaseScript.Delay(0);
-                callback(storage);
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[Storage] Unable to load chest. This storage id exist ? [{storageId}]. Error: {ex.Message}\n{ex.StackTrace}.");
-            }
-        }
+//        public async Task SaveAll()
+//        {
+//            for (int i = 0; i < _storages.Count; i++)
+//            {
+//                var data = _storages.ElementAt(i);
+//                var cache = GetCache(data.Value.StorageId);
+//                if (cache == null) return;
 
-        private void OnHasFreeSpaceEvent(int targetServerId, RpcRequest.RpcCallback callback)
-        {
-            try
-            {
-                var target = Players[targetServerId];
-                var license = target.Identifiers["license"];
+//                try
+//                {
+//                    await Sql.InsertOrUpdateAsync(tableName, cache);
+//                    Log.Debug($"[Storage] Saved: {data.Key}, {data.Value.StorageId}.");
+//                }
+//                catch (Exception ex)
+//                {
+//                    Log.Error($"[Storage] Error on saving storage: {data.Key}. Error: {ex.Message}.");
+//                }
+//            }
+//        }
 
-                if (target != null)
-                {
-                    var cache = GetCache("player_" + license);
+//        public void UpdateCache(Player player, StorageData data)
+//        {
+//            if (_storages.ContainsKey(data.StorageId))
+//            {
+//                _storages[data.StorageId] = data;
+//            }
+//            else
+//            {
+//                _storages.Add(data.StorageId, data);
+//            }
 
-                    if (cache != null)
-                    {
-                        callback(HasFreeSpace(cache), cache.StorageId);
-                    }
-                    else
-                    {
-                        Log.Error($"[Storage] This cache doesn't exist: [{cache.StorageId}].");
-                    }
-                }
-                else
-                {
-                    Log.Error($"[Storage] This target doesn't exist: [{targetServerId}]");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"[Storage] Unable to call OnHasFreeSpaceEvent. Error: {ex.Message}\n{ex.StackTrace}.");
-            }
-        }
+//            Log.Debug($"[Storage] Cache updated: {data.StorageId}.");
+//        }
 
-        #endregion
-    }
-}
+//        #region Event
+
+//        [ServerEvent("Storage.Remove")]
+//        private async void OnRemoveEvent(int player, string storageId)
+//        {
+//            try
+//            {
+//                await Sql.DeleteAllAsync("storages", $"StorageId=\"{storageId}\"");
+//            }
+//            catch (Exception ex)
+//            {
+//                Log.Error($"$[Storage] Unable to delete storage. Error: {ex.Message}.");
+//            }
+//        }
+
+//        [ServerEvent("Storage.GiveItemToPlayer")]
+//        private void OnGiveItemToPlayerEvent(int player, int targetServerId, string itemJson, int itemCount)
+//        {
+//            Players[targetServerId].TriggerEvent("Storage.GiveItemToPlayer", itemJson, itemCount);
+//        }
+
+//        [ServerEvent("Storage.RemoveItem")]
+//        private void OnRemoveItemEvent(int player, int targetServerId, string itemName, int itemCount)
+//        {
+//            Players[targetServerId].TriggerEvent("Storage.RemoveItem", itemName, itemCount);
+//        }
+
+//        [ServerEvent("Storage.RemoveItemById")]
+//        private void OnRemoveItemByIdEvent(int player, int targetServerId, string itemId, int itemCount)
+//        {
+//            Players[targetServerId].TriggerEvent("Storage.RemoveItemById", itemId, itemCount);
+//        }
+
+//        [ServerEvent("Storage.GiveMoneyToPlayer")]
+//        private void OnGiveMoneyToPlayerEvent(int player, int targetServerId, string amount)
+//        {
+//            Event.EmitClient(Players[targetServerId], "Storage.GiveMoneyToPlayer", amount);
+//        }
+
+//        [ServerEvent("Storage.Create")]
+//        private async void OnCreateEvent(int player, string json)
+//        {
+//            var p = Players[player];
+//            if (p == null) return;
+//            var storage = JsonConvert.DeserializeObject<StorageData>(json);
+//            UpdateCache(p, storage);
+//            await Sql.InsertAsync(tableName, storage);
+//        }
+
+//        [ServerEvent("Storage.Save")]
+//        private async void OnSaveEvent(int player, string json, bool updateInDb)
+//        {
+//            Log.Warn("Save: " + json);
+
+//            var storage = JsonConvert.DeserializeObject<StorageData>(json);
+
+//            Log.Warn("storage: " + storage.StorageId + ", " + string.Join("\n- ", storage.Items.Select(x => x.Name)));
+
+//            if (string.IsNullOrEmpty(json) || string.IsNullOrWhiteSpace(json))
+//            {
+//                Log.Error($"[Storage] Unable to save storage for player: {Players[player].Name}. Json have an invalid format.");
+//                return;
+//            }
+
+//            UpdateCache(Players[player], storage);
+
+//            if (updateInDb)
+//                await Sql.InsertOrUpdateAsync(tableName, storage);
+
+//            await BaseScript.Delay(0);
+//            Event.EmitClients("Storage.Updated", storage.StorageId);
+//        }
+
+//        [ServerEvent("Storage.Refresh")]
+//        private void OnRefreshEvent(int player, string storageId)
+//        {
+//            Event.EmitClients("Storage.Refresh", storageId);
+//        }
+
+//        [ServerEvent("PlayerDisconnecting")]
+//        private async void OnPlayerDisconnectingEvent(int player, string reason) => await SaveData(Players[player]);
+
+//        #endregion
+
+//        #region Rpc
+
+//        private void OnGetRegisteredItemsEvent(RpcMessage message, RpcRequest.RpcCallback callback) => callback(RegisteredItems);
+
+//        private async void OnGetInventoryEvent(string license, RpcRequest.RpcCallback callback)
+//        {
+//            try
+//            {
+//                var storage = await Load(license);
+//                callback(storage);
+//            }
+//            catch (Exception ex)
+//            {
+//                var storage = GetCache(license);
+
+//                if (storage != null)
+//                {
+//                    callback(storage);
+//                }
+//                else
+//                {
+//                    Log.Error($"[Storage] Unable to load inventory. This license exist ? [{license}]. Error: {ex.Message}\n{ex.StackTrace}.");
+//                }
+//            }
+//        }
+
+//        private async void OnGetChestEvent(string storageId, RpcRequest.RpcCallback callback)
+//        {
+//            try
+//            {
+//                var storage = await Load(storageId);
+//                while (storage is null) await BaseScript.Delay(0);
+//                callback(storage);
+//            }
+//            catch (Exception ex)
+//            {
+//                Log.Error($"[Storage] Unable to load chest. This storage id exist ? [{storageId}]. Error: {ex.Message}\n{ex.StackTrace}.");
+//            }
+//        }
+
+//        private void OnHasFreeSpaceEvent(int targetServerId, RpcRequest.RpcCallback callback)
+//        {
+//            try
+//            {
+//                var target = Players[targetServerId];
+//                var license = target.Identifiers["license"];
+
+//                if (target != null)
+//                {
+//                    var cache = GetCache("player_" + license);
+
+//                    if (cache != null)
+//                    {
+//                        callback(HasFreeSpace(cache), cache.StorageId);
+//                    }
+//                    else
+//                    {
+//                        Log.Error($"[Storage] This cache doesn't exist: [{cache.StorageId}].");
+//                    }
+//                }
+//                else
+//                {
+//                    Log.Error($"[Storage] This target doesn't exist: [{targetServerId}]");
+//                }
+//            }
+//            catch (Exception ex)
+//            {
+//                Log.Error($"[Storage] Unable to call OnHasFreeSpaceEvent. Error: {ex.Message}\n{ex.StackTrace}.");
+//            }
+//        }
+
+//        #endregion
+//    }
+//}

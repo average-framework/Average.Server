@@ -1,19 +1,56 @@
 ﻿using CitizenFX.Core.Native;
+using DryIoc;
 using SDK.Server;
 using SDK.Server.Commands;
+using SDK.Server.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using SDK.Server.Diagnostics;
 
 namespace Average.Server.Managers
 {
-    public class CommandManager : InternalPlugin, ICommandManager
+    public class CommandManager : ICommandManager
     {
-        private static List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
+        private readonly IContainer _container;
+        private readonly List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
+        private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
-        internal static void RegisterInternalCommand(ServerCommandAttribute cmdAttr, object classObj, MethodInfo method)
+        public CommandManager(IContainer container)
+        {
+            _container = container;
+
+            Logger.Write("CommandManager", "Initialized successfully");
+        }
+
+        internal void Reflect()
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            var types = asm.GetTypes();
+
+            foreach (var service in types)
+            {
+                if (_container.IsRegistered(service))
+                {
+                    // Continue if the service have the same type of this class
+                    if (service == GetType()) continue;
+
+                    // Get service instance
+                    var _service = _container.GetService(service);
+                    var methods = service.GetMethods(flags);
+
+                    foreach (var method in methods)
+                    {
+                        var cmdAttr = method.GetCustomAttribute<ServerCommandAttribute>();
+                        if (cmdAttr == null) continue;
+
+                        RegisterInternalCommand(cmdAttr, _service, method);
+                    }
+                }
+            }
+        }
+
+        internal void RegisterInternalCommand(ServerCommandAttribute cmdAttr, object classObj, MethodInfo method)
         {
             var methodParams = method.GetParameters();
 
@@ -31,18 +68,18 @@ namespace Average.Server.Managers
                     }
                     catch
                     {
-                        Log.Error($"Unable to convert command arguments.");
+                        Logger.Error($"Unable to convert command arguments.");
                     }
                 }
                 else
                 {
                     var usage = "";
                     methodParams.ToList().ForEach(x => usage += $"<[{x.ParameterType.Name}] {x.Name}> ");
-                    Log.Error($"Invalid command usage: {cmdAttr.Command} {usage}.");
+                    Logger.Error($"Invalid command usage: {cmdAttr.Command} {usage}.");
                 }
             }), false);
-            
-            Log.Debug($"Registering [Command] attribute: {cmdAttr.Command} on method: {method.Name}");
+
+            Logger.Debug($"Registering [Command] attribute: {cmdAttr.Command} on method: {method.Name}");
         }
 
         public IEnumerable<ServerCommandAttribute> GetCommands() => _commands.AsEnumerable();

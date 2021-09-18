@@ -21,7 +21,7 @@ namespace Average.Server.Data
 
         public SQL()
         {
-            var baseConfig = SDK.Server.Configuration.Parse("config.json");
+            var baseConfig = SDK.Server.Configuration.ParseToObj("config.json");
 
             _connectionInfo = new SQLConnection((string) baseConfig["MySQL"]["Host"], (int) baseConfig["MySQL"]["Port"],
                 (string) baseConfig["MySQL"]["Database"], (string) baseConfig["MySQL"]["Username"],
@@ -37,11 +37,11 @@ namespace Average.Server.Data
 
                 IsOpen = true;
 
-                Log.Info($"SQL ready");
+                Logger.Info($"SQL ready");
             }
             catch (MySqlException ex)
             {
-                Log.Error("Unable to initialize mysql connection.");
+                Logger.Error("Unable to initialize mysql connection.");
             }
         }
 
@@ -126,7 +126,7 @@ namespace Average.Server.Data
             }
             catch (Exception ex)
             {
-                Log.Error($"[SQL] Unable to delete this value at {where}. Error: {ex.Message}\n{ex.StackTrace}.");
+                Logger.Error($"[SQL] Unable to delete this value at {where}. Error: {ex.Message}\n{ex.StackTrace}.");
             }
             
             IsWorking = false;
@@ -166,7 +166,7 @@ namespace Average.Server.Data
             }
             catch (Exception ex)
             {
-                Log.Error("[SQL] Unable to insert this value: " + ex.Message);
+                Logger.Error("[SQL] Unable to insert this value: " + ex.Message);
             }
 
             IsWorking = false;
@@ -208,7 +208,7 @@ namespace Average.Server.Data
             }
             catch (Exception ex)
             {
-                Log.Error("[SQL] Unable to insert or update this value: " + ex.Message + ", table: " + table + " value:" + newValue);
+                Logger.Error("[SQL] Unable to insert or update this value: " + ex.Message + ", table: " + table + " value:" + newValue);
             }
 
             IsWorking = false;
@@ -249,7 +249,7 @@ namespace Average.Server.Data
             }
             catch (Exception ex)
             {
-                Log.Error($"[SQL] Unable to update this value at where: {where}. Error: {ex.Message}\n{ex.StackTrace}.");
+                Logger.Error($"[SQL] Unable to update this value at where: {where}. Error: {ex.Message}\n{ex.StackTrace}.");
             }
 
             IsWorking = false;

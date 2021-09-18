@@ -1,0 +1,88 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+      <DebugType>embedded</DebugType>
+      <TargetName>$(AssemblyName).net</TargetName>
+      <DefineConstants>DEBUG;SERVER</DefineConstants>
+      <AssemblyName>average.server.net</AssemblyName>
+      <LangVersion>7.2</LangVersion>
+      <Platforms>AnyCPU;x64;x86</Platforms>
+      <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+      <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+      <EnableNETAnalyzers>true</EnableNETAnalyzers>
+      <BaseOutputPath>C:\Users\beenj\Desktop\DesktopSync\GitLab\RedDeadCfxBase\MyResource\ServerFiles\resources\godcountry</BaseOutputPath>
+      <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+      <GenerateDocumentationFile>False</GenerateDocumentationFile>
+      <SignAssembly>True</SignAssembly>
+      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <ApplicationIcon />
+      <OutputType>Library</OutputType>
+      <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+      <DelaySign>true</DelaySign>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\AverageFrameworkServer\resources\avg\</OutputPath>
+    <DefineConstants>DEBUG;SERVER</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>C:\Users\Bubbl\Documents\GitHub\redmdev\resources\avg</OutputPath>
+    <DefineConstants>TRACE;REDM_RELEASE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>
+    </DocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+      <PackageReference Include="DryIoc" Version="4.8.1" />
+      <PackageReference Include="MemBus" Version="4.0.1" />
+      <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.18" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="3.1.18" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" Version="3.1.18" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.18">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.18" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.18">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+      <PackageReference Include="Microsoft.XmlSerializer.Generator" Version="1.0.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.6" />
+  
+      <Compile Include="../GodCountryShared/**/*.cs" />
+    </ItemGroup>
+ 
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.XmlSerializer.Generator" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Commands\" />
+    <Folder Include="Interfaces\" />
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
