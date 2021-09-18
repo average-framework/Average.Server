@@ -2,7 +2,6 @@
 using DryIoc;
 using SDK.Server;
 using SDK.Server.Diagnostics;
-using SDK.Server.Managers;
 using SDK.Shared;
 using SDK.Shared.Sync;
 using System.Collections.Generic;
@@ -12,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Average.Server.Framework.Managers
 {
-    internal class SyncManager : ISyncManager
+    internal class SyncManager
     {
         private readonly IContainer _container;
         private readonly ThreadManager _thread;

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Average.Server.Framework.Managers
 {
-    public class ThreadManager : IThreadManager
+    public class ThreadManager
     {
         private readonly List<Thread> _threads = new List<Thread>();
 

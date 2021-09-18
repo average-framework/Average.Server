@@ -3,14 +3,13 @@ using CitizenFX.Core.Native;
 using Newtonsoft.Json;
 using SDK.Server.Diagnostics;
 using SDK.Server.Events;
-using SDK.Server.Interfaces;
 using SDK.Shared.Request;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Average.Server.Framework.Managers
 {
-    internal class RequestInternalManager : IRequestInternalManager
+    internal class RequestInternalManager
     {
         private readonly EventManager _event;
 

@@ -1,7 +1,6 @@
 ﻿using DryIoc;
 using SDK.Server.Diagnostics;
 using SDK.Shared;
-using SDK.Shared.Exports;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +9,7 @@ using System.Reflection;
 
 namespace Average.Server.Framework.Managers
 {
-    internal class ExportManager : IExportManager
+    internal class ExportManager
     {
         private readonly IContainer _container;
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;

@@ -2,7 +2,6 @@
 using SDK.Server;
 using SDK.Server.Diagnostics;
 using SDK.Server.Events;
-using SDK.Server.Managers;
 using System;
 using System.Linq;
 using System.Linq.Expressions;
@@ -10,7 +9,7 @@ using System.Reflection;
 
 namespace Average.Server.Framework.Managers
 {
-    internal class EventManager : IEventManager
+    internal class EventManager
     {
         private readonly EventHandlerDictionary _eventHandlers;
 

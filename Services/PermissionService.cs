@@ -1,4 +1,5 @@
-﻿using CitizenFX.Core;
+﻿using Average.Server.Framework.Extensions;
+using CitizenFX.Core;
 using SDK.Server.Diagnostics;
 using SDK.Server.Extensions;
 using SDK.Server.Interfaces;

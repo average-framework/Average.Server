@@ -1,7 +1,6 @@
 ﻿using CitizenFX.Core.Native;
 using DryIoc;
 using SDK.Server;
-using SDK.Server.Commands;
 using SDK.Server.Diagnostics;
 using System;
 using System.Collections.Generic;
@@ -10,7 +9,7 @@ using System.Reflection;
 
 namespace Average.Server.Framework.Managers
 {
-    internal class CommandManager : ICommandManager
+    internal class CommandManager
     {
         private readonly IContainer _container;
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
