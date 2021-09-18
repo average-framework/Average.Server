@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Average.Server.Database
+namespace Average.Server.Framework.Database
 {
     internal abstract class DbCachedRepoBase<TEntity> where TEntity : class, IDbEntity, new()
     {

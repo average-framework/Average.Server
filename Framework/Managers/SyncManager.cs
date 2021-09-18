@@ -10,7 +10,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Average.Server.Managers
+namespace Average.Server.Framework.Managers
 {
     internal class SyncManager : ISyncManager
     {

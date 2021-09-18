@@ -1,4 +1,4 @@
-﻿using Average.Server.Database;
+﻿using Average.Server.Framework.Database;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
 using SDK.Shared.DataModels;

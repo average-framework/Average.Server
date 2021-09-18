@@ -1,7 +1,7 @@
 ﻿using MemBus;
 using System;
 
-namespace Average.Server.Extensions
+namespace Average.Server.Framework.Extensions
 {
     public interface IEvent
     {

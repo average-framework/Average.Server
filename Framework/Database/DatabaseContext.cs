@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using SDK.Shared.DataModels;
 
-namespace Average.Server.Database
+namespace Average.Server.Framework.Database
 {
     public class DatabaseContext : DbContext
     {
@@ -14,6 +14,7 @@ namespace Average.Server.Database
         public DbSet<CharacterData> Characters { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options) => options
+            //.UseSqlServer(_connectionString); // no mssql anymore
             .EnableSensitiveDataLogging()
             .UseMySql(_connectionString);
 

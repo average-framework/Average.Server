@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
-using System;
 
-namespace Average.Server.Database
+namespace Average.Server.Framework.Database
 {
     public class DbContextFactory
     {

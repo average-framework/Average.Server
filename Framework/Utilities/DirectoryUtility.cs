@@ -1,6 +1,6 @@
-﻿namespace Average.Server.Utilities
+﻿namespace Average.Server.Framework.Utilities
 {
-    internal static class Directory
+    internal static class DirectoryUtility
     {
         public static string GetDirectoryName(string dirPath)
         {

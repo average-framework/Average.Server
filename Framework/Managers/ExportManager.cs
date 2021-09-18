@@ -8,7 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Average.Server.Managers
+namespace Average.Server.Framework.Managers
 {
     internal class ExportManager : IExportManager
     {

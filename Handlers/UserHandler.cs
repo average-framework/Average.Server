@@ -1,6 +1,4 @@
 ﻿using Average.Server.Services;
-using SDK.Server;
-using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
 
 namespace Average.Server.Handlers

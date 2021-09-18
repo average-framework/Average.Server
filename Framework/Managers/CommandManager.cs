@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Average.Server.Managers
+namespace Average.Server.Framework.Managers
 {
     internal class CommandManager : ICommandManager
     {

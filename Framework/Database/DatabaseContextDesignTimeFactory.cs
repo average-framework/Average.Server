@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Design;
-using Newtonsoft.Json.Linq;
-using System;
 
-namespace Average.Server.Database
+namespace Average.Server.Framework.Database
 {
     public class DatabaseContextDesignTimeFactory : IDesignTimeDbContextFactory<DatabaseContext>
     {

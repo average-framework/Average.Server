@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SDK.Server.Interfaces;
 using SDK.Shared.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace Average.Server.Database
+namespace Average.Server.Framework.Database
 {
     public abstract class DbRepoBase<TEntity> where TEntity : class, IDbEntity, new()
     {

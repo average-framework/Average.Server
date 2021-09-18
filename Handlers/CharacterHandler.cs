@@ -50,53 +50,5 @@ namespace Average.Server.Handlers
 
             #endregion
         }
-
-        #region Event
-
-        private void OnSetPed(Player player, uint model, int variation) => player.TriggerEvent("character:set_ped", model, variation);
-
-        private async void OnSetMoney(Player player, decimal amount)
-        {
-            var data = await _characterService.Get(player);
-            data.Economy.Money = amount;
-            _characterService.Update(data);
-        }
-
-        private async void OnSetBank(Player player, decimal amount)
-        {
-            var data = await _characterService.Get(player);
-            data.Economy.Bank = amount;
-            _characterService.Update(data);
-        }
-
-        private async void OnAddMoney(Player player, decimal amount)
-        {
-            var data = await _characterService.Get(player);
-            data.Economy.Money += amount;
-            _characterService.Update(data);
-        }
-
-        private async void OnAddBank(Player player, decimal amount)
-        {
-            var data = await _characterService.Get(player);
-            data.Economy.Bank += amount;
-            _characterService.Update(data);
-        }
-
-        private async void OnRemoveMoney(Player player, decimal amount)
-        {
-            var data = await _characterService.Get(player);
-            data.Economy.Money -= amount;
-            _characterService.Update(data);
-        }
-
-        private async void OnRemoveBank(Player player, decimal amount)
-        {
-            var data = await _characterService.Get(player);
-            data.Economy.Bank -= amount;
-            _characterService.Update(data);
-        }
-
-        #endregion
     }
 }

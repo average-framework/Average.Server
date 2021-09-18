@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Average.Server.Managers
+namespace Average.Server.Framework.Managers
 {
     internal class RequestManager : IRequestManager
     {

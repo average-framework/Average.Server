@@ -1,5 +1,6 @@
-﻿using Average.Server.Database;
-using Average.Server.Extensions;
+﻿using Average.Server.Framework.Database;
+using Average.Server.Framework.Extensions;
+using Average.Server.Framework.Managers;
 using Average.Server.Handlers;
 using Average.Server.Managers;
 using Average.Server.Repositories;
@@ -85,7 +86,7 @@ namespace Average.Server
             _container.Register<CharacterHandler>();
 
             // Managers
-            _container.Register<PermissionManager>();
+            _container.Register<PermissionService>();
             _container.Register<EventManager>();
             _container.Register<CommandManager>();
             _container.Register<ThreadManager>();

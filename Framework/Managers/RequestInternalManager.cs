@@ -8,7 +8,7 @@ using SDK.Shared.Request;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Average.Server.Managers
+namespace Average.Server.Framework.Managers
 {
     internal class RequestInternalManager : IRequestInternalManager
     {
