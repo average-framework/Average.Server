@@ -1,6 +1,4 @@
-﻿using Average.Server.Data;
-using Average.Server.Managers;
-using CitizenFX.Core;
+﻿using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using DryIoc;
 using Newtonsoft.Json.Linq;
@@ -14,7 +12,7 @@ namespace Average.Server
 {
     internal class Main : BaseScript
     {
-        internal static SQL sql;
+        //internal static SQL sql;
         internal static RpcRequest rpc;
 
         internal static Action<Func<Task>> attachCallback;

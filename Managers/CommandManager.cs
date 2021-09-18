@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace Average.Server.Managers
 {
-    public class CommandManager : ICommandManager
+    internal class CommandManager : ICommandManager
     {
         private readonly IContainer _container;
         private readonly List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
@@ -83,9 +83,7 @@ namespace Average.Server.Managers
         }
 
         public IEnumerable<ServerCommandAttribute> GetCommands() => _commands.AsEnumerable();
-
         public ServerCommandAttribute GetCommand(string command) => _commands.Find(x => x.Command == command);
-
         public int Count() => _commands.Count();
     }
 }

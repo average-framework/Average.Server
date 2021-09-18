@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
-using System;
 using System.Linq;
 
 namespace Average.Server
@@ -32,8 +31,8 @@ namespace Average.Server
 
             _baseConfig = SDK.Server.Configuration.ParseToObj("config.json");
 
-            Init();
             MigrateDatabase();
+            Init();
         }
 
         private void MigrateDatabase()
@@ -43,7 +42,7 @@ namespace Average.Server
 
             if (pendingMigrations.Count != 0)
             {
-                //context.Database.Migrate();
+                context.Database.Migrate();
                 Logger.Warn($"[Migration] Successfully applied {pendingMigrations.Count} pending migrations.");
             }
             else
@@ -69,7 +68,7 @@ namespace Average.Server
             //_container.RegisterMany(new[] { typeof(Bootstrapper).Assembly }, serviceTypeCondition: t => t == typeof(IService), Reuse.Singleton);
 
             // Repositories
-            _container.Register<UserRepository>();
+            _container.Register<UserRepository>(Reuse.Singleton);
             _container.Register<CharacterRepository>();
 
             // Services
@@ -79,13 +78,14 @@ namespace Average.Server
             // Handlers
             _container.Register<UserHandler>();
             _container.Register<CharacterHandler>();
-
+            //
             // Resolves
             //_container.ResolveMany<IRepository>().ToList();
             //_container.ResolveMany<IService>().ToList();
             //_container.ResolveMany<IHandler>().ToList();
 
             // Managers
+            _container.Register<PermissionManager>();
             _container.Register<CommandManager>();
             //_container.Resolve<CommandManager>();
             //_container.BindSingletonAndInstanciateOnStartup<CommandManager>();

@@ -1,0 +1,104 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+      <TargetFramework>net48</TargetFramework>
+      <DebugType>embedded</DebugType>
+      <TargetName>$(AssemblyName).net</TargetName>
+      <DefineConstants>DEBUG;SERVER</DefineConstants>
+      <AssemblyName>average.server.net</AssemblyName>
+      <LangVersion>7.2</LangVersion>
+      <Platforms>AnyCPU;x64;x86</Platforms>
+      <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+      <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+      <EnableNETAnalyzers>true</EnableNETAnalyzers>
+      <BaseOutputPath>C:\Users\beenj\Desktop\DesktopSync\GitLab\RedDeadCfxBase\MyResource\ServerFiles\resources\godcountry</BaseOutputPath>
+      <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+      <GenerateDocumentationFile>False</GenerateDocumentationFile>
+      <SignAssembly>false</SignAssembly>
+      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <ApplicationIcon />
+      <OutputType>Library</OutputType>
+      <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+      <StartupObject />
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg\</OutputPath>
+      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+      <PlatformTarget>AnyCPU</PlatformTarget>
+      <DebugSymbols>true</DebugSymbols>
+      <Optimize>false</Optimize>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+      <OutputPath>C:\Users\beenj\Desktop\DesktopSync\GitLab\RedDeadRoleplay\ServerFiles\resources\godcountry\</OutputPath>
+      <PlatformTarget>x64</PlatformTarget>
+      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\god\</OutputPath>
+      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+      <Optimize>false</Optimize>
+      <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    </PropertyGroup>
+  
+    <ItemGroup>
+      <PackageReference Include="DryIoc" Version="4.8.1" />
+      <PackageReference Include="MemBus" Version="4.0.1" />
+      <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.18" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="3.1.18" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" Version="3.1.18" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.18">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.18" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.18">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
+      <PackageReference Include="Microsoft.XmlSerializer.Generator" Version="1.0.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.6" />
+  
+      <Compile Include="../GodCountryShared/**/*.cs" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <Compile Remove="Framework\**" />
+      <Compile Remove="Scripts\**" />
+      <EmbeddedResource Remove="Framework\**" />
+      <EmbeddedResource Remove="Scripts\**" />
+      <None Remove="Framework\**" />
+      <None Remove="Scripts\**" />
+    </ItemGroup>
+  
+    <ItemGroup>
+      <Compile Remove="..\GodCountryShared\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <DotNetCliToolReference Include="Microsoft.XmlSerializer.Generator" Version="1.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\SDK.Server\SDK.Server.csproj" />
+      <ProjectReference Include="..\SDK.Shared\SDK.Shared.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Migrations\" />
+    </ItemGroup>
+    <ItemGroup>
+      <Reference Include="CitizenFX.Core">
+        <HintPath>..\..\AverageFrameworkServer\resources\avg\CitizenFX.Core.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+</Project>
+  

@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using SDK.Shared.DataModels;
 
 namespace Average.Server.Database
 {
@@ -8,59 +10,76 @@ namespace Average.Server.Database
 
         public DatabaseContext(string connectionstring) => _connectionString = connectionstring;
 
-        public DatabaseContext()
-        {
-
-        }
-
-        //public DbSet<User> Accounts { get; set; }
-        //public DbSet<Character> Characters { get; set; }
+        public DbSet<UserData> Users { get; set; }
+        public DbSet<CharacterData> Characters { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options) => options
-            //.UseSqlServer(_connectionString); // no mssql anymore
             .EnableSensitiveDataLogging()
             .UseMySql(_connectionString);
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            ////User
+            // User
 
-            //modelBuilder.Entity<User>()
-            // .HasMany(a => a.Characters)
-            // .WithOne(b => b.User)
-            // .HasForeignKey(b => b.UserId)
-            // .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<UserData>()
+               .HasMany(x => x.Characters)
+               .WithOne(x => x.User)
+               .HasForeignKey(x => x.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
 
-            //// Character
-            //modelBuilder.Entity<Character>()
-            //    .HasOne(a => a.BodyAppearance)
-            //    .WithOne(b => b.Character)
-            //    .HasForeignKey<CharacterBodyAppearance>(b => b.CharacterId)
-            //    .OnDelete(DeleteBehavior.Cascade);
+            // Character
 
-            //modelBuilder.Entity<Character>()
-            //    .HasOne(a => a.Skills)
-            //    .WithOne(b => b.Character)
-            //    .HasForeignKey<CharacterSkill>(b => b.CharacterId)
-            //    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<CharacterData>()
+               .HasOne(x => x.Economy)
+               .WithOne(x => x.Character)
+               .HasForeignKey<EconomyData>(x => x.CharacterId)
+               .OnDelete(DeleteBehavior.Cascade);
 
-            //modelBuilder.Entity<Character>()
-            //    .HasOne(a => a.Appearance)
-            //    .WithOne(b => b.Character)
-            //    .HasForeignKey<CharacterAppearance>(b => b.CharacterId)
-            //    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<CharacterData>()
+               .HasOne(x => x.Position)
+               .WithOne(x => x.Character)
+               .HasForeignKey<PositionData>(x => x.CharacterId)
+               .OnDelete(DeleteBehavior.Cascade);
 
-            //modelBuilder.Entity<Character>()
-            //    .HasOne(a => a.CharacterLicenses)
-            //    .WithOne(b => b.Character)
-            //    .HasForeignKey<CharacterLicenses>(c => c.CharacterId)
-            //    .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<CharacterData>()
+               .HasOne(x => x.Core)
+               .WithOne(x => x.Character)
+               .HasForeignKey<CoreData>(x => x.CharacterId)
+               .OnDelete(DeleteBehavior.Cascade);
 
-            //modelBuilder.Entity<Character>()
-            //.HasOne(a => a.Inventory)
-            //.WithOne(b => b.Character)
-            //.HasForeignKey<Inventory>(c => c.CharacterId)
-            //.OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<CharacterData>()
+               .HasOne(x => x.Job)
+               .WithOne(x => x.Character)
+               .HasForeignKey<JobData>(x => x.CharacterId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CharacterData>()
+               .HasOne(x => x.Face)
+               .WithOne(x => x.Character)
+               .HasForeignKey<FaceData>(x => x.CharacterId)
+               .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CharacterData>()
+              .HasOne(x => x.Clothes)
+              .WithOne(x => x.Character)
+              .HasForeignKey<ClothesData>(x => x.CharacterId)
+              .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CharacterData>()
+              .HasOne(x => x.Texture)
+              .WithOne(x => x.Character)
+              .HasForeignKey<TextureData>(x => x.CharacterId)
+              .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CharacterData>()
+              .HasOne(x => x.FaceOverlays)
+              .WithOne(x => x.Character)
+              .HasForeignKey<FaceOverlayData>(x => x.CharacterId)
+              .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CharacterData>()
+              .Property(x => x.Data)
+              .HasConversion(x => JsonConvert.SerializeObject(x), x => JsonConvert.DeserializeObject<KeyValueData>(x));
 
             base.OnModelCreating(modelBuilder);
         }

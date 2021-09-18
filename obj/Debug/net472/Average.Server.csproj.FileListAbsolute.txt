@@ -1,0 +1,4 @@
+C:\Users\bub.bl\Desktop\Average Framework\Average.Server.2\obj\Debug\net472\Average.Server.csproj.AssemblyReference.cache
+C:\Users\bub.bl\Desktop\Average Framework\Average.Server.2\obj\Debug\net472\Average.Server.net.dll.config
+C:\Users\bub.bl\Desktop\Average Framework\Average.Server.2\obj\Debug\net472\Average.Server.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\bub.bl\Desktop\Average Framework\Average.Server.2\obj\Debug\net472\Average.Server.csproj.CoreCompileInputs.cache

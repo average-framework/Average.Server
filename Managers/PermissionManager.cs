@@ -1,28 +1,27 @@
-﻿//using SDK.Server.Diagnostics;
-//using SDK.Server.Interfaces;
-//using System;
+﻿using CitizenFX.Core;
+using DryIoc;
+using SDK.Server.Diagnostics;
+using SDK.Server.Extensions;
+using SDK.Server.Interfaces;
+using System;
 
-//namespace Average.Server.Managers
-//{
-//    public class PermissionManager : InternalPlugin, IPermissionManager
-//    {
-//        public override void OnInitialized()
-//        {
-//            #region Event
+namespace Average.Server.Managers
+{
+    public class PermissionManager : IPermissionManager
+    {
+        public PermissionManager()
+        {
+            Logger.Write("PermissionManager", "Initialized successfully");
+        }
 
-//            Main.eventHandlers["Permission.Set"] += new Action<int, int>(SetPermissionEvent);
+        #region Event
 
-//            #endregion
-//        }
+        public void SetPermission(Player player, int permissionLevel)
+        {
+            player.TriggerEvent("permission:set_permission", permissionLevel);
+            Logger.Info($"Set permission: [{permissionLevel}] to player: {player.License()}");
+        }
 
-//        #region Event
-
-//        private void SetPermissionEvent(int target, int permissionLevel)
-//        {
-//            Players[target].TriggerEvent("Permission.Set", permissionLevel);
-//            Log.Info($"Set permission: [{permissionLevel}] to player: {Players[target].Identifiers["license"]}");
-//        }
-
-//        #endregion
-//    }
-//}
+        #endregion
+    }
+}
