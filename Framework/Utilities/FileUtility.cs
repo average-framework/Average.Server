@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using static CitizenFX.Core.Native.API;
 
-namespace Average.Server.Framework.Extensions
+namespace Average.Server.Framework.Utilities
 {
-    internal static class FileExtensions
+    internal static class FileUtility
     {
         internal static string GetRootDir()
         {

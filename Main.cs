@@ -1,6 +1,7 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Rpc;
+using Average.Server.Framework.Utilities;
 using Average.Shared.Rpc;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
@@ -30,7 +31,7 @@ namespace Average.Server
             Logger.Clear();
             Watermark();
 
-            _baseConfig = FileExtensions.ReadFileFromRootDir("config.json").ToJObject();
+            _baseConfig = FileUtility.ReadFileFromRootDir("config.json").ToJObject();
 
             _isDebugEnabled = (bool)_baseConfig["IsDebugModeEnabled"];
 

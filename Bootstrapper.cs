@@ -3,6 +3,7 @@ using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Managers;
+using Average.Server.Framework.Utilities;
 using Average.Server.Handlers;
 using Average.Server.Managers;
 using Average.Server.Repositories;
@@ -32,7 +33,7 @@ namespace Average.Server
             _eventHandlers = eventHandlers;
             _players = players;
 
-            _baseConfig = FileExtensions.ReadFileFromRootDir("config.json").ToJObject();
+            _baseConfig = FileUtility.ReadFileFromRootDir("config.json").ToJObject();
 
             MigrateDatabase();
             Init();
