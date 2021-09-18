@@ -1,4 +1,5 @@
-﻿using Average.Server.Framework.Interfaces;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Services;
 
 namespace Average.Server.Handlers

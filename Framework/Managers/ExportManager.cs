@@ -1,7 +1,6 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
 using DryIoc;
-using SDK.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;

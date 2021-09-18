@@ -69,11 +69,6 @@ namespace Average.Server
             // Database
             _container.Register<DbContextFactory>(Reuse.Singleton);
 
-            // Registers
-            _container.RegisterMany(new[] { typeof(Bootstrapper).Assembly }, serviceTypeCondition: t => t == typeof(IHandler), Reuse.Singleton);
-            //_container.RegisterMany(new[] { typeof(Bootstrapper).Assembly }, serviceTypeCondition: t => t == typeof(IRepository), Reuse.Singleton);
-            //_container.RegisterMany(new[] { typeof(Bootstrapper).Assembly }, serviceTypeCondition: t => t == typeof(IService), Reuse.Singleton);
-
             // Repositories
             _container.Register<UserRepository>(Reuse.Singleton);
             _container.Register<CharacterRepository>();
