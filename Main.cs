@@ -50,8 +50,11 @@ namespace Average.Server
             Logger.Clear();
             Watermark();
 
+            attachCallback = c => Tick += c;
+            detachCallback = c => Tick -= c;
+
             _container = new Container().With(rules => rules.WithFactorySelector(Rules.SelectLastRegisteredFactory()));
-            _boostrap = new Bootstrapper(_container, EventHandlers, Players);
+            _boostrap = new Bootstrapper(this, _container, EventHandlers, Players);
 
             _baseConfig = SDK.Server.Configuration.ParseToObj("config.json");
 
@@ -60,9 +63,6 @@ namespace Average.Server
             Logger.IsDebug = isDebugEnabled;
 
             rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
-
-            attachCallback = c => Tick += c;
-            detachCallback = c => Tick -= c;
 
             // rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
 

@@ -12,19 +12,23 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
+using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Average.Server
 {
-    public class Bootstrapper
+    internal class Bootstrapper
     {
+        private readonly Main _main;
         private readonly IContainer _container;
         private readonly EventHandlerDictionary _eventHandlers;
         private readonly PlayerList _players;
         private JObject _baseConfig;
 
-        public Bootstrapper(IContainer container, EventHandlerDictionary eventHandlers, PlayerList players)
+        public Bootstrapper(Main main, IContainer container, EventHandlerDictionary eventHandlers, PlayerList players)
         {
+            _main = main;
             _container = container;
             _eventHandlers = eventHandlers;
             _players = players;
@@ -59,6 +63,9 @@ namespace Average.Server
             _container.RegisterInstance(_eventHandlers);
             _container.RegisterInstance(_players);
 
+            _container.RegisterInstance(Main.attachCallback);
+            _container.RegisterInstance(Main.detachCallback);
+
             // Database
             _container.Register<DbContextFactory>(Reuse.Singleton);
 
@@ -86,7 +93,9 @@ namespace Average.Server
 
             // Managers
             _container.Register<PermissionManager>();
+            _container.Register<EventManager>();
             _container.Register<CommandManager>();
+            _container.Register<ThreadManager>();
             //_container.Resolve<CommandManager>();
             //_container.BindSingletonAndInstanciateOnStartup<CommandManager>();
 
@@ -94,6 +103,7 @@ namespace Average.Server
 
             // Reflections
             _container.GetService<CommandManager>().Reflect();
+            _container.GetService<ThreadManager>().Reflect();
         }
     }
 }

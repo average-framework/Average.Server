@@ -1,13 +1,11 @@
 ﻿using CitizenFX.Core;
-using DryIoc;
 using SDK.Server.Diagnostics;
 using SDK.Server.Extensions;
 using SDK.Server.Interfaces;
-using System;
 
 namespace Average.Server.Managers
 {
-    public class PermissionManager : IPermissionManager
+    internal class PermissionManager : IPermissionManager
     {
         public PermissionManager()
         {

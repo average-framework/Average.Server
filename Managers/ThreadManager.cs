@@ -1,105 +1,121 @@
-﻿//using SDK.Shared.Threading;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Reflection;
-//using System.Threading.Tasks;
-//using SDK.Server.Diagnostics;
+﻿using DryIoc;
+using SDK.Server.Diagnostics;
+using SDK.Shared.Threading;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
 
-//namespace Average.Server.Managers
-//{
-//    public class ThreadManager : InternalPlugin, IThreadManager
-//    {
-//        private static readonly List<Thread> _threads = new List<Thread>();
+namespace Average.Server.Managers
+{
+    public class ThreadManager : IThreadManager
+    {
+        private readonly List<Thread> _threads = new List<Thread>();
 
-//        private static Action<Func<Task>> attachCallback;
-//        private static Action<Func<Task>> detachCallback;
+        private readonly IContainer _container;
+        private Action<Func<Task>> _attachCallback;
+        private Action<Func<Task>> _detachCallback;
 
-//        public override void OnInitialized()
-//        {
-//            attachCallback = Main.attachCallback;
-//            detachCallback = Main.detachCallback;
-//        }
+        private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
-//        internal static void RegisterInternalThread(MethodInfo method, ThreadAttribute threadAttr, object classObj)
-//        {
-//            var methodParams = method.GetParameters();
+        public ThreadManager(IContainer container, Action<Func<Task>> attachCallback, Action<Func<Task>> detachCallback)
+        {
+            _container = container;
+            _attachCallback = attachCallback;
+            _detachCallback = detachCallback;
 
-//            if (methodParams.Count() == 0)
-//            {
-//                if (threadAttr != null)
-//                {
-//                    var thread = new Thread(method, threadAttr.StartDelay);
-//                    Func<Task>? func = null;
+            Logger.Write("ThreadManager", "Initialized successfully");
+        }
 
-//                    func = async () =>
-//                    {
-//                        if (thread.StartDelay > -1)
-//                        {
-//                            if (!thread.isStartDelayTriggered)
-//                            {
-//                                thread.isStartDelayTriggered = true;
-//                            }
-//                        }
+        internal void Reflect()
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            var types = asm.GetTypes();
 
-//                        await (Task)method.Invoke(classObj, new object[] { });
+            foreach (var service in types)
+            {
+                if (_container.IsRegistered(service))
+                {
+                    // Continue if the service have the same type of this class
+                    if (service == GetType()) continue;
 
-//                        var currentThreadIndex = _threads.FindIndex(x => x.Func == func);
+                    // Get service instance
+                    var _service = _container.GetService(service);
+                    var methods = service.GetMethods(flags);
 
-//                        if (currentThreadIndex != -1)
-//                        {
-//                            var currentThread = _threads[currentThreadIndex];
+                    foreach (var method in methods)
+                    {
+                        var attr = method.GetCustomAttribute<ThreadAttribute>();
+                        if (attr == null) continue;
 
-//                            if (threadAttr.RepeatCount > 0)
-//                            {
-//                                currentThread.RepeatedCount++;
+                        RegisterInternalThread(attr, _service, method);
+                    }
+                }
+            }
+        }
 
-//                                if (currentThread.RepeatedCount >= threadAttr.RepeatCount)
-//                                {
-//                                    _threads[_threads.FindIndex(x => x.Func == func)].IsRunning = false;
-//                                    _threads[_threads.FindIndex(x => x.Func == func)].IsTerminated = true;
+        internal void RegisterInternalThread(ThreadAttribute threadAttr, object classObj, MethodInfo method)
+        {
+            var methodParams = method.GetParameters();
 
-//                                    detachCallback(func);
-//                                }
-//                            }
-//                        }
-//                    };
+            if (methodParams.Count() == 0)
+            {
+                if (threadAttr != null)
+                {
+                    var thread = new Thread(method, threadAttr.StartDelay);
+                    Func<Task> func = null;
 
-//                    thread.Func = func;
-//                    _threads.Add(thread);
+                    func = async () =>
+                    {
+                        if (thread.StartDelay > -1)
+                        {
+                            if (!thread.isStartDelayTriggered)
+                            {
+                                thread.isStartDelayTriggered = true;
+                            }
+                        }
 
-//                    attachCallback(func);
+                        await (Task)method.Invoke(classObj, new object[] { });
 
-//                    Logger.Debug($"Registering [Thread] attribute to method: {method.Name}.");
-//                }
-//            }
-//            else
-//            {
-//                Logger.Error($"Unable to register [Thread] attribute: {method.Name}, you need to delete parameters: [{string.Join(", ", methodParams.Select(x => x.ParameterType.Name))}]");
-//            }
-//        }
+                        var currentThreadIndex = _threads.FindIndex(x => x.Func == func);
 
-//        public void StartThread(Func<Task> action) => attachCallback(action);
+                        if (currentThreadIndex != -1)
+                        {
+                            var currentThread = _threads[currentThreadIndex];
 
-//        public void StopThread(Func<Task> action) => detachCallback(action);
+                            if (threadAttr.RepeatCount > 0)
+                            {
+                                currentThread.RepeatedCount++;
 
-//        public void UnregisterThread(string methodName)
-//        {
-//            var thread = _threads.Find(x => x.Method.Name == methodName);
+                                if (currentThread.RepeatedCount >= threadAttr.RepeatCount)
+                                {
+                                    _threads[_threads.FindIndex(x => x.Func == func)].IsRunning = false;
+                                    _threads[_threads.FindIndex(x => x.Func == func)].IsTerminated = true;
 
-//            if (thread != null)
-//            {
-//                detachCallback(thread.Func);
-//                _threads.Remove(thread);
+                                    _detachCallback(func);
+                                }
+                            }
+                        }
+                    };
 
-//                Logger.Debug($"Unregistering [Thread] attribute to method: {methodName}.");
-//            }
-//            else
-//            {
-//                Logger.Debug($"Unable to unregistering [Thread] attribute from method: {methodName}.");
-//            }
-//        }
+                    thread.Func = func;
+                    _threads.Add(thread);
 
-//        public IEnumerable<Thread> GetThreads() => _threads.AsEnumerable();
-//    }
-//}
+                    _attachCallback(func);
+
+                    Logger.Debug($"Registering [Thread] to method: {method.Name}.");
+                }
+            }
+            else
+            {
+                Logger.Error($"Unable to register [Thread] to method: {method.Name}, you need to delete parameters: [{string.Join(", ", methodParams.Select(x => x.ParameterType.Name))}]");
+            }
+        }
+
+        public void StartThread(Func<Task> action) => _attachCallback(action);
+        public void StopThread(Func<Task> action) => _detachCallback(action);
+
+        public IEnumerable<Thread> GetThreads() => _threads.AsEnumerable();
+    }
+}
