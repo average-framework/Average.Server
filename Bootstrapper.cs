@@ -12,9 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using SDK.Server.Diagnostics;
 using SDK.Server.Interfaces;
-using System;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Average.Server
 {
@@ -85,25 +83,18 @@ namespace Average.Server
             // Handlers
             _container.Register<UserHandler>();
             _container.Register<CharacterHandler>();
-            //
-            // Resolves
-            //_container.ResolveMany<IRepository>().ToList();
-            //_container.ResolveMany<IService>().ToList();
-            //_container.ResolveMany<IHandler>().ToList();
 
             // Managers
             _container.Register<PermissionManager>();
             _container.Register<EventManager>();
             _container.Register<CommandManager>();
             _container.Register<ThreadManager>();
-            //_container.Resolve<CommandManager>();
-            //_container.BindSingletonAndInstanciateOnStartup<CommandManager>();
-
-            //_container.InstanciateDefinedBindings();
+            _container.Register<ExportManager>();
 
             // Reflections
             _container.GetService<CommandManager>().Reflect();
             _container.GetService<ThreadManager>().Reflect();
+            _container.GetService<ExportManager>().Reflect();
         }
     }
 }

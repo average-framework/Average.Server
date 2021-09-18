@@ -13,8 +13,9 @@ namespace Average.Server.Managers
     internal class CommandManager : ICommandManager
     {
         private readonly IContainer _container;
-        private readonly List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+        private readonly List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
 
         public CommandManager(IContainer container)
         {
@@ -41,10 +42,10 @@ namespace Average.Server.Managers
 
                     foreach (var method in methods)
                     {
-                        var cmdAttr = method.GetCustomAttribute<ServerCommandAttribute>();
-                        if (cmdAttr == null) continue;
+                        var attr = method.GetCustomAttribute<ServerCommandAttribute>();
+                        if (attr == null) continue;
 
-                        RegisterInternalCommand(cmdAttr, _service, method);
+                        RegisterInternalCommand(attr, _service, method);
                     }
                 }
             }
