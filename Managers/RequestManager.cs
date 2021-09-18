@@ -1,46 +1,58 @@
-﻿//using SDK.Server.Interfaces;
-//using SDK.Shared.Request;
-//using System;
-//using System.Collections.Generic;
-//using System.Net;
-//using System.Threading.Tasks;
+﻿using SDK.Server.Diagnostics;
+using SDK.Server.Interfaces;
+using SDK.Shared.Request;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
-//namespace Average.Server.Managers
-//{
-//    public class RequestManager : IRequestManager
-//    {
-//        public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>
-//        {
-//            { "Content-Type", "application/json"}
-//        };
+namespace Average.Server.Managers
+{
+    internal class RequestManager : IRequestManager
+    {
+        private readonly RequestInternalManager _request;
 
-//        public async Task<RequestResponse> Http(string url, string method = "GET", string data = "", Dictionary<string, string> headers = null)
-//        {
-//            headers = (headers == null) ? new Dictionary<string, string>() : headers;
-//            var response = await RequestInternal.Http(url, method, data, headers);
-//            return ParseRequestResponseInternal(response);
-//        }
+        public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>
+        {
+            { "Content-Type", "application/json"}
+        };
 
-//        public WebHeaderCollection ParseHeadersInternal(dynamic headerDyn)
-//        {
-//            var headers = new WebHeaderCollection();
-//            var headerDict = (IDictionary<string, object>)headerDyn;
+        public RequestManager(RequestInternalManager request)
+        {
+            _request = request;
 
-//            foreach (KeyValuePair<string, object> entry in headerDict)
-//                headers.Add(entry.Key, entry.Value.ToString());
+            Logger.Write("RequestManager", "Initialized successfully");
+        }
 
-//            return headers;
-//        }
+        public async Task<RequestResponse> Http(string url, string method = "GET", string data = "", Dictionary<string, string> headers = null)
+        {
+            headers = (headers == null) ? new Dictionary<string, string>() : headers;
+            var response = await _request.Http(url, method, data, headers);
+            return ParseRequestResponseInternal(response);
+        }
 
-//        public HttpStatusCode ParseStatusInternal(int status) => (HttpStatusCode)Enum.ToObject(typeof(HttpStatusCode), status);
+        internal WebHeaderCollection ParseHeadersInternal(dynamic headerDyn)
+        {
+            var headers = new WebHeaderCollection();
+            var headerDict = (IDictionary<string, object>)headerDyn;
 
-//        public RequestResponse ParseRequestResponseInternal(IDictionary<string, dynamic> rr)
-//        {
-//            var result = new RequestResponse();
-//            result.status = ParseStatusInternal(rr["status"]);
-//            result.headers = ParseHeadersInternal(rr["headers"]);
-//            result.content = rr["content"];
-//            return result;
-//        }
-//    }
-//}
+            headerDict.ToList().ForEach(x => headers.Add(x.Key, x.Value.ToString()));
+
+            return headers;
+        }
+
+        internal HttpStatusCode ParseStatusInternal(int status) => (HttpStatusCode)Enum.ToObject(typeof(HttpStatusCode), status);
+
+        internal RequestResponse ParseRequestResponseInternal(IDictionary<string, dynamic> rr)
+        {
+            var result = new RequestResponse();
+
+            result.status = ParseStatusInternal(rr["status"]);
+            result.headers = ParseHeadersInternal(rr["headers"]);
+            result.content = rr["content"];
+
+            return result;
+        }
+    }
+}
