@@ -90,11 +90,13 @@ namespace Average.Server
             _container.Register<CommandManager>();
             _container.Register<ThreadManager>();
             _container.Register<ExportManager>();
+            _container.Register<SyncManager>();
 
             // Reflections
             _container.GetService<CommandManager>().Reflect();
             _container.GetService<ThreadManager>().Reflect();
             _container.GetService<ExportManager>().Reflect();
+            _container.GetService<SyncManager>().Reflect();
         }
     }
 }
