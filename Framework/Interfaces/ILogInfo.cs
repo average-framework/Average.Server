@@ -1,7 +1,7 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using System;
 
-namespace SDK.Shared.Diagnostics
+namespace Average.Server.Framework.Interfaces
 {
     public interface ILogInfo
     {
