@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "duYwtgINZczfGj15u2/nwCIXtvM99NgQ6WIQDTn4JXEWHJQ9XIOaBsfYi/ccMR5Cb04sUqhRoORQv09RGRpZWw==",
+  "dgSpecHash": "h6MSA42uJMcq4ZM9JzAYSstEv6odHGZrWRr2b7g1CoOE7ZpwiMTzVs6Ee5RTW2SqGOHz0QCmz0Wo7MKFQuheBA==",
   "success": true,
   "projectFilePath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
   "expectedPackageFiles": [
@@ -38,7 +38,7 @@
     "C:\\Users\\bub.bl\\.nuget\\packages\\microsoft.xmlserializer.generator\\1.0.0\\microsoft.xmlserializer.generator.1.0.0.nupkg.sha512",
     "C:\\Users\\bub.bl\\.nuget\\packages\\mysqlconnector\\0.69.10\\mysqlconnector.0.69.10.nupkg.sha512",
     "C:\\Users\\bub.bl\\.nuget\\packages\\netstandard.library\\1.6.1\\netstandard.library.1.6.1.nupkg.sha512",
-    "C:\\Users\\bub.bl\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
+    "C:\\Users\\bub.bl\\.nuget\\packages\\newtonsoft.json\\11.0.2\\newtonsoft.json.11.0.2.nupkg.sha512",
     "C:\\Users\\bub.bl\\.nuget\\packages\\pomelo.entityframeworkcore.mysql\\3.2.6\\pomelo.entityframeworkcore.mysql.3.2.6.nupkg.sha512",
     "C:\\Users\\bub.bl\\.nuget\\packages\\pomelo.jsonobject\\2.2.1\\pomelo.jsonobject.2.2.1.nupkg.sha512",
     "C:\\Users\\bub.bl\\.nuget\\packages\\system.appcontext\\4.3.0\\system.appcontext.4.3.0.nupkg.sha512",

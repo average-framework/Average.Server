@@ -82,7 +82,7 @@ namespace Average.Server.Services
         {
             var userData = await _userService.Get(e.Player);
 
-            _clientListService.RemoveAll(e.Player);
+            _clientListService.CleanupDuplicate(e.Player);
             _userService.UpdateConnectionState(userData, false);
             _userService.Update(userData);
         }

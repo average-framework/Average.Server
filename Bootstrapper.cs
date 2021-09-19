@@ -64,8 +64,8 @@ namespace Average.Server
             _container.RegisterInstance(_eventHandlers);
             _container.RegisterInstance(_players);
 
-            _container.RegisterInstance(_main.attachCallback);
-            _container.RegisterInstance(_main.detachCallback);
+            _container.RegisterInstance(_main._attachCallback);
+            _container.RegisterInstance(_main._detachCallback);
 
             // Database
             _container.Register<DbContextFactory>(Reuse.Singleton);
@@ -89,6 +89,7 @@ namespace Average.Server
             _container.Register<CharacterService>();
             _container.Register<ClientListService>();
             _container.Register<UserStateService>();
+            _container.Register<AreaService>();
 
             // Handlers
             _container.Register<UserHandler>();

@@ -1,14 +1,10 @@
 ﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Rpc;
-using Average.Server.Framework.Utilities;
 using Average.Shared.Rpc;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using DryIoc;
-using Newtonsoft.Json.Linq;
 using System;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace Average.Server
@@ -17,8 +13,8 @@ namespace Average.Server
     {
         internal readonly RpcRequest _rpc;
 
-        internal readonly Action<Func<Task>> attachCallback;
-        internal readonly Action<Func<Task>> detachCallback;
+        internal readonly Action<Func<Task>> _attachCallback;
+        internal readonly Action<Func<Task>> _detachCallback;
 
         private readonly IContainer _container;
         private readonly Bootstrapper _boostrap;
@@ -28,8 +24,8 @@ namespace Average.Server
             Logger.Clear();
             Watermark();
 
-            attachCallback = c => Tick += c;
-            detachCallback = c => Tick -= c;
+            _attachCallback = c => Tick += c;
+            _detachCallback = c => Tick -= c;
 
             _rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
 

@@ -1,8 +1,8 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Events;
 using Average.Server.Framework.Interfaces;
+using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
-using Average.Server.Handlers;
 using CitizenFX.Core;
 using System;
 using System.Collections.Generic;
@@ -12,12 +12,16 @@ namespace Average.Server.Services
 {
     internal class ClientListService : IService
     {
-        private int _clientCountIndex;
+        private readonly EventManager _eventManager;
+
+        private int _clientIndexCount;
 
         public List<Client> Clients { get; } = new List<Client>();
 
-        public ClientListService()
+        public ClientListService(EventManager eventManager)
         {
+            _eventManager = eventManager;
+
             Logger.Write("ClientListService", "Initialized successfully");
         }
 
@@ -46,7 +50,8 @@ namespace Average.Server.Services
         {
             OnClientAdded(client);
             Clients.Add(client);
-            _clientCountIndex++;
+
+            _clientIndexCount++;
         }
 
         internal void RemoveClient(Client client)
@@ -55,7 +60,7 @@ namespace Average.Server.Services
             Clients.Remove(client);
         }
 
-        internal void RemoveAll(Player player)
+        internal void CleanupDuplicate(Player player)
         {
             Clients.RemoveAll(x => x.ServerId == int.Parse(player.Handle));
         }
@@ -69,13 +74,16 @@ namespace Average.Server.Services
         private void OnClientAdded(Client client)
         {
             ClientAdded?.Invoke(this, new ClientEventArgs(client));
+            _eventManager.Emit("clients:client_added", new ClientEventArgs(client));
         }
 
         private void OnClientRemoved(Client client)
         {
             ClientRemoved?.Invoke(this, new ClientEventArgs(client));
+            _eventManager.Emit("clients:client_removed", new ClientEventArgs(client));
         }
 
         public int ClientCount => Clients.Count;
+        public int ClientIndexCount => _clientIndexCount;
     }
 }
