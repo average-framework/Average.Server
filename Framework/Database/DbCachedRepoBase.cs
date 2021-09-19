@@ -1,4 +1,4 @@
-﻿using Average.Server.Framework.Interfaces;
+﻿using Average.Shared.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
