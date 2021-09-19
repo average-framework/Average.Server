@@ -41,7 +41,7 @@ namespace Average.Server.Services
 
                 if (userData.IsBanned)
                 {
-                    Logger.Info($"[UserState] Player: {e.Player.Name} is banned.");
+                    Logger.Info($"[Server] Player: {e.Player.Name} is banned.");
 
                     _userService.UpdateConnectionState(userData, false);
                     e.Deferrals.done("Vous êtes bannis du serveur.");
@@ -52,7 +52,7 @@ namespace Average.Server.Services
                 {
                     if (!userData.IsWhitelisted)
                     {
-                        Logger.Info($"[UserState] Player: {e.Player.Name} is not whitelisted.");
+                        Logger.Info($"[Server] Player: {e.Player.Name} is not whitelisted.");
 
                         _userService.UpdateConnectionState(userData, false);
                         e.Deferrals.done("Vous n'êtes pas whitelist.");
