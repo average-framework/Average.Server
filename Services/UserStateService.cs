@@ -5,8 +5,6 @@ using Average.Server.Framework.Events;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
-using CitizenFX.Core;
-using System;
 
 namespace Average.Server.Services
 {
@@ -14,13 +12,11 @@ namespace Average.Server.Services
     {
         private readonly UserService _userService;
         private readonly ClientListService _clientListService;
-        private readonly DiscordService _discordService;
 
-        public UserStateService(UserService userService, ClientListService clientListService, DiscordService discordService)
+        public UserStateService(UserService userService, ClientListService clientListService)
         {
             _userService = userService;
             _clientListService = clientListService;
-            _discordService = discordService;
 
             Logger.Write("UserStateService", "Initialized successfully");
         }

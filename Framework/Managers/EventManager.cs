@@ -1,9 +1,7 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Events;
-using Average.Server.Framework.Extensions;
 using CitizenFX.Core;
-using CitizenFX.Core.Native;
 using DryIoc;
 using System;
 using System.Collections.Generic;
@@ -101,16 +99,10 @@ namespace Average.Server.Framework.Managers
 
         public void Emit(string eventName, params object[] args)
         {
-            //BaseScript.TriggerEvent(eventName, args);
-
             if (_events.ContainsKey(eventName))
             {
                 _events[eventName].ForEach(x => x.DynamicInvoke(args));
             }
-            //else
-            //{
-            //    BaseScript.TriggerEvent(eventName, args);
-            //}
         }
 
         public void EmitClients(string eventName, params object[] args)
@@ -125,8 +117,6 @@ namespace Average.Server.Framework.Managers
 
         public void RegisterEvent(string eventName, Delegate action)
         {
-            //_eventHandlers[eventName] += action;
-
             if (!_events.ContainsKey(eventName))
             {
                 _events.Add(eventName, new List<Delegate> { action });

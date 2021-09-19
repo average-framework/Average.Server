@@ -84,7 +84,6 @@ namespace Average.Server
             _container.Register<CharacterRepository>();
 
             // Services
-            _container.Register<DiscordService>();
             _container.Register<PermissionService>();
             _container.Register<UserService>();
             _container.Register<CharacterService>();
