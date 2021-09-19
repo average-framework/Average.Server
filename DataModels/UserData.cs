@@ -29,15 +29,15 @@ namespace Average.Server.DataModels
         /// <summary>
         /// Ban state of the user
         /// </summary>
-        public int IsBanned { get; set; }
+        public bool IsBanned { get; set; }
         /// <summary>
         /// Whitelist state of the user
         /// </summary>
-        public int IsWhitelisted { get; set; }
+        public bool IsWhitelisted { get; set; }
         /// <summary>
         /// Dertermine if the player is connected
         /// </summary>
-        public int IsConnected { get; set; }
+        public bool IsConnected { get; set; }
 
         [NotMapped]
         public int CharacterCount => Characters.Count;

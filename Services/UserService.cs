@@ -35,9 +35,9 @@ namespace Average.Server.Services
             await _repository.Add(new UserData
             {
                 License = player.License(),
-                IsBanned = 0,
-                IsWhitelisted = 0,
-                IsConnected = 0,
+                IsBanned = false,
+                IsWhitelisted = false,
+                IsConnected = false,
                 CreatedAt = DateTime.Now,
                 LastConnection = DateTime.Now,
                 PermissionLevel = 0
@@ -45,7 +45,7 @@ namespace Average.Server.Services
         }
 
         public void UpdateLastConnectionTime(UserData user) => user.LastConnection = DateTime.Now;
-        public void UpdateConnectionState(UserData user, bool isConnected) => user.IsConnected = isConnected ? 1 : 0;
+        public void UpdateConnectionState(UserData user, bool isConnected) => user.IsConnected = isConnected;
 
         public async Task<DateTime> GetLastConnectionTime(Player player)
         {

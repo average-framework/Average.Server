@@ -45,7 +45,7 @@ namespace Average.Server.Services
                 var userData = await _userService.Get(e.Player);
                 _userService.UpdateLastConnectionTime(userData);
 
-                if (userData.IsBanned == 1)
+                if (userData.IsBanned)
                 {
                     Logger.Info($"[UserState] Player: {e.Player.Name} is banned.");
 
@@ -56,7 +56,7 @@ namespace Average.Server.Services
 
                 if ((bool)Bootstrapper.BaseConfig["UseWhitelistSystem"])
                 {
-                    if (userData.IsWhitelisted == 0)
+                    if (!userData.IsWhitelisted)
                     {
                         Logger.Info($"[UserState] Player: {e.Player.Name} is not whitelisted.");
 
