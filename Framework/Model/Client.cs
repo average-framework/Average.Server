@@ -16,6 +16,7 @@ namespace Average.Server.Framework.Model
         public string License { get => _player.License(); }
         public string Name { get => _player.Name; }
         public StateBag State { get => _player.State; }
+        public bool IsIngame { get; set; }
 
         public Client(Player player)
         {

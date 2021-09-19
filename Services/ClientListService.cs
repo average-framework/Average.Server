@@ -1,8 +1,11 @@
 ﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Events;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
+using Average.Server.Handlers;
 using CitizenFX.Core;
-using System.Collections.ObjectModel;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Average.Server.Services
@@ -11,12 +14,15 @@ namespace Average.Server.Services
     {
         private int _clientCountIndex;
 
-        public ObservableCollection<Client> Clients { get; private set; } = new ObservableCollection<Client>();
+        public List<Client> Clients { get; } = new List<Client>();
 
         public ClientListService()
         {
             Logger.Write("ClientListService", "Initialized successfully");
         }
+
+        public event EventHandler<ClientEventArgs> ClientAdded;
+        public event EventHandler<ClientEventArgs> ClientRemoved;
 
         public Client this[Player player] => Get(player);
         public Client this[int clientIndex] => Get(clientIndex);
@@ -38,31 +44,36 @@ namespace Average.Server.Services
 
         internal void AddClient(Client client)
         {
+            OnClientAdded(client);
             Clients.Add(client);
             _clientCountIndex++;
         }
 
         internal void RemoveClient(Client client)
         {
+            OnClientRemoved(client);
             Clients.Remove(client);
         }
 
         internal void RemoveAll(Player player)
         {
-            var clients = Clients.Where(x => x.ServerId == int.Parse(player.Handle));
-
-            foreach (var client in clients)
-            {
-                Clients.Remove(client);
-            }
+            Clients.RemoveAll(x => x.ServerId == int.Parse(player.Handle));
         }
 
         public void KickAll(string reason = "")
         {
-            foreach (var client in Clients)
-            {
-                client.Kick(reason);
-            }
+            Clients.ForEach(x => x.Kick(reason));
+            Clients.Clear();
+        }
+
+        private void OnClientAdded(Client client)
+        {
+            ClientAdded?.Invoke(this, new ClientEventArgs(client));
+        }
+
+        private void OnClientRemoved(Client client)
+        {
+            ClientRemoved?.Invoke(this, new ClientEventArgs(client));
         }
 
         public int ClientCount => Clients.Count;

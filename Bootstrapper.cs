@@ -47,11 +47,11 @@ namespace Average.Server
             if (pendingMigrations.Count != 0)
             {
                 context.Database.Migrate();
-                Logger.Warn($"[Migration] Successfully applied {pendingMigrations.Count} pending migrations.");
+                Logger.Warn($"[Database] Successfully applied {pendingMigrations.Count} pending migrations.");
             }
             else
             {
-                Logger.Warn("[Migration] No pending database migrations.");
+                Logger.Warn("[Database] No pending database migrations.");
             }
         }
 
@@ -92,7 +92,6 @@ namespace Average.Server
             // Handlers
             _container.Register<UserHandler>();
             _container.Register<CharacterHandler>();
-            _container.Register<ClientListHandler>();
 
             // Reflections
             _container.GetService<CommandManager>().Reflect();
@@ -104,7 +103,9 @@ namespace Average.Server
         internal void Init()
         {
 #if DEBUG
-            Logger.IsDebug = (bool)BaseConfig["IsDebugModeEnabled"];
+            Logger.IsDebug = true;
+#else
+            Logger.IsDebug = false;
 #endif
         }
     }
