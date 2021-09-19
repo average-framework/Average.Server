@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Average.Server.Managers
+namespace Average.Server.Services
 {
     public class CharacterService : IService
     {

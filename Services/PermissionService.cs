@@ -3,7 +3,7 @@ using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using CitizenFX.Core;
 
-namespace Average.Server.Managers
+namespace Average.Server.Services
 {
     internal class PermissionService : IService
     {

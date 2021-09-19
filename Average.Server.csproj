@@ -5,21 +5,23 @@
       <TargetName>$(AssemblyName).net</TargetName>
       <DefineConstants>DEBUG;SERVER</DefineConstants>
       <AssemblyName>average.server.net</AssemblyName>
-      <LangVersion>7.2</LangVersion>
+      <LangVersion>10</LangVersion>
       <Platforms>AnyCPU;x64;x86</Platforms>
       <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
       <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
       <EnableNETAnalyzers>true</EnableNETAnalyzers>
-      <BaseOutputPath>C:\Users\beenj\Desktop\DesktopSync\GitLab\RedDeadCfxBase\MyResource\ServerFiles\resources\godcountry</BaseOutputPath>
+      <BaseOutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg</BaseOutputPath>
       <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
       <GenerateDocumentationFile>False</GenerateDocumentationFile>
-      <SignAssembly>false</SignAssembly>
+      <SignAssembly>True</SignAssembly>
       <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
       <ApplicationIcon />
       <OutputType>Library</OutputType>
       <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
       <StartupObject />
+      <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+      <Company>$(Authors)</Company>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg\</OutputPath>

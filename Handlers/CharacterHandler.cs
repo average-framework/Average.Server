@@ -1,5 +1,5 @@
 ﻿using Average.Server.Framework.Interfaces;
-using Average.Server.Managers;
+using Average.Server.Services;
 using CitizenFX.Core;
 
 namespace Average.Server.Handlers

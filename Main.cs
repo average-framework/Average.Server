@@ -8,6 +8,7 @@ using CitizenFX.Core.Native;
 using DryIoc;
 using Newtonsoft.Json.Linq;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Average.Server
@@ -19,23 +20,15 @@ namespace Average.Server
         internal readonly Action<Func<Task>> attachCallback;
         internal readonly Action<Func<Task>> detachCallback;
 
-        private readonly bool _isDebugEnabled;
-
-        private readonly JObject _baseConfig;
-
         private readonly IContainer _container;
         private readonly Bootstrapper _boostrap;
+
+        internal static JObject BaseConfig = null;
 
         public Main()
         {
             Logger.Clear();
             Watermark();
-
-            _baseConfig = FileUtility.ReadFileFromRootDir("config.json").ToJObject();
-
-            _isDebugEnabled = (bool)_baseConfig["IsDebugModeEnabled"];
-
-            Logger.IsDebug = _isDebugEnabled;
 
             attachCallback = c => Tick += c;
             detachCallback = c => Tick -= c;
