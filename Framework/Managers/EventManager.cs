@@ -155,12 +155,11 @@ namespace Average.Server.Framework.Managers
 
         internal void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic kick, dynamic deferrals)
         {
-            API.CancelEvent();
             PlayerConnecting?.Invoke(this, new PlayerConnectingEventArgs(player, kick, deferrals));
             Emit("PlayerConnecting", new PlayerConnectingEventArgs(player, kick, deferrals));
         }
 
-        internal void OnPlayerDisconnecting(Player player, string reason)
+        internal void OnPlayerDisconnecting([FromSource] Player player, string reason)
         {
             PlayerDisconnecting?.Invoke(this, new PlayerDisconnectingEventArgs(player, reason));
             Emit("PlayerDisconnecting", new PlayerDisconnectingEventArgs(player, reason));

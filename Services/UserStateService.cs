@@ -16,8 +16,6 @@ namespace Average.Server.Services
         private readonly ClientListService _clientListService;
         private readonly DiscordService _discordService;
 
-        private readonly TimeSpan _waitingTime = new TimeSpan(0, 0, 30);
-
         public UserStateService(UserService userService, ClientListService clientListService, DiscordService discordService)
         {
             _userService = userService;
@@ -84,11 +82,11 @@ namespace Average.Server.Services
         }
 
         [ServerEvent(Events.PlayerDisconnected)]
-        internal async void PlayerDisconnecting([FromSource] Player player, string reason)
+        internal async void PlayerDisconnecting(PlayerDisconnectingEventArgs e)
         {
-            var userData = await _userService.Get(player);
+            var userData = await _userService.Get(e.Player);
 
-            _clientListService.RemoveAll(player);
+            _clientListService.RemoveAll(e.Player);
             _userService.UpdateConnectionState(userData, false);
             _userService.Update(userData);
         }
