@@ -13,7 +13,7 @@ namespace Average.Server.DataModels
         /// <summary>
         /// Rockstar license of the player
         /// </summary>
-        public string Licence { get; set; }
+        public string License { get; set; }
         /// <summary>
         /// Creation date time of user account
         /// </summary>

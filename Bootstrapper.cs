@@ -46,6 +46,7 @@ namespace Average.Server
 
             if (pendingMigrations.Count != 0)
             {
+                Logger.Warn("[Database] Appling pending migrations.. this may take a few moments.");
                 context.Database.Migrate();
                 Logger.Warn($"[Database] Successfully applied {pendingMigrations.Count} pending migrations.");
             }
@@ -83,6 +84,7 @@ namespace Average.Server
             _container.Register<CharacterRepository>();
 
             // Services
+            _container.Register<DiscordService>();
             _container.Register<PermissionService>();
             _container.Register<UserService>();
             _container.Register<CharacterService>();
@@ -94,6 +96,7 @@ namespace Average.Server
             _container.Register<CharacterHandler>();
 
             // Reflections
+            _container.GetService<EventManager>().Reflect();
             _container.GetService<CommandManager>().Reflect();
             _container.GetService<ThreadManager>().Reflect();
             _container.GetService<ExportManager>().Reflect();

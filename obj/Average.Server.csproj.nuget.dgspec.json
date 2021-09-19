@@ -44,6 +44,10 @@
         "net48": {
           "targetAlias": "net48",
           "dependencies": {
+            "Discord.Net": {
+              "target": "Package",
+              "version": "[1.0.2, )"
+            },
             "DryIoc": {
               "target": "Package",
               "version": "[4.8.1, )"

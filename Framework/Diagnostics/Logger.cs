@@ -116,7 +116,7 @@ namespace Average.Server.Framework.Diagnostics
             var colorsArray = new List<TextColor>
             {
                 new TextColor(ConsoleColor.Black, ConsoleColor.DarkGray),
-                new TextColor(ConsoleColor.DarkYellow, ConsoleColor.White),
+                new TextColor(ConsoleColor.Blue, ConsoleColor.White),
                 new TextColor(ConsoleColor.Black, ConsoleColor.White),
             };
 

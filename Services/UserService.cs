@@ -24,7 +24,7 @@ namespace Average.Server.Services
 
         public async Task<IEnumerable<UserData>> GetAll() => _repository.GetAll();
         public async Task<UserData> Get(long userId) => _repository.GetAll().FirstOrDefault(x => x.Id == userId);
-        public async Task<UserData> Get(Player player) => _repository.GetAll().FirstOrDefault(x => x.Licence == player.License());
+        public async Task<UserData> Get(Player player) => _repository.GetAll().FirstOrDefault(x => x.License == player.License());
         public async void Update(UserData data) => await _repository.Update(data);
         public async void Delete(UserData data) => await _repository.Delete(data.Id);
         public async Task<bool> Exists(Player player) => await Get(player) != null;
@@ -34,7 +34,7 @@ namespace Average.Server.Services
         {
             await _repository.Add(new UserData
             {
-                Licence = player.License(),
+                License = player.License(),
                 IsBanned = 0,
                 IsWhitelisted = 0,
                 IsConnected = 0,

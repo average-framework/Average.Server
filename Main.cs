@@ -23,8 +23,6 @@ namespace Average.Server
         private readonly IContainer _container;
         private readonly Bootstrapper _boostrap;
 
-        internal static JObject BaseConfig = null;
-
         public Main()
         {
             Logger.Clear();

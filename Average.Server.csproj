@@ -52,6 +52,7 @@
     </PropertyGroup>
   
     <ItemGroup>
+      <PackageReference Include="Discord.Net" Version="1.0.2" />
       <PackageReference Include="DryIoc" Version="4.8.1" />
       <PackageReference Include="MemBus" Version="4.0.1" />
       <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />

@@ -1,6 +1,8 @@
 ﻿using Average.Server.Enums;
 using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Events;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using CitizenFX.Core;
@@ -12,66 +14,69 @@ namespace Average.Server.Services
     {
         private readonly UserService _userService;
         private readonly ClientListService _clientListService;
+        private readonly DiscordService _discordService;
 
         private readonly TimeSpan _waitingTime = new TimeSpan(0, 0, 30);
 
-        public UserStateService(UserService userService, ClientListService clientListService)
+        public UserStateService(UserService userService, ClientListService clientListService, DiscordService discordService)
         {
             _userService = userService;
             _clientListService = clientListService;
+            _discordService = discordService;
 
             Logger.Write("UserStateService", "Initialized successfully");
         }
 
         [ServerEvent(Events.PlayerConnecting)]
-        internal async void PlayerConnecting([FromSource] Player player, string kickReason, dynamic deferrals)
+        internal async void PlayerConnecting(PlayerConnectingEventArgs e)
         {
-            Logger.Info($"[Server] Player connecting: {player.Name}.");
+            Logger.Info($"[Server] Player connecting: {e.Player.Name} [{e.Player.License()}]");
 
-            deferrals.defer();
+            e.Deferrals.defer();
 
-            var userExist = await _userService.Exists(player);
+            var userExist = await _userService.Exists(e.Player);
 
             if (!userExist)
             {
-                _userService.Create(player);
+                _userService.Create(e.Player);
             }
             else
             {
-                var userData = await _userService.Get(player);
+                var userData = await _userService.Get(e.Player);
                 _userService.UpdateLastConnectionTime(userData);
 
                 if (userData.IsBanned == 1)
                 {
-                    deferrals.done("Vous êtes bannis du serveur.");
+                    Logger.Info($"[UserState] Player: {e.Player.Name} is banned.");
 
                     _userService.UpdateConnectionState(userData, false);
-                    Logger.Info($"[UserState] Player: {player.Name} is banned.");
+                    e.Deferrals.done("Vous êtes bannis du serveur.");
                     return;
                 }
 
-                if ((bool)Main.BaseConfig["IsServerWhitelisted"])
+                if ((bool)Bootstrapper.BaseConfig["UseWhitelistSystem"])
                 {
                     if (userData.IsWhitelisted == 0)
                     {
-                        deferrals.done("Vous n'êtes pas whitelist.");
+                        Logger.Info($"[UserState] Player: {e.Player.Name} is not whitelisted.");
 
                         _userService.UpdateConnectionState(userData, false);
-                        Logger.Info($"[UserState] Player: {player.Name} is not whitelisted.");
+                        e.Deferrals.done("Vous n'êtes pas whitelist.");
                     }
                     else
                     {
-                        deferrals.done();
-
-                        _clientListService.AddClient(new Client(player));
+                        _clientListService.AddClient(new Client(e.Player));
                         _userService.UpdateConnectionState(userData, true);
+
+                        e.Deferrals.done();
                     }
                 }
                 else
                 {
-                    deferrals.done();
-                    _clientListService.AddClient(new Client(player));
+                    _clientListService.AddClient(new Client(e.Player));
                     _userService.UpdateConnectionState(userData, true);
+
+                    e.Deferrals.done();
                 }
 
                 _userService.Update(userData);

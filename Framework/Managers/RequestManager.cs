@@ -14,7 +14,7 @@ namespace Average.Server.Framework.Managers
 
         public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>
         {
-            { "Content-Type", "application/json"}
+            { "Content-Type", "application/json" }
         };
 
         public RequestManager(RequestInternalManager request)
