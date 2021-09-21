@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Average.Server.Framework.Events
+namespace Average.Server.Framework.EventsArgs
 {
     public class ServerResourceStopEventArgs : EventArgs
     {

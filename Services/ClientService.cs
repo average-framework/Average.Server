@@ -1,5 +1,6 @@
 ﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Events;
+using Average.Server.Framework.EventsArgs;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
@@ -14,8 +15,6 @@ namespace Average.Server.Services
     {
         private readonly EventManager _eventManager;
 
-        private int _clientIndexCount;
-
         public List<Client> Clients { get; } = new List<Client>();
 
         private PlayerList _players;
@@ -25,23 +24,17 @@ namespace Average.Server.Services
             _eventManager = eventManager;
             _players = players;
 
-            Logger.Write("ClientListService", "Initialized successfully");
+            Logger.Write("ClientService", "Initialized successfully");
         }
 
         public event EventHandler<ClientEventArgs> ClientAdded;
         public event EventHandler<ClientEventArgs> ClientRemoved;
 
         public Client this[Player player] => Get(player);
-        public Client this[int clientIndex] => Get(clientIndex);
 
         internal Client Get(Player player)
         {
-            return Clients.First(x => x.ServerId == int.Parse(player.Handle));
-        }
-
-        internal Client Get(int clientIndex)
-        {
-            return Clients.ElementAt(clientIndex);
+            return Clients.Find(x => x.Player.License() == player.License());
         }
 
         internal bool Exists(Client client)
@@ -53,19 +46,34 @@ namespace Average.Server.Services
         {
             OnClientAdded(client);
             Clients.Add(client);
-
-            _clientIndexCount++;
         }
 
         internal void RemoveClient(Client client)
         {
             OnClientRemoved(client);
-            Clients.Remove(client);
+
+            if(client == null)
+            {
+                Logger.Debug("Client is null");
+                return;
+            }
+
+            Logger.Debug("Remove client info: " + client.Name);
+
+            var c = Clients.Find(x => x.Player == client.Player);
+
+            if(c == null)
+            {
+                Logger.Debug("C == null");
+                return;
+            }
+
+            Clients.Remove(c);
         }
 
         internal void CleanupDuplicate(Player player)
         {
-            Clients.RemoveAll(x => x.ServerId == int.Parse(player.Handle));
+            Clients.RemoveAll(x => x.Player.Handle == player.Handle);
         }
 
         public void KickAll(string reason = "")
@@ -77,16 +85,15 @@ namespace Average.Server.Services
         private void OnClientAdded(Client client)
         {
             ClientAdded?.Invoke(this, new ClientEventArgs(client));
-            _eventManager.EmitLocalServer("client:added", new ClientEventArgs(client));
+            _eventManager.Emit("client:added", new ClientEventArgs(client));
         }
 
         private void OnClientRemoved(Client client)
         {
             ClientRemoved?.Invoke(this, new ClientEventArgs(client));
-            _eventManager.EmitLocalServer("client:removed", new ClientEventArgs(client));
+            _eventManager.Emit("client:removed", new ClientEventArgs(client));
         }
 
         public int ClientCount => Clients.Count;
-        public int ClientIndexCount => _clientIndexCount;
     }
 }

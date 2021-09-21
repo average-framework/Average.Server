@@ -1,10 +1,11 @@
 ﻿using Average.Server.Enums;
 using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Events;
+using Average.Server.Framework.EventsArgs;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
+using CitizenFX.Core;
 
 namespace Average.Server.Services
 {
@@ -24,7 +25,10 @@ namespace Average.Server.Services
         [ServerEvent(Events.PlayerConnecting)]
         internal async void PlayerConnecting(PlayerConnectingEventArgs e)
         {
+            Logger.Debug("Connect 2: " + e.Player.Handle);
             Logger.Info($"[Server] Player connecting: {e.Player.Name} [{e.Player.License()}]");
+
+            //Client client = null;
 
             _clientService.CleanupDuplicate(e.Player);
 
@@ -61,7 +65,8 @@ namespace Average.Server.Services
                     }
                     else
                     {
-                        _clientService.AddClient(new Client(e.Player));
+                        //client = new Client(e.Player);
+                        //_clientService.AddClient(client);
                         _userService.UpdateConnectionState(userData, true);
 
                         e.Deferrals.done();
@@ -69,7 +74,8 @@ namespace Average.Server.Services
                 }
                 else
                 {
-                    _clientService.AddClient(new Client(e.Player));
+                    //client = new Client(e.Player);
+                    //_clientService.AddClient(client);
                     _userService.UpdateConnectionState(userData, true);
 
                     e.Deferrals.done();
@@ -77,13 +83,41 @@ namespace Average.Server.Services
 
                 _userService.Update(userData);
             }
+
+            //if(client != null)
+            //{
+            //    var lastHandle = e.Player.Handle;
+
+            //    while (true)
+            //    {
+            //        var player = new PlayerList()[e.Player.Name];
+
+            //        if (player != null)
+            //        {
+            //            if (lastHandle != player.Handle)
+            //            {
+            //                // The player server id has changed, need to set the new 
+            //                client.SetServerId(int.Parse(player.Handle));
+            //                Logger.Debug($"Reset client server id from {lastHandle} to {player.Handle}");
+            //                lastHandle = player.Handle;
+            //                break;
+            //            }
+
+            //            await BaseScript.Delay(250);
+            //        }
+            //    }
+            //}
         }
 
-        [ServerEvent(Events.PlayerDisconnected)]
+        [ServerEvent(Events.PlayerDisconnecting)]
         internal async void PlayerDisconnecting(PlayerDisconnectingEventArgs e)
         {
-            var userData = await _userService.Get(e.Player);
+            Logger.Debug("Disconnected 1: " + e.Player.Handle);
 
+            var userData = await _userService.Get(e.Player);
+            var client = _clientService.Get(e.Player);
+
+            _clientService.RemoveClient(client);
             _clientService.CleanupDuplicate(e.Player);
             _userService.UpdateConnectionState(userData, false);
             _userService.Update(userData);

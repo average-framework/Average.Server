@@ -1,4 +1,5 @@
-﻿using Average.Server.Framework.Extensions;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
 using CitizenFX.Core;
 using System;
 
@@ -8,10 +9,9 @@ namespace Average.Server.Framework.Model
     {
         public Player Player { get; }
         public DateTime CreatedAt { get; }
-        public int ServerId { get => int.Parse(Player.Handle); }
         public string License { get => Player.License(); }
         public string Name { get => Player.Name; }
-        public bool IsInitialized { get; set; }
+        public int ServerId { get => int.Parse(Player.Handle); }
 
         public Client(Player player)
         {

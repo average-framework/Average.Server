@@ -3,7 +3,7 @@
     internal static class Events
     {
         internal const string PlayerConnecting = "PlayerConnecting";
-        internal const string PlayerDisconnected = "PlayerDisconnected";
+        internal const string PlayerDisconnecting = "PlayerDisconnecting";
         internal const string ResourceStop = "ResourceStop";
         internal const string ResourceStart = "ResourceStart";
         internal const string ResourceListRefresh = "ResourceListRefresh";

@@ -1,5 +1,6 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Rpc;
+using Average.Server.Services;
 using Average.Shared.Rpc;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
@@ -24,13 +25,6 @@ namespace Average.Server
         {
             Logger.Clear();
             Watermark();
-
-            Logger.Error("players: " + Players.ToList().Count());
-
-            foreach(var player in Players)
-            {
-                Logger.Error("player: " + player.Name);
-            }
 
             _attachCallback = c => Tick += c;
             _detachCallback = c => Tick -= c;
