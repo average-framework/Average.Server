@@ -14,13 +14,26 @@ namespace Average.Server.Framework.Managers
         private readonly IContainer _container;
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
-        private readonly List<ServerCommandAttribute> _commands = new List<ServerCommandAttribute>();
+        private readonly List<ServerCommandAttribute> _serverCommands = new List<ServerCommandAttribute>();
+        private readonly List<Command> _clientCommands = new List<Command>();
+
+        internal class Command
+        {
+            public ClientCommandAttribute Attribute { get; }
+            public ClientCommandAliasAttribute Alias { get; }
+
+            public Command(ClientCommandAttribute attribute, ClientCommandAliasAttribute alias)
+            {
+                Attribute = attribute;
+                Alias = alias;
+            }
+        }
 
         public CommandManager(IContainer container)
         {
             _container = container;
 
-            Logger.Write("CommandManager", "Initialized successfully");
+            Logger.Write("ServerCommandManager", "Initialized successfully");
         }
 
         internal void Reflect()
@@ -28,29 +41,53 @@ namespace Average.Server.Framework.Managers
             var asm = Assembly.GetExecutingAssembly();
             var types = asm.GetTypes();
 
-            foreach (var service in types)
+            // Register server commands
+            foreach (var serviceType in types)
             {
-                if (_container.IsRegistered(service))
+                if (_container.IsRegistered(serviceType))
                 {
                     // Continue if the service have the same type of this class
-                    if (service == GetType()) continue;
+                    if (serviceType == GetType()) continue;
 
                     // Get service instance
-                    var _service = _container.GetService(service);
-                    var methods = service.GetMethods(flags);
+                    var service = _container.GetService(serviceType);
+                    var methods = serviceType.GetMethods(flags);
 
                     foreach (var method in methods)
                     {
                         var attr = method.GetCustomAttribute<ServerCommandAttribute>();
                         if (attr == null) continue;
 
-                        RegisterInternalCommand(attr, _service, method);
+                        RegisterInternalServerCommand(attr, service, method);
+                    }
+                }
+            }
+
+            // Register client commands
+            foreach (var serviceType in types)
+            {
+                if (_container.IsRegistered(serviceType))
+                {
+                    // Continue if the service have the same type of this class
+                    if (serviceType == GetType()) continue;
+
+                    // Get service instance
+                    var service = _container.GetService(serviceType);
+                    var methods = serviceType.GetMethods(flags);
+
+                    foreach (var method in methods)
+                    {
+                        var attr = method.GetCustomAttribute<ClientCommandAttribute>();
+                        if (attr == null) continue;
+                        var alisAttr = method.GetCustomAttribute<ClientCommandAliasAttribute>();
+
+                        RegisterInternalClientCommand(attr, alisAttr, service, method);
                     }
                 }
             }
         }
 
-        internal void RegisterInternalCommand(ServerCommandAttribute cmdAttr, object classObj, MethodInfo method)
+        internal void RegisterInternalServerCommand(ServerCommandAttribute cmdAttr, object classObj, MethodInfo method)
         {
             var methodParams = method.GetParameters();
 
@@ -64,26 +101,34 @@ namespace Average.Server.Framework.Managers
                     {
                         args.ForEach(x => newArgs.Add(Convert.ChangeType(x, methodParams[args.FindIndex(p => p == x)].ParameterType)));
                         method.Invoke(classObj, newArgs.ToArray());
-                        _commands.Add(cmdAttr);
+                        _serverCommands.Add(cmdAttr);
                     }
                     catch
                     {
-                        Logger.Error($"Unable to convert command arguments.");
+                        Logger.Error($"Unable to convert server command arguments.");
                     }
                 }
                 else
                 {
                     var usage = "";
                     methodParams.ToList().ForEach(x => usage += $"<[{x.ParameterType.Name}] {x.Name}> ");
-                    Logger.Error($"Invalid command usage: {cmdAttr.Command} {usage}.");
+                    Logger.Error($"Invalid server command usage: {cmdAttr.Command} {usage}.");
                 }
             }), false);
 
-            Logger.Debug($"Registering [Command] attribute: {cmdAttr.Command} on method: {method.Name}");
+            Logger.Debug($"Registering [ServerCommand]: {cmdAttr.Command} on method: {method.Name}");
         }
 
-        public IEnumerable<ServerCommandAttribute> GetCommands() => _commands.AsEnumerable();
-        public ServerCommandAttribute GetCommand(string command) => _commands.Find(x => x.Command == command);
-        public int Count() => _commands.Count();
+        internal void RegisterInternalClientCommand(ClientCommandAttribute commandAttr, ClientCommandAliasAttribute aliasAttr, object classObj, MethodInfo method)
+        {
+            _clientCommands.Add(new Command(commandAttr, aliasAttr));
+
+            Logger.Debug($"Registering [Command]: {commandAttr.Command} on method: {method.Name} with alias: {(aliasAttr != null ? $"[{string.Join(", ", aliasAttr.Alias)}]" : "empty")}");
+        }
+
+        public IEnumerable<ServerCommandAttribute> GetServerCommands() => _serverCommands.AsEnumerable();
+        public ServerCommandAttribute GetServerCommand(string command) => _serverCommands.Find(x => x.Command == command);
+        public IEnumerable<Command> GetCommands() => _clientCommands.AsEnumerable();
+        public Command GetCommand(string command) => _clientCommands.Find(x => x.Attribute.Command == command);
     }
 }

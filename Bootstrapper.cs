@@ -1,4 +1,5 @@
-﻿using Average.Server.Framework.Database;
+﻿using Average.Server.Framework.Commands;
+using Average.Server.Framework.Database;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Managers;
@@ -62,15 +63,16 @@ namespace Average.Server
 
             // Others
             _container.RegisterInstance(_eventHandlers);
-            _container.RegisterInstance(_players);
+            _container.RegisterInstance(new PlayerList());
 
             _container.RegisterInstance(_main._attachCallback);
             _container.RegisterInstance(_main._detachCallback);
 
             // Database
-            _container.Register<DbContextFactory>(Reuse.Singleton);
+            _container.Register<DbContextFactory>();
 
             // Managers
+            _container.Register<PermissionManager>();
             _container.Register<EventManager>();
             _container.Register<CommandManager>();
             _container.Register<ThreadManager>();
@@ -80,27 +82,31 @@ namespace Average.Server
             _container.Register<RequestManager>();
 
             // Repositories
-            _container.Register<UserRepository>(Reuse.Singleton);
+            _container.Register<UserRepository>();
             _container.Register<CharacterRepository>();
 
             // Services
-            _container.Register<PermissionService>();
             _container.Register<UserService>();
             _container.Register<CharacterService>();
-            _container.Register<ClientListService>();
+            _container.Register<ClientService>();
             _container.Register<UserStateService>();
             _container.Register<AreaService>();
 
             // Handlers
+            _container.Register<CommandHandler>();
             _container.Register<UserHandler>();
             _container.Register<CharacterHandler>();
+            _container.Register<ClientHandler>();
+
+            // Commands
+            _container.Register<CharacterCommand>();
 
             // Reflections
-            _container.GetService<EventManager>().Reflect();
-            _container.GetService<CommandManager>().Reflect();
             _container.GetService<ThreadManager>().Reflect();
             _container.GetService<ExportManager>().Reflect();
             _container.GetService<SyncManager>().Reflect();
+            _container.GetService<EventManager>().Reflect();
+            _container.GetService<CommandManager>().Reflect();
         }
 
         internal void Init()

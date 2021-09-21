@@ -11,6 +11,7 @@ namespace Average.Server.Framework.Model
         public int ServerId { get => int.Parse(Player.Handle); }
         public string License { get => Player.License(); }
         public string Name { get => Player.Name; }
+        public bool IsInitialized { get; set; }
 
         public Client(Player player)
         {
@@ -21,16 +22,6 @@ namespace Average.Server.Framework.Model
         public void Kick(string reason)
         {
             Player.Drop(reason);
-        }
-
-        public void Emit(string eventName, params object[] args)
-        {
-            Player.TriggerEvent(eventName, args);
-        }
-
-        public void EmitLatent(string eventName, int bytesPerSecond, params object[] args)
-        {
-            Player.TriggerLatentEvent(eventName, bytesPerSecond, args);
         }
     }
 }

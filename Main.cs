@@ -5,6 +5,7 @@ using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using DryIoc;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Average.Server
@@ -23,6 +24,13 @@ namespace Average.Server
         {
             Logger.Clear();
             Watermark();
+
+            Logger.Error("players: " + Players.ToList().Count());
+
+            foreach(var player in Players)
+            {
+                Logger.Error("player: " + player.Name);
+            }
 
             _attachCallback = c => Tick += c;
             _detachCallback = c => Tick -= c;

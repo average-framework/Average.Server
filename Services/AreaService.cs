@@ -46,7 +46,8 @@ namespace Average.Server.Services
             var blips = _blipAreas.ToJson();
             var interactions = _interactionAreas.ToJson();
             var npcs = _npcAreas.ToJson();
-            _eventManager.EmitClient(client.Player, "area:create_area", blips, interactions, npcs);
+
+            _eventManager.EmitClient(client, "area:create_area", blips, interactions, npcs);
         }
     }
 }

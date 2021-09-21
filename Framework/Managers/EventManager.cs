@@ -1,6 +1,9 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Events;
+using Average.Server.Framework.Model;
+using Average.Server.Services;
+using Average.Shared.Attributes;
 using CitizenFX.Core;
 using DryIoc;
 using System;
@@ -17,7 +20,8 @@ namespace Average.Server.Framework.Managers
         private readonly EventHandlerDictionary _eventHandlers;
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
-        private readonly Dictionary<string, List<Delegate>> _events = new Dictionary<string, List<Delegate>>();
+        private readonly Dictionary<string, List<Delegate>> _serverEvents = new Dictionary<string, List<Delegate>>();
+        private readonly Dictionary<string, List<Delegate>> _clientEvents = new Dictionary<string, List<Delegate>>();
 
         public EventManager(IContainer container, EventHandlerDictionary eventHandlers)
         {
@@ -28,6 +32,7 @@ namespace Average.Server.Framework.Managers
 
             // Internal events
             _eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);
+            _eventHandlers["client-event:triggered"] += new Action<Player, string, List<object>>(OnTriggerEvent);
 
             // Custom events
             _eventHandlers["playerConnecting"] += new Action<Player, string, dynamic, dynamic>(OnPlayerConnecting);
@@ -47,10 +52,8 @@ namespace Average.Server.Framework.Managers
 
             #endregion
 
-            Logger.Write("EventManager", "Initialized successfully");
+            Logger.Write("ServerEventManager", "Initialized successfully");
         }
-
-        #region Event Handlers
 
         public event EventHandler<PlayerConnectingEventArgs> PlayerConnecting;
         public event EventHandler<PlayerDisconnectingEventArgs> PlayerDisconnecting;
@@ -68,13 +71,12 @@ namespace Average.Server.Framework.Managers
         public event EventHandler<PlayerLeftScopeEventArgs> PlayerLeftScope;
         public event EventHandler<HttpResponseEventArgs> HttpResponse;
 
-        #endregion
-
         internal void Reflect()
         {
             var asm = Assembly.GetExecutingAssembly();
             var types = asm.GetTypes();
 
+            // Register server events
             foreach (var service in types)
             {
                 if (_container.IsRegistered(service))
@@ -91,18 +93,53 @@ namespace Average.Server.Framework.Managers
                         var attr = method.GetCustomAttribute<ServerEventAttribute>();
                         if (attr == null) continue;
 
-                        RegisterInternalEvent(attr, _service, method);
+                        RegisterInternalServerEvent(attr, _service, method);
+                    }
+                }
+            }
+
+            // Register client events
+            foreach (var service in types)
+            {
+                if (_container.IsRegistered(service))
+                {
+                    // Continue if the service have the same type of this class
+                    if (service == GetType()) continue;
+
+                    // Get service instance
+                    var _service = _container.GetService(service);
+                    var methods = service.GetMethods(flags);
+
+                    foreach (var method in methods)
+                    {
+                        var attr = method.GetCustomAttribute<ClientEventAttribute>();
+                        if (attr == null) continue;
+
+                        RegisterInternalClientEvent(attr, _service, method);
                     }
                 }
             }
         }
 
-        public void Emit(string eventName, params object[] args)
+        public void EmitLocalServer(string eventName, params object[] args)
         {
-            if (_events.ContainsKey(eventName))
+            if (_serverEvents.ContainsKey(eventName))
             {
-                _events[eventName].ForEach(x => x.DynamicInvoke(args));
+                _serverEvents[eventName].ForEach(x => x.DynamicInvoke(args));
             }
+        }
+
+        internal void EmitLocalClient(string eventName, params object[] args)
+        {
+            if (_clientEvents.ContainsKey(eventName))
+            {
+                _clientEvents[eventName].ForEach(x => x.DynamicInvoke(args));
+            }
+        }
+
+        public void EmitClient(Client client, string eventName, params object[] args)
+        {
+            client.Player.TriggerEvent("server-event:triggered", eventName, args);
         }
 
         public void EmitClients(string eventName, params object[] args)
@@ -110,127 +147,172 @@ namespace Average.Server.Framework.Managers
             BaseScript.TriggerClientEvent(eventName, args);
         }
 
-        public void EmitClient(Player player, string eventName, params object[] args)
+        public void RegisterServerEvent(string eventName, Delegate action)
         {
-            player.TriggerEvent(eventName, args);
-        }
-
-        public void RegisterEvent(string eventName, Delegate action)
-        {
-            if (!_events.ContainsKey(eventName))
+            if (!_serverEvents.ContainsKey(eventName))
             {
-                _events.Add(eventName, new List<Delegate> { action });
+                _serverEvents.Add(eventName, new List<Delegate> { action });
             }
             else
             {
-                _events[eventName].Add(action);
+                _serverEvents[eventName].Add(action);
             }
 
             Logger.Debug($"Registering [ServerEvent]: {eventName} on method: {action.Method.Name}.");
         }
 
-        public void UnregisterEvent(string eventName, Delegate action)
+        public void RegisterClientEvent(string eventName, Delegate action)
         {
-            _eventHandlers[eventName] -= action;
+            if (!_clientEvents.ContainsKey(eventName))
+            {
+                _clientEvents.Add(eventName, new List<Delegate> { action });
+            }
+            else
+            {
+                _clientEvents[eventName].Add(action);
+            }
 
-            Logger.Debug($"Unregistering [ServerEvent]: {eventName} on method: {action.Method.Name}.");
+            Logger.Debug($"Registering [ClientEvent]: {eventName} on method: {action.Method.Name}.");
         }
 
-        internal void RegisterInternalEvent(ServerEventAttribute eventAttr, object classObj, MethodInfo method)
+        public void UnregisterServerEvent(string eventName)
         {
-            RegisterEvent(eventAttr.Event, Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method));
+            if (_serverEvents.ContainsKey(eventName))
+            {
+                _serverEvents.Remove(eventName);
+
+                Logger.Debug($"Removing [ServerEvent]: {eventName}");
+            }
+            else
+            {
+                Logger.Debug($"Unable to remove [ServerEvent]: {eventName}");
+            }
         }
 
-        #region Internal Events
+        public void UnregisterClientEvent(string eventName)
+        {
+            if (_clientEvents.ContainsKey(eventName))
+            {
+                _clientEvents.Remove(eventName);
+
+                Logger.Debug($"Removing [ClientEvent]: {eventName}");
+            }
+            else
+            {
+                Logger.Debug($"Unable to remove [ClientEvent]: {eventName}");
+            }
+        }
+
+        internal void RegisterInternalServerEvent(ServerEventAttribute eventAttr, object classObj, MethodInfo method)
+        {
+            RegisterServerEvent(eventAttr.Event, Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method));
+        }
+
+        internal void RegisterInternalClientEvent(ClientEventAttribute eventAttr, object classObj, MethodInfo method)
+        {
+            RegisterClientEvent(eventAttr.Event, Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method));
+        }
+
+        private void OnTriggerEvent([FromSource] Player player, string eventName, List<object> args)
+        {
+            Logger.Debug("Receive event from client: " + player.Name + ", " + eventName);
+
+            var client = _container.Resolve<ClientService>().Get(player);
+            var newArgs = new List<object> { client };
+            args.ForEach(x => newArgs.Add(x));
+            EmitLocalClient(eventName, newArgs.ToArray());
+        }
+
+        #region Internal Server Events
 
         internal void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic kick, dynamic deferrals)
         {
             PlayerConnecting?.Invoke(this, new PlayerConnectingEventArgs(player, kick, deferrals));
-            Emit("PlayerConnecting", new PlayerConnectingEventArgs(player, kick, deferrals));
+            EmitLocalServer("PlayerConnecting", new PlayerConnectingEventArgs(player, kick, deferrals));
         }
 
         internal void OnPlayerDisconnecting([FromSource] Player player, string reason)
         {
             PlayerDisconnecting?.Invoke(this, new PlayerDisconnectingEventArgs(player, reason));
-            Emit("PlayerDisconnecting", new PlayerDisconnectingEventArgs(player, reason));
+            EmitLocalServer("PlayerDisconnecting", new PlayerDisconnectingEventArgs(player, reason));
         }
 
         internal void OnResourceStop(string resource)
         {
             ResourceStop?.Invoke(this, new ResourceStopEventArgs(resource));
-            Emit("ResourceStop", new ResourceStopEventArgs(resource));
+            EmitLocalServer("ResourceStop", new ResourceStopEventArgs(resource));
         }
 
         internal void OnResourceStart(string resource)
         {
             ResourceStart?.Invoke(this, new ResourceStartEventArgs(resource));
-            Emit("ResourceStart", new ResourceStartEventArgs(resource));
+            EmitLocalServer("ResourceStart", new ResourceStartEventArgs(resource));
         }
 
         internal void OnResourceListRefresh()
         {
             ResourceListRefresh?.Invoke(this, new EventArgs());
-            Emit("ResourceListRefresh");
+            EmitLocalServer("ResourceListRefresh");
         }
 
         internal void OnResourceStarting(string resource)
         {
             ResourceStarting?.Invoke(this, new ResourceStartingEventArgs(resource));
-            Emit("ResourceStarting", new ResourceStartingEventArgs(resource));
+            EmitLocalServer("ResourceStarting", new ResourceStartingEventArgs(resource));
         }
 
         internal void OnServerResourceStart(string resource)
         {
             ServerResourceStart?.Invoke(this, new ServerResourceStartEventArgs(resource));
-            Emit("ServerResourceStart", new ServerResourceStartEventArgs(resource));
+            EmitLocalServer("ServerResourceStart", new ServerResourceStartEventArgs(resource));
         }
 
         internal void OnServerResourceStop(string resource)
         {
             ServerResourceStop?.Invoke(this, new ServerResourceStopEventArgs(resource));
-            Emit("ServerResourceStop", new ServerResourceStopEventArgs(resource));
+            EmitLocalServer("ServerResourceStop", new ServerResourceStopEventArgs(resource));
         }
 
         internal void OnPlayerJoining(string source, string oldId)
         {
             PlayerJoining?.Invoke(this, new PlayerJoiningEventArgs(source, oldId));
-            Emit("PlayerJoining", new PlayerJoiningEventArgs(source, oldId));
+            EmitLocalServer("PlayerJoining", new PlayerJoiningEventArgs(source, oldId));
         }
 
         internal void OnEntityCreated(int handle)
         {
             EntityCreated?.Invoke(this, new EntityCreatedEventArgs(handle));
-            Emit("EntityCreated", new EntityCreatedEventArgs(handle));
+            EmitLocalServer("EntityCreated", new EntityCreatedEventArgs(handle));
         }
 
         internal void OnEntityCreating(int handle)
         {
             EntityCreating?.Invoke(this, new EntityCreatingEventArgs(handle));
-            Emit("EntityCreating", new EntityCreatingEventArgs(handle));
+            EmitLocalServer("EntityCreating", new EntityCreatingEventArgs(handle));
         }
 
         internal void OnEntityRemoved(int handle)
         {
             EntityRemoved?.Invoke(this, new EntityRemovedEventArgs(handle));
-            Emit("EntityRemoved", new EntityRemovedEventArgs(handle));
+            EmitLocalServer("EntityRemoved", new EntityRemovedEventArgs(handle));
         }
 
         internal void OnPlayerEnteredScope(object data)
         {
             PlayerEnteredScope?.Invoke(this, new PlayerEnteredScopeEventArgs(data));
-            Emit("PlayerEnteredScope", new PlayerEnteredScopeEventArgs(data));
+            EmitLocalServer("PlayerEnteredScope", new PlayerEnteredScopeEventArgs(data));
         }
 
         internal void OnPlayerLeftScope(object data)
         {
             PlayerLeftScope?.Invoke(this, new PlayerLeftScopeEventArgs(data));
-            Emit("PlayerLeftScope", new PlayerLeftScopeEventArgs(data));
+            EmitLocalServer("PlayerLeftScope", new PlayerLeftScopeEventArgs(data));
         }
 
         internal void OnHttpResponse(int token, int status, string text, dynamic header)
         {
             HttpResponse?.Invoke(this, new HttpResponseEventArgs(token, status, text, header));
-            Emit("HttpResponse", new HttpResponseEventArgs(token, status, text, header));
+            EmitLocalServer("HttpResponse", new HttpResponseEventArgs(token, status, text, header));
         }
 
         #endregion

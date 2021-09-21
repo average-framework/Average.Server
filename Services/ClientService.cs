@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Average.Server.Services
 {
-    internal class ClientListService : IService
+    internal class ClientService : IService
     {
         private readonly EventManager _eventManager;
 
@@ -18,9 +18,12 @@ namespace Average.Server.Services
 
         public List<Client> Clients { get; } = new List<Client>();
 
-        public ClientListService(EventManager eventManager)
+        private PlayerList _players;
+
+        public ClientService(EventManager eventManager, PlayerList players)
         {
             _eventManager = eventManager;
+            _players = players;
 
             Logger.Write("ClientListService", "Initialized successfully");
         }
@@ -33,7 +36,7 @@ namespace Average.Server.Services
 
         internal Client Get(Player player)
         {
-            return Clients.FirstOrDefault(x => x.ServerId == int.Parse(player.Handle));
+            return Clients.First(x => x.ServerId == int.Parse(player.Handle));
         }
 
         internal Client Get(int clientIndex)
@@ -74,13 +77,13 @@ namespace Average.Server.Services
         private void OnClientAdded(Client client)
         {
             ClientAdded?.Invoke(this, new ClientEventArgs(client));
-            _eventManager.Emit("clients:client_added", new ClientEventArgs(client));
+            _eventManager.EmitLocalServer("client:added", new ClientEventArgs(client));
         }
 
         private void OnClientRemoved(Client client)
         {
             ClientRemoved?.Invoke(this, new ClientEventArgs(client));
-            _eventManager.Emit("clients:client_removed", new ClientEventArgs(client));
+            _eventManager.EmitLocalServer("client:removed", new ClientEventArgs(client));
         }
 
         public int ClientCount => Clients.Count;

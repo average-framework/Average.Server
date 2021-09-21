@@ -11,12 +11,12 @@ namespace Average.Server.Services
     internal class UserStateService : IService
     {
         private readonly UserService _userService;
-        private readonly ClientListService _clientListService;
+        private readonly ClientService _clientService;
 
-        public UserStateService(UserService userService, ClientListService clientListService)
+        public UserStateService(UserService userService, ClientService clientService)
         {
             _userService = userService;
-            _clientListService = clientListService;
+            _clientService = clientService;
 
             Logger.Write("UserStateService", "Initialized successfully");
         }
@@ -25,6 +25,8 @@ namespace Average.Server.Services
         internal async void PlayerConnecting(PlayerConnectingEventArgs e)
         {
             Logger.Info($"[Server] Player connecting: {e.Player.Name} [{e.Player.License()}]");
+
+            _clientService.CleanupDuplicate(e.Player);
 
             e.Deferrals.defer();
 
@@ -59,7 +61,7 @@ namespace Average.Server.Services
                     }
                     else
                     {
-                        _clientListService.AddClient(new Client(e.Player));
+                        _clientService.AddClient(new Client(e.Player));
                         _userService.UpdateConnectionState(userData, true);
 
                         e.Deferrals.done();
@@ -67,7 +69,7 @@ namespace Average.Server.Services
                 }
                 else
                 {
-                    _clientListService.AddClient(new Client(e.Player));
+                    _clientService.AddClient(new Client(e.Player));
                     _userService.UpdateConnectionState(userData, true);
 
                     e.Deferrals.done();
@@ -82,7 +84,7 @@ namespace Average.Server.Services
         {
             var userData = await _userService.Get(e.Player);
 
-            _clientListService.CleanupDuplicate(e.Player);
+            _clientService.CleanupDuplicate(e.Player);
             _userService.UpdateConnectionState(userData, false);
             _userService.Update(userData);
         }
