@@ -3,11 +3,11 @@
 namespace Average.Server.Framework.Attributes
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class ClientCommandAliasAttribute : Attribute
+    public class CommandAliasAttribute : Attribute
     {
         public string[] Alias { get; set; }
 
-        public ClientCommandAliasAttribute(params string[] alias)
+        public CommandAliasAttribute(params string[] alias)
         {
             Alias = alias;
         }

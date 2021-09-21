@@ -4,7 +4,6 @@ using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.EventsArgs;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
-using Average.Shared.Attributes;
 using CitizenFX.Core;
 using DryIoc;
 using System;
@@ -22,7 +21,7 @@ namespace Average.Server.Framework.Managers
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
         private readonly Dictionary<string, List<Delegate>> _events = new Dictionary<string, List<Delegate>>();
- 
+
         public EventManager(IContainer container, EventHandlerDictionary eventHandlers)
         {
             _container = container;
@@ -162,12 +161,10 @@ namespace Average.Server.Framework.Managers
             {
                 // Create temporary client
                 newArgs.Add(new Client(player));
-                Logger.Warn("Create temporary client: " + player.Name);
             }
             else
             {
                 newArgs.Add(client);
-                Logger.Warn("Inject client: " + client.Name);
             }
 
             args.ForEach(x => newArgs.Add(x));
@@ -178,7 +175,6 @@ namespace Average.Server.Framework.Managers
 
         internal void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic kick, dynamic deferrals)
         {
-            Logger.Debug("Connect 1: " + player.Handle);
             PlayerConnecting?.Invoke(this, new PlayerConnectingEventArgs(player, kick, deferrals));
             Emit(Events.PlayerConnecting, new PlayerConnectingEventArgs(player, kick, deferrals));
         }

@@ -1,4 +1,5 @@
-﻿using Average.Server.Framework.Diagnostics;
+﻿using Average.Server.Framework.Attributes;
+using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Managers;
@@ -31,6 +32,21 @@ namespace Average.Server.Handlers
             }));
 
             _eventManager.EmitClient(client, "command:register_commands", newCommands.ToJson());
+        }
+
+        [ServerEvent("client:execute_command")]
+        private void OnClientExecuteCommand(Client client, string commandName, List<object> args)
+        {
+            try
+            {
+                _commandManager.ExecuteClientCommand(client, commandName, args);
+            }
+            catch
+            {
+                Logger.Error("Error on executing client command: " + commandName + ", " + string.Join(", ", args));
+                
+                // Need to send response for this command error
+            }
         }
     }
 }

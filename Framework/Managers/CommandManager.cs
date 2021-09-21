@@ -1,10 +1,12 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Model;
 using CitizenFX.Core.Native;
 using DryIoc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Average.Server.Framework.Managers
@@ -20,12 +22,14 @@ namespace Average.Server.Framework.Managers
         internal class Command
         {
             public ClientCommandAttribute Attribute { get; }
-            public ClientCommandAliasAttribute Alias { get; }
+            public CommandAliasAttribute Alias { get; }
+            public Delegate Action { get; }
 
-            public Command(ClientCommandAttribute attribute, ClientCommandAliasAttribute alias)
+            public Command(ClientCommandAttribute attribute, CommandAliasAttribute alias, Delegate action)
             {
                 Attribute = attribute;
                 Alias = alias;
+                Action = action;
             }
         }
 
@@ -79,7 +83,7 @@ namespace Average.Server.Framework.Managers
                     {
                         var attr = method.GetCustomAttribute<ClientCommandAttribute>();
                         if (attr == null) continue;
-                        var alisAttr = method.GetCustomAttribute<ClientCommandAliasAttribute>();
+                        var alisAttr = method.GetCustomAttribute<CommandAliasAttribute>();
 
                         RegisterInternalClientCommand(attr, alisAttr, service, method);
                     }
@@ -119,11 +123,24 @@ namespace Average.Server.Framework.Managers
             Logger.Debug($"Registering [ServerCommand]: {cmdAttr.Command} on method: {method.Name}");
         }
 
-        internal void RegisterInternalClientCommand(ClientCommandAttribute commandAttr, ClientCommandAliasAttribute aliasAttr, object classObj, MethodInfo method)
+        internal void RegisterInternalClientCommand(ClientCommandAttribute commandAttr, CommandAliasAttribute aliasAttr, object classObj, MethodInfo method)
         {
-            _clientCommands.Add(new Command(commandAttr, aliasAttr));
+            var action = Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
+            _clientCommands.Add(new Command(commandAttr, aliasAttr, action));
 
-            Logger.Debug($"Registering [Command]: {commandAttr.Command} on method: {method.Name} with alias: {(aliasAttr != null ? $"[{string.Join(", ", aliasAttr.Alias)}]" : "empty")}");
+            Logger.Debug($"Registering [Command]: {commandAttr.Command} on method: {method.Name} with alias: {(aliasAttr != null ? $"[{string.Join(", ", aliasAttr.Alias)}]" : "empty")}, params [{string.Join(", ", method.GetParameters().Select(x => x.ParameterType))}]");
+        }
+
+        internal void ExecuteClientCommand(Client client, string commandName, List<object> args)
+        {
+            var command = GetCommand(commandName);
+
+            if(command != null)
+            {
+                var newArgs = new List<object> { client };
+                args.ForEach(x => newArgs.Add(x));
+                command.Action.DynamicInvoke(newArgs.ToArray());
+            }
         }
 
         public IEnumerable<ServerCommandAttribute> GetServerCommands() => _serverCommands.AsEnumerable();
