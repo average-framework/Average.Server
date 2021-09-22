@@ -1244,15 +1244,6 @@
         "runtime": {
           "lib/net45/_._": {}
         }
-      },
-      "Average.Shared/1.0.0": {
-        "type": "project",
-        "compile": {
-          "bin/placeholder/Average.Shared.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Average.Shared.dll": {}
-        }
       }
     }
   },
@@ -4951,16 +4942,10 @@
         "system.xml.xdocument.4.3.0.nupkg.sha512",
         "system.xml.xdocument.nuspec"
       ]
-    },
-    "Average.Shared/1.0.0": {
-      "type": "project",
-      "path": "../Average.Shared/Average.Shared.csproj",
-      "msbuildProject": "../Average.Shared/Average.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     ".NETFramework,Version=v4.8": [
-      "Average.Shared >= 1.0.0",
       "Discord.Net >= 1.0.2",
       "DryIoc >= 4.8.1",
       "MemBus >= 4.0.1",
@@ -5002,11 +4987,7 @@
       "frameworks": {
         "net48": {
           "targetAlias": "net48",
-          "projectReferences": {
-            "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Shared\\Average.Shared.csproj": {
-              "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Shared\\Average.Shared.csproj"
-            }
-          }
+          "projectReferences": {}
         }
       },
       "warningProperties": {

@@ -15,12 +15,12 @@ namespace Average.Server.Framework.Rpc
 
         public delegate object RpcCallback(params object[] args);
 
-        public RpcRequest(RpcHandler handler, RpcTrigger trigger, RpcSerializer serializer)
+        public RpcRequest(EventHandlerDictionary eventHandlers, PlayerList players)
         {
             _message = new RpcMessage();
-            _handler = handler;
-            _trigger = trigger;
-            _serializer = serializer;
+            _handler = new RpcHandler(eventHandlers);
+            _trigger = new RpcTrigger(players);
+            _serializer = new RpcSerializer();
         }
 
         public RpcRequest Event(string eventName)

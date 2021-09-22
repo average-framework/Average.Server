@@ -88,14 +88,16 @@
       <DotNetCliToolReference Include="Microsoft.XmlSerializer.Generator" Version="1.0.0" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Average.Shared\Average.Shared.csproj" />
-    </ItemGroup>
-    <ItemGroup>
+      <Reference Include="average.shared.net">
+        <HintPath>..\..\AverageFrameworkServer\resources\avg\libs\average.shared.net.dll</HintPath>
+      </Reference>
       <Reference Include="CitizenFX.Core">
         <HintPath>..\..\AverageFrameworkServer\resources\avg\CitizenFX.Core.dll</HintPath>
       </Reference>
       <Reference Include="Newtonsoft.Json">
-        <HintPath>D:\WIN 11\GitHub\RdR_Code\libs\Newtonsoft.Json.dll</HintPath>
+        <HintPath>..\..\AverageFrameworkServer\resources\avg\libs\Newtonsoft.Json.dll</HintPath>
+        <SpecificVersion>false</SpecificVersion>
+        <Private>false</Private>
       </Reference>
     </ItemGroup>
     <ItemGroup>

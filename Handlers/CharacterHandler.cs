@@ -9,9 +9,9 @@ namespace Average.Server.Handlers
         private readonly CharacterService _characterService;
         private readonly PlayerList _players;
 
-        public CharacterHandler(CharacterService service, PlayerList players)
+        public CharacterHandler(CharacterService characterService, PlayerList players)
         {
-            _characterService = service;
+            _characterService = characterService;
             _players = players;
 
             #region Rpc

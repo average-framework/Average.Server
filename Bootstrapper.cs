@@ -3,6 +3,7 @@ using Average.Server.Framework.Database;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Managers;
+using Average.Server.Framework.Rpc;
 using Average.Server.Framework.Utilities;
 using Average.Server.Handlers;
 using Average.Server.Repositories;
@@ -67,6 +68,9 @@ namespace Average.Server
 
             _container.RegisterInstance(_main._attachCallback);
             _container.RegisterInstance(_main._detachCallback);
+          
+            // Rpc
+            _container.Register<RpcRequest>(Reuse.Transient);
 
             // Database
             _container.Register<DbContextFactory>();

@@ -16,10 +16,16 @@ namespace Average.Server.Framework.Commands
 
         }
 
-        [ClientCommand("character:set_money")]
-        private void OnCharacterSetMoney(Client client, string amount)
-        {
-            Logger.Debug("Set money for: " + client.Name + ", " + amount);
-        }
+        //[ClientCommand("character:set_money")]
+        //private void OnCharacterSetMoney(Client client, string amount)
+        //{
+        //    Logger.Debug("Set money for: " + client.Name + ", " + amount);
+        //}
+
+        //[ClientCommand("character:set_bank")]
+        //private void OnCharacterSetBank(Client client, string amount, string amount1, int amount2)
+        //{
+        //    Logger.Debug("Set money for: " + client.Name + ", " + amount);
+        //}
     }
 }

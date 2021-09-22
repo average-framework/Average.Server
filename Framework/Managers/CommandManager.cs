@@ -135,7 +135,7 @@ namespace Average.Server.Framework.Managers
         {
             var command = GetCommand(commandName);
 
-            if(command != null)
+            if (command != null)
             {
                 var newArgs = new List<object> { client };
                 args.ForEach(x => newArgs.Add(x));

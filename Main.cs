@@ -1,20 +1,14 @@
 ﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Rpc;
-using Average.Server.Services;
-using Average.Shared.Rpc;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
 using DryIoc;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Average.Server
 {
     internal class Main : BaseScript
     {
-        internal readonly RpcRequest _rpc;
-
         internal readonly Action<Func<Task>> _attachCallback;
         internal readonly Action<Func<Task>> _detachCallback;
 
@@ -28,8 +22,6 @@ namespace Average.Server
 
             _attachCallback = c => Tick += c;
             _detachCallback = c => Tick -= c;
-
-            _rpc = new RpcRequest(new RpcHandler(EventHandlers), new RpcTrigger(Players), new RpcSerializer());
 
             _container = new Container().With(rules => rules.WithFactorySelector(Rules.SelectLastRegisteredFactory()));
             _boostrap = new Bootstrapper(this, _container, EventHandlers, Players);
