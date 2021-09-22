@@ -1,6 +1,6 @@
 ﻿namespace Average.Server.Enums
 {
-    internal static class Events
+    internal static class ServerEvent
     {
         internal const string PlayerConnecting = "PlayerConnecting";
         internal const string PlayerDisconnecting = "PlayerDisconnecting";

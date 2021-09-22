@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Average.Server.Framework.EventsArgs
+namespace Average.Server.Framework.Events
 {
     public class ServerResourceStartEventArgs : EventArgs
     {

@@ -16,7 +16,7 @@ namespace Average.Server.Framework.Managers
         private readonly IContainer _container;
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
-        private readonly List<ServerCommandAttribute> _serverCommands = new List<ServerCommandAttribute>();
+        private readonly List<Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate>> _serverCommands = new List<Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate>>();
         private readonly List<Command> _clientCommands = new List<Command>();
 
         internal class Command
@@ -37,7 +37,7 @@ namespace Average.Server.Framework.Managers
         {
             _container = container;
 
-            Logger.Write("ServerCommandManager", "Initialized successfully");
+            Logger.Write("CommandManager", "Initialized successfully");
         }
 
         internal void Reflect()
@@ -61,8 +61,9 @@ namespace Average.Server.Framework.Managers
                     {
                         var attr = method.GetCustomAttribute<ServerCommandAttribute>();
                         if (attr == null) continue;
+                        var aliasAttr = method.GetCustomAttribute<CommandAliasAttribute>();
 
-                        RegisterInternalServerCommand(attr, service, method);
+                        RegisterInternalServerCommand(attr, aliasAttr, service, method);
                     }
                 }
             }
@@ -83,29 +84,27 @@ namespace Average.Server.Framework.Managers
                     {
                         var attr = method.GetCustomAttribute<ClientCommandAttribute>();
                         if (attr == null) continue;
-                        var alisAttr = method.GetCustomAttribute<CommandAliasAttribute>();
+                        var aliasAttr = method.GetCustomAttribute<CommandAliasAttribute>();
 
-                        RegisterInternalClientCommand(attr, alisAttr, service, method);
+                        RegisterInternalClientCommand(attr, aliasAttr, service, method);
                     }
                 }
             }
         }
 
-        internal void RegisterInternalServerCommand(ServerCommandAttribute cmdAttr, object classObj, MethodInfo method)
+        private void RegisterServerCommand(string commandName, Delegate action)
         {
-            var methodParams = method.GetParameters();
-
-            API.RegisterCommand(cmdAttr.Command, new Action<int, List<object>, string>(async (source, args, raw) =>
+            API.RegisterCommand(commandName, new Action<int, List<object>, string>(async (source, args, raw) =>
             {
                 var newArgs = new List<object>();
+                var methodParams = action.Method.GetParameters();
 
                 if (args.Count == methodParams.Length)
                 {
                     try
                     {
                         args.ForEach(x => newArgs.Add(Convert.ChangeType(x, methodParams[args.FindIndex(p => p == x)].ParameterType)));
-                        method.Invoke(classObj, newArgs.ToArray());
-                        _serverCommands.Add(cmdAttr);
+                        action.DynamicInvoke(newArgs.ToArray());
                     }
                     catch
                     {
@@ -116,9 +115,29 @@ namespace Average.Server.Framework.Managers
                 {
                     var usage = "";
                     methodParams.ToList().ForEach(x => usage += $"<[{x.ParameterType.Name}] {x.Name}> ");
-                    Logger.Error($"Invalid server command usage: {cmdAttr.Command} {usage}.");
+                    Logger.Error($"Invalid server command usage: {commandName} {usage}.");
                 }
             }), false);
+
+            Logger.Debug($"Registering [ServerCommand]: {commandName} on method: {action.Method.Name}");
+        }
+
+        internal void RegisterInternalServerCommand(ServerCommandAttribute cmdAttr, CommandAliasAttribute aliasAttr, object classObj, MethodInfo method)
+        {
+            var methodParams = method.GetParameters();
+            var action = Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
+
+            RegisterServerCommand(cmdAttr.Command, action);
+
+            if(aliasAttr != null)
+            {
+                foreach(var alias in aliasAttr.Alias)
+                {
+                    RegisterServerCommand(alias, action);
+                }
+            }
+
+            _serverCommands.Add(new Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate>(cmdAttr, aliasAttr, action));
 
             Logger.Debug($"Registering [ServerCommand]: {cmdAttr.Command} on method: {method.Name}");
         }
@@ -143,8 +162,8 @@ namespace Average.Server.Framework.Managers
             }
         }
 
-        public IEnumerable<ServerCommandAttribute> GetServerCommands() => _serverCommands.AsEnumerable();
-        public ServerCommandAttribute GetServerCommand(string command) => _serverCommands.Find(x => x.Command == command);
+        public IEnumerable<Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate>> GetServerCommands() => _serverCommands.AsEnumerable();
+        public Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate> GetServerCommand(string command) => _serverCommands.Find(x => x.Item1.Command == command);
         public IEnumerable<Command> GetCommands() => _clientCommands.AsEnumerable();
         public Command GetCommand(string command) => _clientCommands.Find(x => x.Attribute.Command == command);
     }

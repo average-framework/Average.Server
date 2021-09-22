@@ -1,7 +1,7 @@
 ﻿using Average.Server.Framework.Model;
 using System;
 
-namespace Average.Server.Framework.EventsArgs
+namespace Average.Server.Framework.Events
 {
     internal class ClientEventArgs : EventArgs
     {

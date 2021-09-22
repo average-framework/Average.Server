@@ -1,7 +1,7 @@
 ﻿using Average.Server.Enums;
 using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.EventsArgs;
+using Average.Server.Framework.Events;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 
@@ -20,7 +20,7 @@ namespace Average.Server.Services
             Logger.Write("UserStateService", "Initialized successfully");
         }
 
-        [ServerEvent(Events.PlayerConnecting)]
+        [ServerEvent(ServerEvent.PlayerConnecting)]
         internal async void PlayerConnecting(PlayerConnectingEventArgs e)
         {
             Logger.Info($"[Server] Player connecting: {e.Player.Name} [{e.Player.License()}]");
@@ -73,7 +73,7 @@ namespace Average.Server.Services
             }
         }
 
-        [ServerEvent(Events.PlayerDisconnecting)]
+        [ServerEvent(ServerEvent.PlayerDisconnecting)]
         internal async void PlayerDisconnecting(PlayerDisconnectingEventArgs e)
         {
             var userData = await _userService.Get(e.Player);

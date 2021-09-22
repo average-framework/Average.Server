@@ -80,7 +80,6 @@ namespace Average.Server
             _container.Register<EventManager>();
             _container.Register<CommandManager>();
             _container.Register<ThreadManager>();
-            _container.Register<ExportManager>();
             _container.Register<SyncManager>();
             _container.Register<RequestInternalManager>();
             _container.Register<RequestManager>();
@@ -107,7 +106,6 @@ namespace Average.Server
 
             // Reflections
             _container.GetService<ThreadManager>().Reflect();
-            _container.GetService<ExportManager>().Reflect();
             _container.GetService<SyncManager>().Reflect();
             _container.GetService<EventManager>().Reflect();
             _container.GetService<CommandManager>().Reflect();

@@ -1,14 +1,10 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 
 namespace Average.Server.Framework.Commands
 {
-    internal interface ICommand
-    {
-
-    }
-
     internal class CharacterCommand : ICommand
     {
         public CharacterCommand()

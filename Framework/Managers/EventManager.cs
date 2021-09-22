@@ -1,7 +1,7 @@
 ﻿using Average.Server.Enums;
 using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.EventsArgs;
+using Average.Server.Framework.Events;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
 using CitizenFX.Core;
@@ -51,7 +51,7 @@ namespace Average.Server.Framework.Managers
 
             #endregion
 
-            Logger.Write("ServerEventManager", "Initialized successfully");
+            Logger.Write("EventManager", "Initialized successfully");
         }
 
         public event EventHandler<PlayerConnectingEventArgs> PlayerConnecting;
@@ -176,85 +176,85 @@ namespace Average.Server.Framework.Managers
         internal void OnPlayerConnecting([FromSource] Player player, string playerName, dynamic kick, dynamic deferrals)
         {
             PlayerConnecting?.Invoke(this, new PlayerConnectingEventArgs(player, kick, deferrals));
-            Emit(Events.PlayerConnecting, new PlayerConnectingEventArgs(player, kick, deferrals));
+            Emit(ServerEvent.PlayerConnecting, new PlayerConnectingEventArgs(player, kick, deferrals));
         }
 
         internal void OnPlayerDisconnecting([FromSource] Player player, string reason)
         {
             PlayerDisconnecting?.Invoke(this, new PlayerDisconnectingEventArgs(player, reason));
-            Emit(Events.PlayerDisconnecting, new PlayerDisconnectingEventArgs(player, reason));
+            Emit(ServerEvent.PlayerDisconnecting, new PlayerDisconnectingEventArgs(player, reason));
         }
 
         internal void OnResourceStop(string resource)
         {
             ResourceStop?.Invoke(this, new ResourceStopEventArgs(resource));
-            Emit(Events.ResourceStop, new ResourceStopEventArgs(resource));
+            Emit(ServerEvent.ResourceStop, new ResourceStopEventArgs(resource));
         }
 
         internal void OnResourceStart(string resource)
         {
             ResourceStart?.Invoke(this, new ResourceStartEventArgs(resource));
-            Emit(Events.ResourceStart, new ResourceStartEventArgs(resource));
+            Emit(ServerEvent.ResourceStart, new ResourceStartEventArgs(resource));
         }
 
         internal void OnResourceListRefresh()
         {
             ResourceListRefresh?.Invoke(this, new EventArgs());
-            Emit(Events.ResourceListRefresh);
+            Emit(ServerEvent.ResourceListRefresh);
         }
 
         internal void OnResourceStarting(string resource)
         {
             ResourceStarting?.Invoke(this, new ResourceStartingEventArgs(resource));
-            Emit(Events.ResourceStarting, new ResourceStartingEventArgs(resource));
+            Emit(ServerEvent.ResourceStarting, new ResourceStartingEventArgs(resource));
         }
 
         internal void OnServerResourceStart(string resource)
         {
             ServerResourceStart?.Invoke(this, new ServerResourceStartEventArgs(resource));
-            Emit(Events.ServerResourceStart, new ServerResourceStartEventArgs(resource));
+            Emit(ServerEvent.ServerResourceStart, new ServerResourceStartEventArgs(resource));
         }
 
         internal void OnServerResourceStop(string resource)
         {
             ServerResourceStop?.Invoke(this, new ServerResourceStopEventArgs(resource));
-            Emit(Events.ServerResourceStop, new ServerResourceStopEventArgs(resource));
+            Emit(ServerEvent.ServerResourceStop, new ServerResourceStopEventArgs(resource));
         }
 
         internal void OnPlayerJoining(string source, string oldId)
         {
             PlayerJoining?.Invoke(this, new PlayerJoiningEventArgs(source, oldId));
-            Emit(Events.PlayerJoining, new PlayerJoiningEventArgs(source, oldId));
+            Emit(ServerEvent.PlayerJoining, new PlayerJoiningEventArgs(source, oldId));
         }
 
         internal void OnEntityCreated(int handle)
         {
             EntityCreated?.Invoke(this, new EntityCreatedEventArgs(handle));
-            Emit(Events.EntityCreated, new EntityCreatedEventArgs(handle));
+            Emit(ServerEvent.EntityCreated, new EntityCreatedEventArgs(handle));
         }
 
         internal void OnEntityCreating(int handle)
         {
             EntityCreating?.Invoke(this, new EntityCreatingEventArgs(handle));
-            Emit(Events.EntityCreating, new EntityCreatingEventArgs(handle));
+            Emit(ServerEvent.EntityCreating, new EntityCreatingEventArgs(handle));
         }
 
         internal void OnEntityRemoved(int handle)
         {
             EntityRemoved?.Invoke(this, new EntityRemovedEventArgs(handle));
-            Emit(Events.EntityRemoved, new EntityRemovedEventArgs(handle));
+            Emit(ServerEvent.EntityRemoved, new EntityRemovedEventArgs(handle));
         }
 
         internal void OnPlayerEnteredScope(object data)
         {
             PlayerEnteredScope?.Invoke(this, new PlayerEnteredScopeEventArgs(data));
-            Emit(Events.PlayerEnteredScope, new PlayerEnteredScopeEventArgs(data));
+            Emit(ServerEvent.PlayerEnteredScope, new PlayerEnteredScopeEventArgs(data));
         }
 
         internal void OnPlayerLeftScope(object data)
         {
             PlayerLeftScope?.Invoke(this, new PlayerLeftScopeEventArgs(data));
-            Emit(Events.PlayerLeftScope, new PlayerLeftScopeEventArgs(data));
+            Emit(ServerEvent.PlayerLeftScope, new PlayerLeftScopeEventArgs(data));
         }
 
         internal void OnHttpResponse(int token, int status, string text, dynamic header)

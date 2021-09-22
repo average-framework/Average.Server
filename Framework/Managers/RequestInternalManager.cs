@@ -1,5 +1,5 @@
 ﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.EventsArgs;
+using Average.Server.Framework.Events;
 using Average.Server.Framework.Request;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;

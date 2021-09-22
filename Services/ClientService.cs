@@ -1,5 +1,5 @@
 ﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.EventsArgs;
+using Average.Server.Framework.Events;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Managers;
