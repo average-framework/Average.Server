@@ -23,5 +23,7 @@ namespace Average.Server.Framework.Model
         {
             Player.Drop(reason);
         }
+
+        public static implicit operator Player(Client client) => client.Player;
     }
 }
