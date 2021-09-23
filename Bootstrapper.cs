@@ -36,8 +36,8 @@ namespace Average.Server
 
             BaseConfig = FileUtility.ReadFileFromRootDir("config.json").ToJObject();
 
-            MigrateDatabase();
             Init();
+            MigrateDatabase();
             Register();
         }
 
@@ -68,7 +68,7 @@ namespace Average.Server
 
             _container.RegisterInstance(_main._attachCallback);
             _container.RegisterInstance(_main._detachCallback);
-          
+
             // Rpc
             _container.Register<RpcRequest>(Reuse.Transient);
 
@@ -94,12 +94,15 @@ namespace Average.Server
             _container.Register<ClientService>();
             _container.Register<UserStateService>();
             _container.Register<AreaService>();
+            _container.Register<UIService>();
+            _container.Register<MenuService>();
+            _container.Register<SpawnService>();
 
             // Handlers
             _container.Register<CommandHandler>();
             _container.Register<UserHandler>();
-            _container.Register<CharacterHandler>();
             _container.Register<ClientHandler>();
+            _container.Register<CharacterHandler>();
 
             // Commands
             _container.Register<CharacterCommand>();
