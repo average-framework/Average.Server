@@ -4,7 +4,7 @@
       <DebugType>embedded</DebugType>
       <TargetName>$(AssemblyName).net</TargetName>
       <DefineConstants>DEBUG;SERVER</DefineConstants>
-      <AssemblyName>average.server.net</AssemblyName>
+      <AssemblyName>Average.Server.net</AssemblyName>
       <LangVersion>10</LangVersion>
       <Platforms>AnyCPU;x64;x86</Platforms>
       <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -21,7 +21,11 @@
       <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
       <StartupObject />
       <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-      <Company>$(Authors)</Company>
+      <Company>Average</Company>
+      <Description>Framework for RedM</Description>
+      <Copyright>Average Framework</Copyright>
+      <Product>Average Framework</Product>
+      <Authors>bub.bl</Authors>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg\</OutputPath>
@@ -103,6 +107,7 @@
     <ItemGroup>
       <Folder Include="Commands\" />
       <Folder Include="Framework\Handlers\" />
+      <Folder Include="Migrations\" />
     </ItemGroup>
 </Project>
   

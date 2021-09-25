@@ -1,8 +1,8 @@
-﻿using Average.Server.DataModels;
-using Average.Server.Framework.Extensions;
+﻿using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
+using Average.Shared.DataModels;
 
 namespace Average.Server.Services
 {

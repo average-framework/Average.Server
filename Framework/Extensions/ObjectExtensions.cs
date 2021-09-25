@@ -6,9 +6,9 @@ namespace Average.Server.Framework.Extensions
 {
     internal static class ObjectExtensions
     {
-        internal static string ToJson(this object source)
+        internal static string ToJson(this object source, Formatting formatting = Formatting.None)
         {
-            return JsonConvert.SerializeObject(source, Formatting.None);
+            return JsonConvert.SerializeObject(source, formatting);
         }
 
         internal static T Convert<T>(this object source)

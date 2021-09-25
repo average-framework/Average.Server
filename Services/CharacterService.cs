@@ -1,11 +1,13 @@
-﻿using Average.Server.DataModels;
-using Average.Server.Framework.Diagnostics;
+﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
 using Average.Server.Repositories;
+using Average.Shared.DataModels;
 using CitizenFX.Core;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,34 +22,59 @@ namespace Average.Server.Services
 
         public object Log { get; internal set; }
 
-        public CharacterService(CharacterRepository repository, EventManager eventManager)
+        private readonly UserService _userService;
+
+        public CharacterService(UserService userService, CharacterRepository repository, EventManager eventManager)
         {
             _repository = repository;
             _eventManager = eventManager;
-
-            Logger.Write("CharacterService", "Initialized successfully");
+            _userService = userService;
         }
 
         public async Task<IEnumerable<CharacterData>> GetAll() => _repository.GetAll();
-        public async Task<CharacterData> Get(long characterId) => _repository.GetAll().FirstOrDefault(x => x.Id == characterId);
-        public async Task<CharacterData> Get(Player player) => _repository.GetAll().FirstOrDefault(x => x.License == player.License());
+        public async Task<CharacterData> Get(long characterId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.Id == characterId);
+        public async Task<CharacterData> Get(Player player, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.License == player.License());
+        public async Task<CharacterData> Get(string license, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.License ==  license);
+        public async Task<CharacterData> GetByUserId(long userId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.UserId == userId);
         public async Task<List<CharacterData>> GetPlayerCharacters(Player player) => _repository.GetAll().Where(x => x.License == player.License()).ToList();
+        
+        public async void Create(UserData userData, CharacterData characterData)
+        {
+            try
+            {
+                var exists = await ExistsByUserId(userData.Id);
+
+                if (!exists)
+                {
+                    characterData.UserId = userData.Id;
+                    await _repository.Add(characterData);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"[CharacterService] Unable to create character for player {characterData.License}. Error: {ex.Message}\n{ex.InnerException}.");
+            }
+        }
+
         public async void Update(CharacterData data) => await _repository.Update(data);
         public async void Delete(CharacterData data) => await _repository.Delete(data.Id);
         public async Task<bool> Exists(Player player) => await Get(player) != null;
         public async Task<bool> Exists(long characterId) => await Get(characterId) != null;
+        public async Task<bool> Exists(string license) => await Get(license) != null;
+        public async Task<bool> ExistsByUserId(long userId) => await GetByUserId(userId) != null;
 
         internal void OnSetPed(Client client, uint model, int variation) => _eventManager.EmitClient(client, "character:set_ped", model, variation);
 
         internal async void OnLoadAppearance(Client client)
         {
             var character = await Get(client);
-            var face = character.Face.ToJson();
-            var overlays = character.FaceOverlays.ToJson();
-            var texture = character.Texture.ToJson();
-            var clothes = character.Clothes.ToJson();
-
-            _eventManager.EmitClient(client, "character:set_appearance", (int)character.Gender, character.Origin, character.Head, character.Body, character.BodyType, character.WaistType, character.Legs, character.Scale, texture, face, overlays, clothes);
+            //var face = character.Skin.Face.ToJson();
+            //var overlays = character.Skin.FaceOverlays.ToJson();
+            //var texture = character.Skin.Texture.ToJson();
+            var skin = character.Skin.ToJson();
+            var clothes = character.Outfit.ToJson();
+            
+            _eventManager.EmitClient(client, "character:set_appearance", skin, clothes);
         }
 
         internal void OnRemoveAllClothes(Client client) => _eventManager.EmitClient(client, "character:remove_all_clothes");
@@ -57,7 +84,7 @@ namespace Average.Server.Services
         internal async void OnRespawnPed(Client client)
         {
             var character = await Get(client);
-            _eventManager.EmitClient(client, "character:respawn_ped", (int)character.Gender);
+            _eventManager.EmitClient(client, "character:respawn_ped", (int)character.Skin.Gender);
         }
 
         internal async void OnSetMoney(Client client, decimal amount)

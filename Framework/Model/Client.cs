@@ -1,5 +1,4 @@
-﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Extensions;
+﻿using Average.Server.Framework.Extensions;
 using CitizenFX.Core;
 using System;
 
