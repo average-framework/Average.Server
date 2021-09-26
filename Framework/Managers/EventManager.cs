@@ -18,6 +18,7 @@ namespace Average.Server.Framework.Managers
     {
         private readonly IContainer _container;
         private readonly EventHandlerDictionary _eventHandlers;
+
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
         private readonly Dictionary<string, List<Delegate>> _events = new Dictionary<string, List<Delegate>>();
@@ -114,7 +115,17 @@ namespace Average.Server.Framework.Managers
 
         public void EmitClients(string eventName, params object[] args)
         {
-            BaseScript.TriggerClientEvent(eventName, args);
+            Logger.Debug("trigger server event on clients: " + eventName + ", " + args.Count());
+
+            var clientService = _container.Resolve<ClientService>();
+
+            for(int i = 0; i < clientService.Clients.Count; i++)
+            {
+                var client = clientService.Clients[i];
+                client.Player.TriggerEvent("server-event:triggered", eventName, args);
+            }
+
+            //BaseScript.TriggerClientEvent(eventName, args);
         }
 
         public void RegisterEvent(string eventName, Delegate action)

@@ -87,6 +87,7 @@ namespace Average.Server
             // Repositories
             _container.Register<UserRepository>();
             _container.Register<CharacterRepository>();
+            _container.Register<WorldRepository>();
 
             // Services
             _container.Register<UserService>();
@@ -95,6 +96,7 @@ namespace Average.Server
             _container.Register<UserStateService>();
             _container.Register<AreaService>();
             _container.Register<CharacterCreatorService>();
+            _container.Register<WorldService>();
 
             // Handlers
             _container.Register<CommandHandler>();
@@ -104,6 +106,7 @@ namespace Average.Server
 
             // Commands
             _container.Register<CharacterCommand>();
+            _container.Register<WorldCommand>();
 
             // Reflections
             _container.GetService<ThreadManager>().Reflect();

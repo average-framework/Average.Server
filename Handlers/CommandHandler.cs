@@ -54,6 +54,8 @@ namespace Average.Server.Handlers
                 var client = _clientService.Get(player);
 
                 _commandManager.ExecuteClientCommand(client, commandName, args);
+                
+                // Send empty response
                 callback(true, "");
             }
             catch

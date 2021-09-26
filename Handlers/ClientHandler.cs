@@ -12,13 +12,15 @@ namespace Average.Server.Handlers
         private readonly CharacterService _characterService;
         private readonly CharacterCreatorService _characterCreatorService;
         private readonly CommandHandler _commandHandler;
+        private readonly WorldService _worldService;
 
-        public ClientHandler(CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler)
+        public ClientHandler(CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
         {
             _characterCreatorService = characterCreatorService;
             _clientService = clientService;
             _characterService = characterService;
             _commandHandler = commandHandler;
+            _worldService = worldService;
         }
 
         [ServerEvent("client:initialized")]
@@ -36,6 +38,7 @@ namespace Average.Server.Handlers
                 Logger.Debug("Spawn character");
 
                 _characterService.OnSpawnPed(client);
+                _worldService.OnSetWorldForClient(client);
             }
             else
             {

@@ -14,6 +14,7 @@ namespace Average.Server.Framework.Database
 
         public DbSet<UserData> Users { get; set; }
         public DbSet<CharacterData> Characters { get; set; }
+        public DbSet<WorldData> Worlds { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options) => options
             //.UseSqlServer(_connectionString); // no mssql anymore

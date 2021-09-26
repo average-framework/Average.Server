@@ -156,8 +156,15 @@ namespace Average.Server.Framework.Managers
 
             if (command != null)
             {
+                // Need to cast args to the paramaters type of command.Action
                 var newArgs = new List<object> { client };
-                args.ForEach(x => newArgs.Add(x));
+                
+                for(int i = 0; i < args.Count; i++)
+                {
+                    // Need to skip client arg "Skip(1)" for convert args correctly
+                    newArgs.Add(Convert.ChangeType(args[i], command.Action.Method.GetParameters().Skip(1).ToList()[i].ParameterType));
+                }
+
                 command.Action.DynamicInvoke(newArgs.ToArray());
             }
         }

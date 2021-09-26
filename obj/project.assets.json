@@ -4968,7 +4968,7 @@
     "version": "1.0.0",
     "restore": {
       "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
-      "projectName": "average.server.net",
+      "projectName": "Average.Server.net",
       "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
       "packagesPath": "C:\\Users\\bub.bl\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\obj\\",
