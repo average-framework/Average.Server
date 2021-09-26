@@ -1,6 +1,4 @@
-﻿using Average.Server.Framework.Attributes;
-using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Extensions;
+﻿using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
@@ -31,7 +29,7 @@ namespace Average.Server.Handlers
             _rpc = rpc;
             _players = players;
 
-            _rpc.Event("client:execute_command").On(OnClientExecuteCommand);
+            _rpc.Event("command:execute").On(OnClientExecuteCommand);
         }
 
         internal void OnClientInitialized(Client client)
@@ -54,7 +52,7 @@ namespace Average.Server.Handlers
                 var client = _clientService.Get(player);
 
                 _commandManager.ExecuteClientCommand(client, commandName, args);
-                
+
                 // Send empty response
                 callback(true, "");
             }
