@@ -1,5 +1,4 @@
 ﻿using Average.Server.Framework.Database;
-using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Shared.DataModels;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +10,10 @@ namespace Average.Server.Repositories
     {
         public UserRepository(DbContextFactory factory) : base(factory)
         {
-            Logger.Warn("User repo");
+
         }
 
-        protected override IQueryable<UserData> SetWithIncludes(DatabaseContext context)
-        {
-            return context.Users.Include(a => a.Characters);
-        }
+        protected override IQueryable<UserData> SetWithIncludes(DatabaseContext context) =>
+            context.Users.Include(a => a.Characters);
     }
 }

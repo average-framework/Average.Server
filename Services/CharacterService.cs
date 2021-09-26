@@ -18,26 +18,20 @@ namespace Average.Server.Services
     {
         private readonly CharacterRepository _repository;
         private readonly EventManager _eventManager;
-        private readonly Dictionary<string, CharacterData> _characters = new Dictionary<string, CharacterData>();
 
-        public object Log { get; internal set; }
-
-        private readonly UserService _userService;
-
-        public CharacterService(UserService userService, CharacterRepository repository, EventManager eventManager)
+        public CharacterService(CharacterRepository repository, EventManager eventManager)
         {
             _repository = repository;
             _eventManager = eventManager;
-            _userService = userService;
         }
 
         public async Task<IEnumerable<CharacterData>> GetAll() => _repository.GetAll();
         public async Task<CharacterData> Get(long characterId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.Id == characterId);
         public async Task<CharacterData> Get(Player player, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.License == player.License());
-        public async Task<CharacterData> Get(string license, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.License ==  license);
+        public async Task<CharacterData> Get(string license, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.License == license);
         public async Task<CharacterData> GetByUserId(long userId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.UserId == userId);
         public async Task<List<CharacterData>> GetPlayerCharacters(Player player) => _repository.GetAll().Where(x => x.License == player.License()).ToList();
-        
+
         public async void Create(UserData userData, CharacterData characterData)
         {
             try
@@ -67,24 +61,19 @@ namespace Average.Server.Services
 
         internal async void OnLoadAppearance(Client client)
         {
-            var character = await Get(client);
-            //var face = character.Skin.Face.ToJson();
-            //var overlays = character.Skin.FaceOverlays.ToJson();
-            //var texture = character.Skin.Texture.ToJson();
-            var skin = character.Skin.ToJson();
-            var clothes = character.Outfit.ToJson();
-            
-            _eventManager.EmitClient(client, "character:set_appearance", skin, clothes);
+            var characterData = await Get(client);
+            _eventManager.EmitClient(client, "character:set_appearance", characterData.ToJson());
         }
 
         internal void OnRemoveAllClothes(Client client) => _eventManager.EmitClient(client, "character:remove_all_clothes");
 
         internal void OnSetPedOutfit(Client client, Dictionary<string, uint> outfit) => _eventManager.EmitClient(client, "character:set_outfit", outfit.ToJson());
 
-        internal async void OnRespawnPed(Client client)
+        internal async void OnSpawnPed(Client client)
         {
-            var character = await Get(client);
-            _eventManager.EmitClient(client, "character:respawn_ped", (int)character.Skin.Gender);
+            var characterData = await Get(client, true);
+            Logger.Debug("character1: " + characterData.ToJson(Formatting.Indented));
+            _eventManager.EmitClient(client, "character:spawn_ped", characterData.ToJson());
         }
 
         internal async void OnSetMoney(Client client, decimal amount)

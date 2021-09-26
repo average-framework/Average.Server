@@ -94,7 +94,6 @@ namespace Average.Server
             _container.Register<ClientService>();
             _container.Register<UserStateService>();
             _container.Register<AreaService>();
-            _container.Register<SpawnService>();
             _container.Register<CharacterCreatorService>();
 
             // Handlers

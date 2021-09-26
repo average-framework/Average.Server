@@ -1,5 +1,4 @@
 ﻿using Average.Server.Framework.Database;
-using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Shared.DataModels;
 using Microsoft.EntityFrameworkCore;
@@ -11,13 +10,16 @@ namespace Average.Server.Repositories
     {
         public CharacterRepository(DbContextFactory factory) : base(factory)
         {
-            Logger.Warn("Character repo");
+
         }
 
-        protected override IQueryable<CharacterData> SetWithIncludes(DatabaseContext context)
-        {
-            return context.Characters;
-            //return context.Characters.Include(a => a.Outfit);
-        }
+        protected override IQueryable<CharacterData> SetWithIncludes(DatabaseContext context) =>
+            context.Characters
+                .Include(a => a.Economy)
+                .Include(a => a.Core)
+                .Include(a => a.Job)
+                .Include(a => a.Skin)
+                .Include(a => a.Outfit)
+                .Include(a => a.Position);
     }
 }

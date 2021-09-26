@@ -1,6 +1,8 @@
-﻿using Average.Shared.DataModels;
+﻿using Average.Server.Framework.Extensions;
+using Average.Shared.DataModels;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace Average.Server.Framework.Database
 {
@@ -70,9 +72,13 @@ namespace Average.Server.Framework.Database
                .HasForeignKey<OutfitData>(x => x.CharacterId)
                .OnDelete(DeleteBehavior.Cascade);
 
+            //modelBuilder.Entity<CharacterData>()
+            //   .Property(x => x.Data)
+            //   .HasConversion(x => JsonConvert.SerializeObject(x), x => JsonConvert.DeserializeObject<KeyValueData>(x));
+
             modelBuilder.Entity<CharacterData>()
                .Property(x => x.Data)
-               .HasConversion(x => JsonConvert.SerializeObject(x), x => JsonConvert.DeserializeObject<KeyValueData>(x));
+               .HasConversion(x => x.ToJson(Formatting.None), x => x.Convert<Dictionary<string, object>>());
 
             // Skin
 
