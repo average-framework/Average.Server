@@ -71,7 +71,6 @@ namespace Average.Server.Services
         internal async void OnSpawnPed(Client client)
         {
             var characterData = await Get(client, true);
-            Logger.Debug("character1: " + characterData.ToJson(Formatting.Indented));
             _eventManager.EmitClient(client, "character:spawn_ped", characterData.ToJson());
         }
 

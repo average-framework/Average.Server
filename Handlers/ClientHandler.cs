@@ -1,4 +1,5 @@
-﻿using Average.Server.Framework.Attributes;
+﻿using Average.Server.Framework;
+using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
@@ -13,14 +14,16 @@ namespace Average.Server.Handlers
         private readonly CharacterCreatorService _characterCreatorService;
         private readonly CommandHandler _commandHandler;
         private readonly WorldService _worldService;
+        private readonly RpcService _rpcService;
 
-        public ClientHandler(CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
+        public ClientHandler(RpcService rpcService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
         {
             _characterCreatorService = characterCreatorService;
             _clientService = clientService;
             _characterService = characterService;
             _commandHandler = commandHandler;
             _worldService = worldService;
+            _rpcService = rpcService;
         }
 
         [ServerEvent("client:initialized")]

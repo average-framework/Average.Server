@@ -1,5 +1,7 @@
-﻿using System;
+﻿using CitizenFX.Core.Native;
+using System;
 using System.Text;
+using static CitizenFX.Core.Native.API;
 
 namespace Average.Server.Framework
 {
@@ -29,5 +31,13 @@ namespace Average.Server.Framework
 
             return sb.ToString().Replace("'", "''".Replace(@"\", "\\"));
         }
+
+        public static void Call(long address, params InputArgument[] args) => Function.Call((Hash)address, args);
+        public static void Call(ulong address, params InputArgument[] args) => Function.Call((Hash)address, args);
+        public static void Call(Hash address, params InputArgument[] args) => Function.Call(address, args);
+        public static void Call(string address, params InputArgument[] args) => Function.Call((Hash)(uint)GetHashKey(address), args);
+        public static T Call<T>(long address, params InputArgument[] args) => Function.Call<T>((Hash)address, args);
+        public static T Call<T>(ulong address, params InputArgument[] args) => Function.Call<T>((Hash)address, args);
+        public static T Call<T>(Hash address, params InputArgument[] args) => Function.Call<T>(address, args);
     }
 }

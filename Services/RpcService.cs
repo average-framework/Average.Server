@@ -29,12 +29,12 @@ namespace Average.Server.Services
             _eventService = eventService;
         }
 
-        internal void NativeCall(Client client, uint native, params object[] args)
+        internal void NativeCall(Client client, long native, params object[] args)
         {
             _eventService.EmitClient(client, "rpc:native_call", native, args);
         }
 
-        internal void GlobalNativeCall(uint native, params object[] args)
+        internal void GlobalNativeCall(long native, params object[] args)
         {
             _eventService.EmitClients("rpc:native_call", native, args);
         }
