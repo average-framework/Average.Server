@@ -7,5 +7,9 @@ namespace Average.Server.Framework.Extensions
         public static string Steam(this Player player) => player.Identifiers["steam"];
         public static string License(this Player player) => player.Identifiers["license"];
         public static string DiscordId(this Player player) => player.Identifiers["discord"];
+        public static string NetId(this Player player)
+        {
+            return $"netid:{player.Character.NetworkId}";
+        }
     }
 }

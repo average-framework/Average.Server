@@ -169,11 +169,10 @@ namespace Average.Server.Services
             }
         }
 
-        internal void OnSetWorldForClient(/*Client client*/)
+        internal void OnSetWorldForClient()
         {
             _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)World.Weather, true, true, true, 0f, false);
             _rpcService.GlobalNativeCall(0x669E223E64B1903C, World.Time.Hours, World.Time.Minutes, World.Time.Seconds, 5000, true);
-            //_eventManager.EmitClient(client, "world:set_world", (uint)World.Weather, World.Time.Hours, World.Time.Minutes, World.Time.Seconds);
         }
 
         internal void SetTime(TimeSpan time, int transitionTime = 0)
@@ -188,9 +187,6 @@ namespace Average.Server.Services
             Logger.Debug("Transition time: " + transitionTime);
 
             _rpcService.GlobalNativeCall(0x669E223E64B1903C, time.Hours, time.Minutes, time.Seconds, transitionTime, true);
-            //NetworkClockTimeOverride(time.Hours, time.Minutes, time.Seconds, transitionTime, true);
-
-            //_eventManager.EmitClients("world:set_time", time.Hours, time.Minutes, time.Seconds, transitionTime);
 
             World.Time = time;
             Update(World);
@@ -203,8 +199,6 @@ namespace Average.Server.Services
             _rpcService.GlobalNativeCall(0xD74ACDF7DB8114AF, false);
             _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)weather, true, true, true, transitionTime, false);
 
-            //_eventManager.EmitClients("world:set_weather", (uint)weather, transitionTime);
-
             World.Weather = weather;
             Update(World);
         }
@@ -215,7 +209,6 @@ namespace Average.Server.Services
             Logger.Debug($"[World] Set next weather from {World.Weather} to {nextWeather} in {transitionTime} second(s).");
 
             _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)nextWeather, true, true, true, transitionTime, false);
-            //_eventManager.EmitClients("world:set_weather", (uint)nextWeather, transitionTime);
 
             World.Weather = nextWeather;
             Update(World);
