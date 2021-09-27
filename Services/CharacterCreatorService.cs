@@ -1,14 +1,13 @@
 ﻿using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
 
 namespace Average.Server.Services
 {
     internal class CharacterCreatorService : IService
     {
-        private readonly EventManager _eventManager;
+        private readonly EventService _eventManager;
 
-        public CharacterCreatorService(EventManager eventManager)
+        public CharacterCreatorService(EventService eventManager)
         {
             _eventManager = eventManager;
         }

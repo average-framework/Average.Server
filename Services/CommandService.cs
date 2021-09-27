@@ -1,5 +1,6 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using CitizenFX.Core.Native;
 using DryIoc;
@@ -9,9 +10,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Average.Server.Framework.Managers
+namespace Average.Server.Services
 {
-    internal class CommandManager
+    internal class CommandService : IService
     {
         private readonly IContainer _container;
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
@@ -33,7 +34,7 @@ namespace Average.Server.Framework.Managers
             }
         }
 
-        public CommandManager(IContainer container)
+        public CommandService(IContainer container)
         {
             _container = container;
 
@@ -129,9 +130,9 @@ namespace Average.Server.Framework.Managers
 
             RegisterServerCommand(cmdAttr.Command, action);
 
-            if(aliasAttr != null)
+            if (aliasAttr != null)
             {
-                foreach(var alias in aliasAttr.Alias)
+                foreach (var alias in aliasAttr.Alias)
                 {
                     RegisterServerCommand(alias, action);
                 }
@@ -158,8 +159,8 @@ namespace Average.Server.Framework.Managers
             {
                 // Need to cast args to the paramaters type of command.Action
                 var newArgs = new List<object> { client };
-                
-                for(int i = 0; i < args.Count; i++)
+
+                for (int i = 0; i < args.Count; i++)
                 {
                     // Need to skip client arg "Skip(1)" for convert args correctly
                     newArgs.Add(Convert.ChangeType(args[i], command.Action.Method.GetParameters().Skip(1).ToList()[i].ParameterType));

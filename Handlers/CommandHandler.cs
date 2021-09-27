@@ -1,27 +1,25 @@
 ﻿using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
-using Average.Server.Framework.Rpc;
 using Average.Server.Services;
 using Average.Shared.Models;
 using Average.Shared.Rpc;
 using CitizenFX.Core;
 using System.Collections.Generic;
 using System.Linq;
-using static Average.Server.Framework.Rpc.RpcRequest;
+using static Average.Server.Services.RpcService;
 
 namespace Average.Server.Handlers
 {
     internal class CommandHandler : IHandler
     {
-        private readonly EventManager _eventManager;
-        private readonly CommandManager _commandManager;
+        private readonly EventService _eventManager;
+        private readonly CommandService _commandManager;
         private readonly ClientService _clientService;
-        private readonly RpcRequest _rpc;
+        private readonly RpcService _rpc;
         private readonly PlayerList _players;
 
-        public CommandHandler(EventManager eventManager, CommandManager commandManager, ClientService clientService, RpcRequest rpc, PlayerList players)
+        public CommandHandler(EventService eventManager, CommandService commandManager, ClientService clientService, RpcService rpc, PlayerList players)
         {
             _eventManager = eventManager;
             _commandManager = commandManager;

@@ -1,5 +1,6 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 using DryIoc;
 using System;
 using System.Collections.Generic;
@@ -7,9 +8,9 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Average.Server.Framework.Managers
+namespace Average.Server.Services
 {
-    public class ThreadManager
+    public class ThreadService : IService
     {
         public class Thread
         {
@@ -37,7 +38,7 @@ namespace Average.Server.Framework.Managers
 
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
-        public ThreadManager(IContainer container, Action<Func<Task>> attachCallback, Action<Func<Task>> detachCallback)
+        public ThreadService(IContainer container, Action<Func<Task>> attachCallback, Action<Func<Task>> detachCallback)
         {
             _container = container;
             _attachCallback = attachCallback;

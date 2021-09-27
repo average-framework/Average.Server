@@ -1,5 +1,6 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Events;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Request;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
@@ -7,15 +8,15 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Average.Server.Framework.Managers
+namespace Average.Server.Services
 {
-    internal class RequestInternalManager
+    internal class RequestInternalService : IService
     {
-        private readonly EventManager _event;
+        private readonly EventService _event;
 
         private readonly Dictionary<int, Dictionary<string, dynamic>> _responseDictionary = new Dictionary<int, Dictionary<string, dynamic>>();
 
-        public RequestInternalManager(EventManager @event)
+        public RequestInternalService(EventService @event)
         {
             _event = @event;
 

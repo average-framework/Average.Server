@@ -1,7 +1,6 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
@@ -16,8 +15,8 @@ namespace Average.Server.Services
 {
     internal class WorldService : IService
     {
-        private readonly ThreadManager _threadManager;
-        private readonly EventManager _eventManager;
+        private readonly ThreadService _threadManager;
+        private readonly EventService _eventManager;
         private readonly WorldRepository _repository;
 
         private int _minTransitionTime;
@@ -28,7 +27,7 @@ namespace Average.Server.Services
 
         public WorldData World { get; private set; }
 
-        public WorldService(WorldRepository repository, ThreadManager threadManager, EventManager eventManager)
+        public WorldService(WorldRepository repository, ThreadService threadManager, EventService eventManager)
         {
             _threadManager = threadManager;
             _eventManager = eventManager;
@@ -209,7 +208,7 @@ namespace Average.Server.Services
 
         public async Task Add(WorldData data) => await _repository.Add(data);
         public ICollection<WorldData> GetAll() => _repository.GetAll();
-        public WorldData Get(long worldId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.Id == worldId);
+        public WorldData Get(long worldId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.WorldId == worldId);
         public async void Update(WorldData data) => await _repository.Update(data);
         public async void Delete(WorldData data) => await _repository.Delete(data.Id);
         public bool Exists(WorldData data) => Get(data.WorldId) != null;

@@ -2,7 +2,6 @@
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
 using System.Collections.Generic;
 
@@ -10,13 +9,13 @@ namespace Average.Server.Services
 {
     internal class AreaService : IService
     {
-        private readonly EventManager _eventManager;
+        private readonly EventService _eventManager;
 
         public readonly List<BlipArea> _blipAreas = new List<BlipArea>();
         public readonly List<InteractionArea> _interactionAreas = new List<InteractionArea>();
         public readonly List<NpcArea> _npcAreas = new List<NpcArea>();
 
-        public AreaService(EventManager eventManager)
+        public AreaService(EventService eventManager)
         {
             _eventManager = eventManager;
 

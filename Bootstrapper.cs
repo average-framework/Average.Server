@@ -2,8 +2,6 @@
 using Average.Server.Framework.Database;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
-using Average.Server.Framework.Managers;
-using Average.Server.Framework.Rpc;
 using Average.Server.Framework.Utilities;
 using Average.Server.Handlers;
 using Average.Server.Repositories;
@@ -64,25 +62,23 @@ namespace Average.Server
 
             // Others
             _container.RegisterInstance(_eventHandlers);
-            _container.RegisterInstance(new PlayerList());
+            _container.RegisterInstance(_players);
 
             _container.RegisterInstance(_main._attachCallback);
             _container.RegisterInstance(_main._detachCallback);
 
-            // Rpc
-            _container.Register<RpcRequest>(Reuse.Transient);
-
             // Database
             _container.Register<DbContextFactory>();
 
-            // Managers
-            _container.Register<PermissionManager>();
-            _container.Register<EventManager>();
-            _container.Register<CommandManager>();
-            _container.Register<ThreadManager>();
-            _container.Register<SyncManager>();
-            _container.Register<RequestInternalManager>();
-            _container.Register<RequestManager>();
+            // Framework Services
+            _container.Register<EventService>();
+            _container.Register<RpcService>(Reuse.Transient);
+            _container.Register<PermissionService>();
+            _container.Register<CommandService>();
+            _container.Register<ThreadService>();
+            _container.Register<SyncService>();
+            _container.Register<RequestInternalService>();
+            _container.Register<RequestService>();
 
             // Repositories
             _container.Register<UserRepository>();
@@ -109,10 +105,10 @@ namespace Average.Server
             _container.Register<WorldCommand>();
 
             // Reflections
-            _container.GetService<ThreadManager>().Reflect();
-            _container.GetService<SyncManager>().Reflect();
-            _container.GetService<EventManager>().Reflect();
-            _container.GetService<CommandManager>().Reflect();
+            _container.GetService<ThreadService>().Reflect();
+            _container.GetService<SyncService>().Reflect();
+            _container.GetService<EventService>().Reflect();
+            _container.GetService<CommandService>().Reflect();
         }
 
         internal void Init()

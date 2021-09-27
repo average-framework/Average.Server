@@ -2,7 +2,6 @@
 using Average.Server.Framework.Events;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
 using CitizenFX.Core;
 using System;
@@ -13,13 +12,13 @@ namespace Average.Server.Services
 {
     internal class ClientService : IService
     {
-        private readonly EventManager _eventManager;
+        private readonly EventService _eventManager;
 
         public List<Client> Clients { get; } = new List<Client>();
 
         private PlayerList _players;
 
-        public ClientService(EventManager eventManager, PlayerList players)
+        public ClientService(EventService eventManager, PlayerList players)
         {
             _eventManager = eventManager;
             _players = players;

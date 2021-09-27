@@ -1,133 +1,153 @@
 ﻿using Average.Server.Framework.Extensions;
+using Average.Server.Framework.Interfaces;
+using Average.Server.Framework.Model;
+using Average.Server.Framework.Rpc;
 using Average.Shared.Rpc;
 using CitizenFX.Core;
 using System;
 using System.Linq;
 
-namespace Average.Server.Framework.Rpc
+namespace Average.Server.Services
 {
-    internal class RpcRequest
+    internal class RpcService : IService
     {
         private RpcMessage _message;
         private readonly RpcHandler _handler;
         private readonly RpcTrigger _trigger;
         private readonly RpcSerializer _serializer;
+        private readonly EventService _eventService;
 
-        public delegate object RpcCallback(params object[] args);
+        internal delegate object RpcCallback(params object[] args);
 
-        public RpcRequest(EventHandlerDictionary eventHandlers, PlayerList players)
+        public RpcService(EventHandlerDictionary eventHandlers, PlayerList players, EventService eventService)
         {
             _message = new RpcMessage();
             _handler = new RpcHandler(eventHandlers);
             _trigger = new RpcTrigger(players);
             _serializer = new RpcSerializer();
+
+            _eventService = eventService;
         }
 
-        public RpcRequest Event(string eventName)
+        internal void NativeCall(Client client, uint native, params object[] args)
+        {
+            _eventService.EmitClient(client, "rpc:native_call", native, args);
+        }
+
+        internal void GlobalNativeCall(uint native, params object[] args)
+        {
+            _eventService.EmitClients("rpc:native_call", native, args);
+        }
+
+        internal RpcService Event(string eventName)
         {
             _message.Event = eventName;
             return this;
         }
 
-        public void Emit(RpcMessage message)
+        internal void Emit(RpcMessage message)
         {
             _trigger.Trigger(message);
         }
 
-        public void Emit(params object[] args)
+        internal void Emit(params object[] args)
         {
-            foreach (var arg in args)
-                _message.Args.Add(arg);
-
+            args.ToList().ForEach(x => _message.Args.Add(x));
             _trigger.Trigger(_message);
         }
 
-        public void On(Action action)
+        internal RpcService To(Client client)
+        {
+            _message.Target = int.Parse(client.Player.Handle);
+            return this;
+        }
+
+        internal void On(Action action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1>(Action<T1> action)
+        internal void On<T1>(Action<T1> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2>(Action<T1, T2> action)
+        internal void On<T1, T2>(Action<T1, T2> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3>(Action<T1, T2, T3> action)
+        internal void On<T1, T2, T3>(Action<T1, T2, T3> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action)
+        internal void On<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> action)
+        internal void On<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> action)
+        internal void On<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> action)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> action)
         {
             _handler.Attach(_message.Event, action);
         }
 
-        public void On(Action<RpcMessage, RpcCallback> callback)
+        internal void On(Action<RpcMessage, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -146,7 +166,7 @@ namespace Average.Server.Framework.Rpc
 
         #region On<T>
 
-        public void On<T1>(Action<T1, RpcCallback> callback)
+        internal void On<T1>(Action<T1, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -165,7 +185,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2>(Action<T1, T2, RpcCallback> callback)
+        internal void On<T1, T2>(Action<T1, T2, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -185,7 +205,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3>(Action<T1, T2, T3, RpcCallback> callback)
+        internal void On<T1, T2, T3>(Action<T1, T2, T3, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -206,7 +226,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4>(Action<T1, T2, T3, T4, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4>(Action<T1, T2, T3, T4, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -228,7 +248,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -251,7 +271,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -275,7 +295,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -300,7 +320,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -326,7 +346,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -353,7 +373,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -381,7 +401,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -410,7 +430,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -440,7 +460,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -471,7 +491,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -503,7 +523,7 @@ namespace Average.Server.Framework.Rpc
             _handler.Attach(_message.Event, action);
         }
 
-        public void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, RpcCallback> callback)
+        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, RpcCallback> callback)
         {
             var action = new Action<string>(request =>
             {
@@ -537,11 +557,5 @@ namespace Average.Server.Framework.Rpc
         }
 
         #endregion
-
-        public RpcRequest Target(Player player)
-        {
-            _message.Target = int.Parse(player.Handle);
-            return this;
-        }
     }
 }

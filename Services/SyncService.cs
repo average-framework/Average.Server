@@ -1,5 +1,6 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Sync;
 using CitizenFX.Core;
 using DryIoc;
@@ -8,12 +9,12 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace Average.Server.Framework.Managers
+namespace Average.Server.Services
 {
-    internal class SyncManager
+    internal class SyncService : IService
     {
         private readonly IContainer _container;
-        private readonly ThreadManager _thread;
+        private readonly ThreadService _thread;
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
         private Dictionary<string, PropertySyncState> _propertiesSyncs = new Dictionary<string, PropertySyncState>();
@@ -22,7 +23,7 @@ namespace Average.Server.Framework.Managers
 
         private const int SyncRate = 60;
 
-        public SyncManager(IContainer container, ThreadManager thread)
+        public SyncService(IContainer container, ThreadService thread)
         {
             _container = container;
             _thread = thread;

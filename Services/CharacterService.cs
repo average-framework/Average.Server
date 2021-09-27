@@ -1,7 +1,6 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Managers;
 using Average.Server.Framework.Model;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
@@ -17,9 +16,9 @@ namespace Average.Server.Services
     internal class CharacterService : IService
     {
         private readonly CharacterRepository _repository;
-        private readonly EventManager _eventManager;
+        private readonly EventService _eventManager;
 
-        public CharacterService(CharacterRepository repository, EventManager eventManager)
+        public CharacterService(CharacterRepository repository, EventService eventManager)
         {
             _repository = repository;
             _eventManager = eventManager;

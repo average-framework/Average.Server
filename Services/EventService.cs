@@ -2,8 +2,8 @@
 using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Events;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
-using Average.Server.Services;
 using CitizenFX.Core;
 using DryIoc;
 using System;
@@ -12,9 +12,9 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Average.Server.Framework.Managers
+namespace Average.Server.Services
 {
-    internal class EventManager
+    internal class EventService : IService
     {
         private readonly IContainer _container;
         private readonly EventHandlerDictionary _eventHandlers;
@@ -23,7 +23,7 @@ namespace Average.Server.Framework.Managers
 
         private readonly Dictionary<string, List<Delegate>> _events = new Dictionary<string, List<Delegate>>();
 
-        public EventManager(IContainer container, EventHandlerDictionary eventHandlers)
+        public EventService(IContainer container, EventHandlerDictionary eventHandlers)
         {
             _container = container;
             _eventHandlers = eventHandlers;
@@ -119,13 +119,10 @@ namespace Average.Server.Framework.Managers
 
             var clientService = _container.Resolve<ClientService>();
 
-            for(int i = 0; i < clientService.Clients.Count; i++)
+            for (int i = 0; i < clientService.Clients.Count; i++)
             {
-                var client = clientService.Clients[i];
-                client.Player.TriggerEvent("server-event:triggered", eventName, args);
+                clientService.Clients[i].Player.TriggerEvent("server-event:triggered", eventName, args);
             }
-
-            //BaseScript.TriggerClientEvent(eventName, args);
         }
 
         public void RegisterEvent(string eventName, Delegate action)

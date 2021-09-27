@@ -3,11 +3,11 @@ using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using CitizenFX.Core;
 
-namespace Average.Server.Framework.Managers
+namespace Average.Server.Services
 {
-    internal class PermissionManager : IService
+    internal class PermissionService : IService
     {
-        public PermissionManager()
+        public PermissionService()
         {
             Logger.Write("PermissionManager", "Initialized successfully");
         }

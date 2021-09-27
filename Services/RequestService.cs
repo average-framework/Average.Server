@@ -1,4 +1,5 @@
 ﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Request;
 using System;
 using System.Collections.Generic;
@@ -6,18 +7,18 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Average.Server.Framework.Managers
+namespace Average.Server.Services
 {
-    internal class RequestManager
+    internal class RequestService : IService
     {
-        private readonly RequestInternalManager _request;
+        private readonly RequestInternalService _request;
 
         public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>
         {
             { "Content-Type", "application/json" }
         };
 
-        public RequestManager(RequestInternalManager request)
+        public RequestService(RequestInternalService request)
         {
             _request = request;
 
@@ -26,7 +27,7 @@ namespace Average.Server.Framework.Managers
 
         public async Task<RequestResponse> Http(string url, string method = "GET", string data = "", Dictionary<string, string> headers = null)
         {
-            headers = (headers == null) ? new Dictionary<string, string>() : headers;
+            headers = headers == null ? new Dictionary<string, string>() : headers;
             var response = await _request.Http(url, method, data, headers);
             return ParseRequestResponseInternal(response);
         }
