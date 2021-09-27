@@ -4,6 +4,7 @@ using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
+using System;
 
 namespace Average.Server.Handlers
 {
@@ -38,7 +39,7 @@ namespace Average.Server.Handlers
             {
                 // Spawn character
 
-                Logger.Debug("Spawn character");
+                Logger.Debug($"[ClientHandler] Spawn character for client: {client.Name}.");
 
                 _characterService.OnSpawnPed(client);
                 _worldService.OnSetWorldForClient(client);
@@ -47,7 +48,7 @@ namespace Average.Server.Handlers
             {
                 // Create character
 
-                Logger.Debug("Create character");
+                Logger.Debug($"[ClientHandler] Creating %character% for client: {client.Name}.");
                 _characterCreatorService.StartCreator(client);
             }
 

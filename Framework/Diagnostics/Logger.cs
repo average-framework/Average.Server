@@ -12,10 +12,16 @@ namespace Average.Server.Framework.Diagnostics
             public ConsoleColor Background { get; }
             public ConsoleColor Foreground { get; }
 
-            public TextColor(ConsoleColor background, ConsoleColor foreground)
+            public TextColor(ConsoleColor background = ConsoleColor.Black, ConsoleColor foreground = ConsoleColor.Blue)
             {
                 Background = background;
                 Foreground = foreground;
+            }
+
+            public TextColor(int background = 0, int foreground = 9)
+            {
+                Background = (ConsoleColor)background;
+                Foreground = (ConsoleColor)foreground;
             }
         }
 
@@ -82,30 +88,26 @@ namespace Average.Server.Framework.Diagnostics
                 case LogLevel.Trace:
                     Console.BackgroundColor = ConsoleColor.Gray;
                     Console.ForegroundColor = ConsoleColor.Black;
-                    Console.Write(" Trace ");
                     break;
                 case LogLevel.Debug:
                     Console.BackgroundColor = ConsoleColor.DarkMagenta;
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" Debug ");
                     break;
                 case LogLevel.Info:
                     Console.BackgroundColor = ConsoleColor.Blue;
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" Info ");
                     break;
                 case LogLevel.Warn:
                     Console.BackgroundColor = ConsoleColor.DarkYellow;
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" Warn ");
                     break;
                 case LogLevel.Error:
                     Console.BackgroundColor = ConsoleColor.Red;
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" Error ");
                     break;
             }
 
+            Console.Write($" {Enum.GetName(typeof(LogLevel), level)} ");
             Console.ResetColor();
             Console.ForegroundColor = ConsoleColor.Gray;
             Console.Write($" | {message}\n");
@@ -135,7 +137,11 @@ namespace Average.Server.Framework.Diagnostics
                 var chars = message.ToCharArray();
                 var indexes = new List<int>();
 
-                for (int i = 0; i < chars.Length; i++) if (chars[i] == '%') indexes.Add(i);
+                for (int i = 0; i < chars.Length; i++)
+                {
+                    if (chars[i] == '%') indexes.Add(i);
+                }    
+
                 for (int i = 0; i < indexes.Count; i++)
                 {
                     Console.ResetColor();
@@ -205,7 +211,9 @@ namespace Average.Server.Framework.Diagnostics
             var result = "";
 
             for (int i = 0; i < Console.WindowWidth - 1; i++)
+            {
                 result += "-";
+            }    
 
             return result;
         }
