@@ -177,16 +177,13 @@ namespace Average.Server.Services
 
         internal void SetTime(TimeSpan time, int transitionTime = 0)
         {
-            Logger.Debug($"[World] Set time from {World.Time} to {time}");
-
             if (time.Hours == 0)
             {
                 transitionTime = 0;
             }
 
-            Logger.Debug("Transition time: " + transitionTime);
-
             _rpcService.GlobalNativeCall(0x669E223E64B1903C, time.Hours, time.Minutes, time.Seconds, transitionTime, true);
+            Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime} second(s).");
 
             World.Time = time;
             Update(World);
@@ -194,10 +191,10 @@ namespace Average.Server.Services
 
         internal void SetWeather(Weather weather, float transitionTime)
         {
-            Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
-
             _rpcService.GlobalNativeCall(0xD74ACDF7DB8114AF, false);
             _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)weather, true, true, true, transitionTime, false);
+
+            Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
 
             World.Weather = weather;
             Update(World);
@@ -206,9 +203,9 @@ namespace Average.Server.Services
         internal void SetNextWeather(float transitionTime)
         {
             var nextWeather = GetNextWeather();
-            Logger.Debug($"[World] Set next weather from {World.Weather} to {nextWeather} in {transitionTime} second(s).");
 
             _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)nextWeather, true, true, true, transitionTime, false);
+            Logger.Debug($"[World] Set next weather from {World.Weather} to {nextWeather} in {transitionTime} second(s).");
 
             World.Weather = nextWeather;
             Update(World);

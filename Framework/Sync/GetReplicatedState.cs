@@ -3,16 +3,15 @@ using System.Reflection;
 
 namespace Average.Server.Framework.Sync
 {
-    public class PropertySyncState
+    public class GetReplicatedState
     {
-        public SyncAttribute Attribute { get; }
+        public GetReplicatedAttribute Attribute { get; }
         public PropertyInfo Property { get; }
-        public object LastValue { get; set; }
         public object ClassObj { get; }
 
-        public PropertySyncState(SyncAttribute syncAttr, PropertyInfo property, object classObj)
+        public GetReplicatedState(GetReplicatedAttribute getSyncAttr, PropertyInfo property, object classObj)
         {
-            Attribute = syncAttr;
+            Attribute = getSyncAttr;
             Property = property;
             ClassObj = classObj;
         }

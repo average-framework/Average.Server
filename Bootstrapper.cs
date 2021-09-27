@@ -76,7 +76,7 @@ namespace Average.Server
             _container.Register<PermissionService>();
             _container.Register<CommandService>();
             _container.Register<ThreadService>();
-            _container.Register<SyncService>();
+            _container.Register<ReplicateStateService>();
             _container.Register<RequestInternalService>();
             _container.Register<RequestService>();
 
@@ -106,7 +106,7 @@ namespace Average.Server
 
             // Reflections
             _container.GetService<ThreadService>().Reflect();
-            _container.GetService<SyncService>().Reflect();
+            _container.GetService<ReplicateStateService>().Reflect();
             _container.GetService<EventService>().Reflect();
             _container.GetService<CommandService>().Reflect();
         }
