@@ -15,16 +15,14 @@ namespace Average.Server.Handlers
         private readonly CharacterCreatorService _characterCreatorService;
         private readonly CommandHandler _commandHandler;
         private readonly WorldService _worldService;
-        private readonly RpcService _rpcService;
 
-        public ClientHandler(RpcService rpcService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
+        public ClientHandler(CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
         {
             _characterCreatorService = characterCreatorService;
             _clientService = clientService;
             _characterService = characterService;
             _commandHandler = commandHandler;
             _worldService = worldService;
-            _rpcService = rpcService;
         }
 
         [ServerEvent("client:initialized")]
@@ -42,7 +40,7 @@ namespace Average.Server.Handlers
                 Logger.Debug($"[ClientHandler] Spawn character for client: {client.Name}.");
 
                 _characterService.OnSpawnPed(client);
-                _worldService.OnSetWorldForClient(client);
+                _worldService.OnSetWorldForClient();
             }
             else
             {
@@ -52,7 +50,7 @@ namespace Average.Server.Handlers
                 _characterCreatorService.StartCreator(client);
             }
 
-            Logger.Debug("Client initialized: " + client.Name + ", " + client.ServerId);
+            Logger.Write("Client", $"%{client.Name}({client.ServerId}) is initialized%", new Logger.TextColor(foreground: ConsoleColor.Green));
         }
     }
 }

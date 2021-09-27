@@ -1,7 +1,6 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Model;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
 using Average.Shared.Enums;
@@ -18,6 +17,7 @@ namespace Average.Server.Services
         private readonly ThreadService _threadManager;
         private readonly EventService _eventManager;
         private readonly WorldRepository _repository;
+        private readonly RpcService _rpcService;
 
         private int _minTransitionTime;
         private int _maxTransitionTime;
@@ -27,8 +27,9 @@ namespace Average.Server.Services
 
         public WorldData World { get; private set; }
 
-        public WorldService(WorldRepository repository, ThreadService threadManager, EventService eventManager)
+        public WorldService(RpcService rpcService, WorldRepository repository, ThreadService threadManager, EventService eventManager)
         {
+            _rpcService = rpcService;
             _threadManager = threadManager;
             _eventManager = eventManager;
             _repository = repository;
@@ -168,16 +169,28 @@ namespace Average.Server.Services
             }
         }
 
-        internal void OnSetWorldForClient(Client client)
+        internal void OnSetWorldForClient(/*Client client*/)
         {
-            _eventManager.EmitClient(client, "world:set_world", (uint)World.Weather, World.Time.Hours, World.Time.Minutes, World.Time.Seconds);
+            _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)World.Weather, true, true, true, 0f, false);
+            _rpcService.GlobalNativeCall(0x669E223E64B1903C, World.Time.Hours, World.Time.Minutes, World.Time.Seconds, 5000, true);
+            //_eventManager.EmitClient(client, "world:set_world", (uint)World.Weather, World.Time.Hours, World.Time.Minutes, World.Time.Seconds);
         }
 
         internal void SetTime(TimeSpan time, int transitionTime = 0)
         {
             Logger.Debug($"[World] Set time from {World.Time} to {time}");
 
-            _eventManager.EmitClients("world:set_time", time.Hours, time.Minutes, time.Seconds, transitionTime);
+            if (time.Hours == 0)
+            {
+                transitionTime = 0;
+            }
+
+            Logger.Debug("Transition time: " + transitionTime);
+
+            _rpcService.GlobalNativeCall(0x669E223E64B1903C, time.Hours, time.Minutes, time.Seconds, transitionTime, true);
+            //NetworkClockTimeOverride(time.Hours, time.Minutes, time.Seconds, transitionTime, true);
+
+            //_eventManager.EmitClients("world:set_time", time.Hours, time.Minutes, time.Seconds, transitionTime);
 
             World.Time = time;
             Update(World);
@@ -187,7 +200,10 @@ namespace Average.Server.Services
         {
             Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
 
-            _eventManager.EmitClients("world:set_weather", (uint)weather, transitionTime);
+            _rpcService.GlobalNativeCall(0xD74ACDF7DB8114AF, false);
+            _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)weather, true, true, true, transitionTime, false);
+
+            //_eventManager.EmitClients("world:set_weather", (uint)weather, transitionTime);
 
             World.Weather = weather;
             Update(World);
@@ -198,7 +214,8 @@ namespace Average.Server.Services
             var nextWeather = GetNextWeather();
             Logger.Debug($"[World] Set next weather from {World.Weather} to {nextWeather} in {transitionTime} second(s).");
 
-            _eventManager.EmitClients("world:set_weather", (uint)nextWeather, transitionTime);
+            _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)nextWeather, true, true, true, transitionTime, false);
+            //_eventManager.EmitClients("world:set_weather", (uint)nextWeather, transitionTime);
 
             World.Weather = nextWeather;
             Update(World);

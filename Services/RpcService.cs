@@ -4,8 +4,10 @@ using Average.Server.Framework.Model;
 using Average.Server.Framework.Rpc;
 using Average.Shared.Rpc;
 using CitizenFX.Core;
+using CitizenFX.Core.Native;
 using System;
 using System.Linq;
+using static CitizenFX.Core.Native.API;
 
 namespace Average.Server.Services
 {
@@ -34,9 +36,39 @@ namespace Average.Server.Services
             _eventService.EmitClient(client, "rpc:native_call", native, args);
         }
 
+        internal void NativeCall(Client client, ulong native, params object[] args)
+        {
+            _eventService.EmitClient(client, "rpc:native_call", native, args);
+        }
+
+        internal void NativeCall(Client client, Hash native, params object[] args)
+        {
+            _eventService.EmitClient(client, "rpc:native_call", (long)native, args);
+        }
+
+        internal void NativeCall(Client client, string native, params object[] args)
+        {
+            _eventService.EmitClient(client, "rpc:native_call", (long)GetHashKey(native), args);
+        }
+
         internal void GlobalNativeCall(long native, params object[] args)
         {
             _eventService.EmitClients("rpc:native_call", native, args);
+        }
+
+        internal void GlobalNativeCall(ulong native, params object[] args)
+        {
+            _eventService.EmitClients("rpc:native_call", native, args);
+        }
+
+        internal void GlobalNativeCall(Hash native, params object[] args)
+        {
+            _eventService.EmitClients("rpc:native_call", (long)native, args);
+        }
+
+        internal void GlobalNativeCall(string native, params object[] args)
+        {
+            _eventService.EmitClients("rpc:native_call", (long)GetHashKey(native), args);
         }
 
         internal RpcService Event(string eventName)
@@ -224,6 +256,11 @@ namespace Average.Server.Services
             });
 
             _handler.Attach(_message.Event, action);
+        }
+
+        internal void GlobalNativeCall(long v1, object p, int hours, int minutes, int seconds, int transitionTime, bool v2)
+        {
+            throw new NotImplementedException();
         }
 
         internal void On<T1, T2, T3, T4>(Action<T1, T2, T3, T4, RpcCallback> callback)
