@@ -14,8 +14,9 @@ namespace Average.Server.Services
     internal class ServerJobService : IService
     {
         private readonly IContainer _container;
-
         private readonly List<Tuple<IServerJob, ServerJobAttribute>> _jobs = new();
+
+        private const int Delay = 1000;
 
         public ServerJobService(IContainer container)
         {
@@ -49,6 +50,7 @@ namespace Average.Server.Services
                     if (job.StopCondition.Invoke())
                     {
                         OnStopJob(job);
+                        continue;
                     }
 
                     if (job.LastTriggered + job.Recurring >= DateTime.Now)
@@ -60,7 +62,7 @@ namespace Average.Server.Services
                 }
             }
 
-            await BaseScript.Delay(1000);
+            await BaseScript.Delay(Delay);
         }
 
         internal void Reflect()
@@ -94,8 +96,8 @@ namespace Average.Server.Services
         {
             try
             {
-                job.State = JobState.Started;
                 job.OnStart();
+                job.State = JobState.Started;
             }
             catch (Exception ex)
             {
@@ -107,8 +109,8 @@ namespace Average.Server.Services
         {
             try
             {
-                job.State = JobState.Stopped;
                 job.OnStop();
+                job.State = JobState.Stopped;
             }
             catch (Exception ex)
             {

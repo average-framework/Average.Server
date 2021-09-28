@@ -64,7 +64,6 @@ namespace Average.Server.Jobs
                 
                 characterData.Position = new PositionData(characterPosition.X, characterPosition.Y, characterPosition.Z, characterHeading);
                 _characterService.Update(characterData);
-
             }
         }
     }
