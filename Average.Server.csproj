@@ -106,7 +106,6 @@
     </ItemGroup>
     <ItemGroup>
       <Folder Include="Commands\" />
-      <Folder Include="Framework\Handlers\" />
       <Folder Include="Framework\Managers\" />
       <Folder Include="Migrations\" />
     </ItemGroup>

@@ -26,7 +26,7 @@ namespace Average.Server.Services
 
             #endregion
 
-            Logger.Write("RequestInternalManager", "Initialized successfully");
+            Logger.Write("RequestInternalService", "Initialized successfully");
         }
 
         public void HttpResponse(object sender, HttpResponseEventArgs e)

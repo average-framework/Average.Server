@@ -38,7 +38,7 @@ namespace Average.Server.Services
         {
             _container = container;
 
-            Logger.Write("ThreadManager", "Initialized successfully");
+            Logger.Write("ThreadService", "Initialized successfully");
         }
 
         internal void Reflect()

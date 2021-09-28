@@ -29,6 +29,7 @@ namespace Average.Server.Services
         public event EventHandler<ClientEventArgs> ClientRemoved;
 
         public Client this[Player player] => Get(player);
+        public Client this[int index] => Clients[index];
 
         internal Client Get(Player player)
         {

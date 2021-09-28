@@ -52,7 +52,7 @@ namespace Average.Server.Services
 
             #endregion
 
-            Logger.Write("EventManager", "Initialized successfully");
+            Logger.Write("EventService", "Initialized successfully");
         }
 
         public event EventHandler<PlayerConnectingEventArgs> PlayerConnecting;
@@ -77,23 +77,23 @@ namespace Average.Server.Services
             var types = asm.GetTypes();
 
             // Register server events
-            foreach (var service in types)
+            foreach (var type in types)
             {
-                if (_container.IsRegistered(service))
+                if (_container.IsRegistered(type))
                 {
                     // Continue if the service have the same type of this class
-                    if (service == GetType()) continue;
+                    if (type == GetType()) continue;
 
                     // Get service instance
-                    var _service = _container.GetService(service);
-                    var methods = service.GetMethods(flags);
+                    var service = _container.GetService(type);
+                    var methods = type.GetMethods(flags);
 
                     foreach (var method in methods)
                     {
                         var attr = method.GetCustomAttribute<ServerEventAttribute>();
                         if (attr == null) continue;
 
-                        RegisterInternalEvent(attr, _service, method);
+                        RegisterInternalEvent(attr, service, method);
                     }
                 }
             }

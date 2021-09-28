@@ -13,7 +13,7 @@ namespace Average.Server.Services
         {
             _userService = userService;
 
-            Logger.Write("PermissionManager", "Initialized successfully");
+            Logger.Write("PermissionService", "Initialized successfully");
         }
 
         public async void SetPermission(Client client, int permissionLevel)

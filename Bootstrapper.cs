@@ -4,6 +4,7 @@ using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Utilities;
 using Average.Server.Handlers;
+using Average.Server.Jobs;
 using Average.Server.Repositories;
 using Average.Server.Services;
 using CitizenFX.Core;
@@ -73,6 +74,7 @@ namespace Average.Server
             _container.Register<ReplicateStateService>();
             _container.Register<RequestInternalService>();
             _container.Register<RequestService>();
+            _container.Register<ServerJobService>();
 
             // Repositories
             _container.Register<UserRepository>();
@@ -81,14 +83,15 @@ namespace Average.Server
 
             // Services
             _container.Register<UserService>();
-            _container.Register<JobService>();
             _container.Register<CharacterService>();
+            _container.Register<JobService>();
             _container.Register<PermissionService>();
             _container.Register<ClientService>();
             _container.Register<UserStateService>();
             _container.Register<AreaService>();
             _container.Register<CharacterCreatorService>();
             _container.Register<WorldService>();
+            _container.Register<DoorService>();
 
             // Handlers
             _container.Register<CommandHandler>();
@@ -100,11 +103,15 @@ namespace Average.Server
             _container.Register<CharacterCommand>();
             _container.Register<WorldCommand>();
 
+            // Jobs
+            _container.Register<CharacterJob>();
+
             // Reflections
             _container.GetService<ThreadService>().Reflect();
             _container.GetService<ReplicateStateService>().Reflect();
             _container.GetService<EventService>().Reflect();
             _container.GetService<CommandService>().Reflect();
+            _container.GetService<ServerJobService>().Reflect();
         }
 
         internal void Init()

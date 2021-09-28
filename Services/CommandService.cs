@@ -38,7 +38,7 @@ namespace Average.Server.Services
         {
             _container = container;
 
-            Logger.Write("CommandManager", "Initialized successfully");
+            Logger.Write("CommandService", "Initialized successfully");
         }
 
         internal void Reflect()

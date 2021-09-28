@@ -11,5 +11,9 @@ namespace Average.Server.Framework.Extensions
         {
             return $"netid:{player.Character.NetworkId}";
         }
+        public static string PlayerId(this Player player)
+        {
+            return $"player:{player.Handle}";
+        }
     }
 }

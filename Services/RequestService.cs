@@ -22,7 +22,7 @@ namespace Average.Server.Services
         {
             _request = request;
 
-            Logger.Write("RequestManager", "Initialized successfully");
+            Logger.Write("RequestService", "Initialized successfully");
         }
 
         public async Task<RequestResponse> Http(string url, string method = "GET", string data = "", Dictionary<string, string> headers = null)

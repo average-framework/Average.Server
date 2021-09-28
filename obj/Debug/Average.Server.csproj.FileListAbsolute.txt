@@ -15,4 +15,3 @@ C:\Users\bub.bl\Desktop\Average Framework\Average.Server\obj\Debug\Average.Serve
 C:\Users\bub.bl\Desktop\Average Framework\Average.Server\obj\Debug\Average.Server.csproj.CoreCompileInputs.cache
 C:\Users\bub.bl\Desktop\Average Framework\Average.Server\obj\Debug\Average.Server.net.dll
 C:\Users\bub.bl\Desktop\Average Framework\Average.Server\obj\Debug\ref\Average.Server.net.dll
-C:\Users\bub.bl\Desktop\Average Framework\Average.Server\obj\Debug\Average.Server.csproj.CopyComplete
