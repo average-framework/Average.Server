@@ -68,7 +68,6 @@ namespace Average.Server
             // Framework Services
             _container.Register<EventService>();
             _container.Register<RpcService>(Reuse.Transient);
-            _container.Register<PermissionService>();
             _container.Register<CommandService>();
             _container.Register<ThreadService>();
             _container.Register<ReplicateStateService>();
@@ -83,6 +82,7 @@ namespace Average.Server
             // Services
             _container.Register<UserService>();
             _container.Register<CharacterService>();
+            _container.Register<PermissionService>();
             _container.Register<ClientService>();
             _container.Register<UserStateService>();
             _container.Register<AreaService>();

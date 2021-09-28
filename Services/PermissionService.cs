@@ -1,21 +1,33 @@
 ﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
-using CitizenFX.Core;
+using Average.Server.Framework.Model;
+using Average.Shared.DataModels;
 
 namespace Average.Server.Services
 {
     internal class PermissionService : IService
     {
-        public PermissionService()
+        private readonly UserService _userService;
+
+        public PermissionService(UserService userService)
         {
+            _userService = userService;
+
             Logger.Write("PermissionManager", "Initialized successfully");
         }
 
-        public void SetPermission(Player player, int permissionLevel)
+        public async void SetPermission(Client client, int permissionLevel)
         {
-            player.TriggerEvent("permission:set_permission", permissionLevel);
-            Logger.Info($"Set permission: [{permissionLevel}] to player: {player.License()}");
+            var userData = await _userService.Get(client);
+            userData.PermissionLevel = permissionLevel;
+            _userService.Update(userData);
+
+            Logger.Info($"Set permission: [{permissionLevel}] to client: {client.License}");
+        }
+
+        public bool HasPermission(UserData userData, int needPermissionLevel)
+        {
+            return userData.PermissionLevel >= needPermissionLevel;
         }
 
         public bool HasPermission(int needPermissionLevel, int permissionLevel)
