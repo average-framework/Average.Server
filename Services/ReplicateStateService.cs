@@ -1,7 +1,7 @@
-﻿using Average.Server.Framework.Attributes;
-using Average.Server.Framework.Diagnostics;
+﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Sync;
+using Average.Shared.Attributes;
+using Average.Shared.Sync;
 using CitizenFX.Core;
 using DryIoc;
 using System.Collections.Generic;
@@ -28,12 +28,12 @@ namespace Average.Server.Services
             _eventService = eventService;
             _threadService = threadService;
 
-            Logger.Write("ReplicateStateManager", "Initialized successfully");
+            Logger.Write("ReplicateStateService", "Initialized successfully");
         }
 
         private async Task Update()
         {
-            ReplicateProperties();
+            ReplicateValues();
             await BaseScript.Delay(SyncRate);
         }
 
@@ -60,12 +60,13 @@ namespace Average.Server.Services
                         if (attrs != null && attrs.Exists(x => x.GetType() == typeof(ReplicateAttribute)))
                         {
                             var attr = attrs.Find(x => x.GetType() == typeof(ReplicateAttribute)) as ReplicateAttribute;
-                            RegisterInternalReplicatedState(attr, service, ref property);
+                            RegisterInternalReplicateState(attr, service, ref property);
                         }
                     }
                 }
             }
 
+            // Start thread only the reflection have finded ReplicateAttribute
             if (_replicatedStates.Count > 0)
             {
                 _threadService.StartThread(Update);
@@ -86,7 +87,7 @@ namespace Average.Server.Services
             return null;
         }
 
-        private void ReplicateProperties()
+        private void ReplicateValues()
         {
             for (int i = 0; i < _replicatedStates.Count; i++)
             {
@@ -101,16 +102,16 @@ namespace Average.Server.Services
                 if (!state.LastValue.Equals(stateVal))
                 {
                     state.LastValue = stateVal;
-                    _eventService.EmitClients("replicate:property", state.Attribute.Name, stateVal);
+                    _eventService.EmitClients("replicate:property_value", state.Attribute.Name, stateVal);
                 }
             }
         }
 
-        private void RegisterInternalReplicatedState(ReplicateAttribute attr, object classObj, ref PropertyInfo property)
+        private void RegisterInternalReplicateState(ReplicateAttribute attr, object classObj, ref PropertyInfo property)
         {
             if (!_replicatedStates.ContainsKey(attr.Name))
             {
-                if (property.CanWrite && property.CanRead)
+                if (property.CanRead)
                 {
                     _replicatedStates.Add(attr.Name, new ReplicatedState(attr, property, classObj));
 
@@ -118,7 +119,7 @@ namespace Average.Server.Services
                 }
                 else
                 {
-                    Logger.Error($"Unable to register [Replicate]: {attr.Name} on property: {property.Name}, [Replicate] attribute can only be placed on getter & setter property.");
+                    Logger.Error($"Unable to register [Replicate]: {attr.Name} on property: {property.Name}, this property need a getter.");
                 }
             }
             else
@@ -126,7 +127,5 @@ namespace Average.Server.Services
                 Logger.Error($"Unable to register [Replicate]: {attr.Name} on property: {property.Name}, an [Replicate] attribute have already been registered with this name.");
             }
         }
-
-        internal IEnumerable<ReplicatedState> GetReplicatedStates() => _replicatedStates.Values.AsEnumerable();
     }
 }
