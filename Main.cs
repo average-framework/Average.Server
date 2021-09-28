@@ -9,23 +9,27 @@ namespace Average.Server
 {
     internal class Main : BaseScript
     {
-        internal readonly Action<Func<Task>> _attachCallback;
-        internal readonly Action<Func<Task>> _detachCallback;
+        private readonly Action<Func<Task>> _addTick;
+        private readonly Action<Func<Task>> _removeTick;
 
-        private readonly IContainer _container;
-        private readonly Bootstrapper _boostrap;
+        private static Main _instance;
 
         public Main()
         {
+            _instance = this;
+
             Logger.Clear();
             Watermark();
 
-            _attachCallback = c => Tick += c;
-            _detachCallback = c => Tick -= c;
+            _addTick = task => Tick += task;
+            _removeTick = task => Tick -= task;
 
-            _container = new Container().With(rules => rules.WithFactorySelector(Rules.SelectLastRegisteredFactory()));
-            _boostrap = new Bootstrapper(this, _container, EventHandlers, Players);
+            var container = new Container().With(rules => rules.WithFactorySelector(Rules.SelectLastRegisteredFactory()));
+            var boostrap = new Bootstrapper(container, EventHandlers, Players);
         }
+
+        internal static void AddTick(Func<Task> func) => _instance._addTick(func);
+        internal static void RemoveTick(Func<Task> func) => _instance._removeTick(func);
 
         #region Console Command
 

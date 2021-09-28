@@ -18,16 +18,14 @@ namespace Average.Server
 {
     internal class Bootstrapper
     {
-        private readonly Main _main;
         private readonly IContainer _container;
         private readonly EventHandlerDictionary _eventHandlers;
         private readonly PlayerList _players;
 
         internal static JObject BaseConfig = null;
 
-        public Bootstrapper(Main main, IContainer container, EventHandlerDictionary eventHandlers, PlayerList players)
+        public Bootstrapper(IContainer container, EventHandlerDictionary eventHandlers, PlayerList players)
         {
-            _main = main;
             _container = container;
             _eventHandlers = eventHandlers;
             _players = players;
@@ -60,12 +58,9 @@ namespace Average.Server
         {
             _container.RegisterDelegate(() => BusSetup.StartWith<Fast>().Construct(), Reuse.Singleton);
 
-            // Others
+            // Cfx
             _container.RegisterInstance(_eventHandlers);
             _container.RegisterInstance(_players);
-
-            _container.RegisterInstance(_main._attachCallback);
-            _container.RegisterInstance(_main._detachCallback);
 
             // Database
             _container.Register<DbContextFactory>();

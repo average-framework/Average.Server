@@ -1,4 +1,5 @@
-﻿using Average.Server.Framework.Diagnostics;
+﻿using Average.Server.Framework.Attributes;
+using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Shared.Attributes;
 using Average.Shared.Sync;

@@ -6,7 +6,6 @@ using Average.Server.Framework.Model;
 using CitizenFX.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Average.Server.Services
 {
@@ -51,7 +50,7 @@ namespace Average.Server.Services
         {
             OnClientRemoved(client);
 
-            if(client == null)
+            if (client == null)
             {
                 Logger.Debug("Client is null");
                 return;
@@ -61,7 +60,7 @@ namespace Average.Server.Services
 
             var c = Clients.Find(x => x.Player == client.Player);
 
-            if(c == null)
+            if (c == null)
             {
                 Logger.Debug("C == null");
                 return;

@@ -29,20 +29,14 @@ namespace Average.Server.Services
                 StartDelay = startDelay;
             }
         }
-
-        private readonly List<Thread> _threads = new List<Thread>();
-
+        
         private readonly IContainer _container;
-        private Action<Func<Task>> _attachCallback;
-        private Action<Func<Task>> _detachCallback;
-
+        private readonly List<Thread> _threads = new();
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
-        public ThreadService(IContainer container, Action<Func<Task>> attachCallback, Action<Func<Task>> detachCallback)
+        public ThreadService(IContainer container)
         {
             _container = container;
-            _attachCallback = attachCallback;
-            _detachCallback = detachCallback;
 
             Logger.Write("ThreadManager", "Initialized successfully");
         }
@@ -52,23 +46,23 @@ namespace Average.Server.Services
             var asm = Assembly.GetExecutingAssembly();
             var types = asm.GetTypes();
 
-            foreach (var service in types)
+            foreach (var type in types)
             {
-                if (_container.IsRegistered(service))
+                if (_container.IsRegistered(type))
                 {
                     // Continue if the service have the same type of this class
-                    if (service == GetType()) continue;
+                    if (type == GetType()) continue;
 
                     // Get service instance
-                    var _service = _container.GetService(service);
-                    var methods = service.GetMethods(flags);
+                    var service = _container.GetService(type);
+                    var methods = type.GetMethods(flags);
 
                     foreach (var method in methods)
                     {
                         var attr = method.GetCustomAttribute<ThreadAttribute>();
                         if (attr == null) continue;
 
-                        RegisterInternalThread(attr, _service, method);
+                        RegisterInternalThread(attr, service, method);
                     }
                 }
             }
@@ -78,7 +72,7 @@ namespace Average.Server.Services
         {
             var methodParams = method.GetParameters();
 
-            if (methodParams.Count() == 0)
+            if (methodParams.Length == 0)
             {
                 if (threadAttr != null)
                 {
@@ -112,16 +106,16 @@ namespace Average.Server.Services
                                     _threads[_threads.FindIndex(x => x.Func == func)].IsRunning = false;
                                     _threads[_threads.FindIndex(x => x.Func == func)].IsTerminated = true;
 
-                                    _detachCallback(func);
+                                    Main.RemoveTick(func);
                                 }
                             }
                         }
                     };
 
                     thread.Func = func;
-                    _threads.Add(thread);
 
-                    _attachCallback(func);
+                    _threads.Add(thread);
+                    Main.AddTick(func);
 
                     Logger.Debug($"Registering [Thread] to method: {method.Name}.");
                 }
@@ -132,8 +126,8 @@ namespace Average.Server.Services
             }
         }
 
-        public void StartThread(Func<Task> action) => _attachCallback(action);
-        public void StopThread(Func<Task> action) => _detachCallback(action);
+        public void StartThread(Func<Task> action) => Main.AddTick(action);
+        public void StopThread(Func<Task> action) => Main.RemoveTick(action);
 
         public IEnumerable<Thread> GetThreads() => _threads.AsEnumerable();
     }
