@@ -81,6 +81,7 @@ namespace Average.Server
 
             // Services
             _container.Register<UserService>();
+            _container.Register<JobService>();
             _container.Register<CharacterService>();
             _container.Register<PermissionService>();
             _container.Register<ClientService>();
