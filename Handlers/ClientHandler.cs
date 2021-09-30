@@ -54,7 +54,6 @@ namespace Average.Server.Handlers
                 _characterCreatorService.StartCreator(client);
             }
 
-
             Logger.Write("Client", $"%{client.Name}({client.ServerId}) is initialized%", new Logger.TextColor(foreground: ConsoleColor.Green));
         }
     }

@@ -1,5 +1,9 @@
-﻿using Average.Shared.Interfaces;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
+using Average.Shared.DataModels;
+using Average.Shared.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 
 namespace Average.Server.Framework.Database
@@ -37,14 +41,31 @@ namespace Average.Server.Framework.Database
 
         public virtual async Task<TEntity> Update(TEntity entity)
         {
-            var context = _dbContextFactory.CreateDbContext();
+            try
+            {
+                using (var context = _dbContextFactory.CreateDbContext())
+                {
+                    using (var transaction = context.Database.BeginTransaction())
+                    {
+                        
+                        await context.SaveChangesAsync();
+                        transaction.Commit();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("ex: " + ex.Message + "\n" + ex.InnerException);
+            }
 
-            context.Entry(entity).State = EntityState.Modified;
+            //var context = _dbContextFactory.CreateDbContext();
 
-            context.ChangeTracker.DetectChanges();
+            //context.Entry(entity).State = EntityState.Modified;
 
-            await context.SaveChangesAsync();
-            await context.DisposeAsync();
+            ////context.ChangeTracker.DetectChanges();
+
+            //await context.SaveChangesAsync();
+            //await context.DisposeAsync();
 
             return Get(entity.Id, true);
         }
@@ -78,8 +99,15 @@ namespace Average.Server.Framework.Database
             var context = _dbContextFactory.CreateDbContext();
             var createdEntity = context.Set<TEntity>().Add(entity).Entity;
 
-            await context.SaveChangesAsync();
-            await context.DisposeAsync();
+            //await context.SaveChangesAsync();
+            //await context.DisposeAsync();
+
+            //using (var context = _dbContextFactory.CreateDbContext())
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                await context.SaveChangesAsync();
+                transaction.Commit();
+            }
 
             return createdEntity;
         }
@@ -101,8 +129,14 @@ namespace Average.Server.Framework.Database
 
             context.Entry(entity).State = EntityState.Deleted;
             context.Set<TEntity>().Remove(entity);
-            context.SaveChanges();
-            context.Dispose();
+            //context.SaveChanges();
+            //context.Dispose();
+
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                context.SaveChanges();
+                transaction.Commit();
+            }
 
             return true;
         }

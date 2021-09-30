@@ -72,10 +72,11 @@ namespace Average.Server.Services
         private async Task TimeUpdate()
         {
             World.Time += TimeSpan.FromSeconds(120);
-            Update(World);
-
+            
             _eventManager.EmitClients("world:set_time", World.Time.Hours, World.Time.Minutes, World.Time.Seconds);
             await BaseScript.Delay(10000);
+
+            Update(World);
         }
 
         private async Task WeatherUpdate()
@@ -90,7 +91,6 @@ namespace Average.Server.Services
             Logger.Info($"Changing weather from {World.Weather} to {nextWeather}, waiting time: {rndTimeToWait}, transition time: {rndTransitionTime} seconds.");
 
             World.Weather = nextWeather;
-
             Update(World);
 
             _eventManager.EmitClients("world:set_weather", nextWeather, rndTransitionTime);
