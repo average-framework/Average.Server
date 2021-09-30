@@ -2,7 +2,6 @@
 using Average.Server.Framework.Interfaces;
 using Average.Shared.DataModels;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace Average.Server.Repositories
 {

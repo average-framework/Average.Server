@@ -2,14 +2,8 @@
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using CitizenFX.Core;
-using CitizenFX.Core.Native;
 using SDK.Server.Models;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Average.Server.Services
 {
@@ -18,9 +12,9 @@ namespace Average.Server.Services
         private readonly EventService _eventService;
         private readonly ClientService _clientService;
         private readonly List<DoorInfo> _infos = new();
-        private readonly DoorCollection _doors = new();
+        private readonly DoorList _doors = new();
 
-        internal class DoorCollection : IEnumerable<DoorModel>
+        internal class DoorList : IEnumerable<DoorModel>
         {
             private readonly List<DoorModel> _doors = new();
 
@@ -31,13 +25,13 @@ namespace Average.Server.Services
 
             public DoorModel this[int index] => _doors[index];
 
-            public DoorCollection AddDoor(DoorModel door)
+            public DoorList AddDoor(DoorModel door)
             {
                 _doors.Add(door);
                 return this;
             }
 
-            internal DoorCollection RemoveDoor(DoorModel door)
+            internal DoorList RemoveDoor(DoorModel door)
             {
                 _doors.Remove(door);
                 return this;
@@ -45,7 +39,7 @@ namespace Average.Server.Services
 
             public IEnumerator<DoorModel> GetEnumerator()
             {
-                for(int i = 0; i < _doors.Count; i++)
+                for (int i = 0; i < _doors.Count; i++)
                 {
                     yield return _doors[i];
                 }
@@ -97,13 +91,13 @@ namespace Average.Server.Services
 
                 if (client != null && client.Player != null && client.Player.Character != null)
                 {
-                    if(_position != client.Player.Character.Position)
+                    if (_position != client.Player.Character.Position)
                     {
                         _position = client.Player.Character.Position;
 
                         var door = _doors.ToList().Find(x => Vector3.Distance(client.Player.Character.Position, x.Position) < 5f);
 
-                        if(door != null)
+                        if (door != null)
                         {
                             _eventService.EmitClient(client, "door:is_near", true);
                             Logger.Debug("Door is near !");
@@ -126,12 +120,12 @@ namespace Average.Server.Services
             await BaseScript.Delay(1000);
         }
 
-        internal DoorCollection Add(DoorModel door)
+        internal DoorList Add(DoorModel door)
         {
             return _doors.AddDoor(door);
         }
 
-        internal DoorCollection Remove(DoorModel door)
+        internal DoorList Remove(DoorModel door)
         {
             return _doors.RemoveDoor(door);
         }
@@ -145,7 +139,7 @@ namespace Average.Server.Services
         {
             var door = _doors.GetDoor(doorPosition);
 
-            if(door != null)
+            if (door != null)
             {
                 door.IsLocked = !door.IsLocked;
                 _eventService.EmitClients("door:set_door_state", door.Position, door.IsLocked);

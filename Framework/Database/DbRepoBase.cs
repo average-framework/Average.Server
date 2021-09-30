@@ -1,10 +1,6 @@
 ﻿using Average.Shared.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace Average.Server.Framework.Database
 {
@@ -45,8 +41,23 @@ namespace Average.Server.Framework.Database
 
             context.Entry(entity).State = EntityState.Modified;
 
+            context.ChangeTracker.DetectChanges();
+
             await context.SaveChangesAsync();
             await context.DisposeAsync();
+
+            return Get(entity.Id, true);
+        }
+
+        public virtual async Task<TEntity> UpdateWithChilds(TEntity entity)
+        {
+            var context = _dbContextFactory.CreateDbContext();
+            var tempEntity = entity;
+
+            context.Entry(entity).State = EntityState.Modified;
+
+            await Delete(entity.Id);
+            await Add(tempEntity);
 
             return Get(entity.Id, true);
         }

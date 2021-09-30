@@ -52,6 +52,7 @@ namespace Average.Server.Services
         }
 
         public async void Update(CharacterData data) => await _repository.Update(data);
+        public async void UpdateWithChilds(CharacterData data) => await _repository.UpdateWithChilds(data);
         public async void Delete(CharacterData data) => await _repository.Delete(data.Id);
         public async Task<bool> Exists(Player player) => await Get(player) != null;
         public async Task<bool> Exists(long characterId) => await Get(characterId) != null;

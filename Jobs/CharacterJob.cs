@@ -47,20 +47,24 @@ namespace Average.Server.Jobs
 
         public void OnStop()
         {
+            Dispose();
             Logger.Info("CharacterJob Stopped successfully.");
         }
 
         public async void OnUpdate()
         {
-            for (int i = 0; i < _clientService.ClientCount; i++)
+            if (_clientService.Clients.Count > 0)
             {
-                var client = _clientService[i];
-                var characterData = await _characterService.Get(client);
-                var characterPosition = client.Player.Character.Position;
-                var characterHeading = client.Player.Character.Heading;
+                for (int i = 0; i < _clientService.Clients.Count; i++)
+                {
+                    var client = _clientService[i];
+                    var characterData = await _characterService.Get(client, true);
+                    var characterPosition = client.Player.Character.Position;
+                    var characterHeading = client.Player.Character.Heading;
 
-                characterData.Position = new PositionData(characterPosition.X, characterPosition.Y, characterPosition.Z, characterHeading);
-                _characterService.Update(characterData);
+                    characterData.Position = new PositionData(characterPosition.X, characterPosition.Y, characterPosition.Z, characterHeading);
+                    _characterService.UpdateWithChilds(characterData);
+                }
             }
         }
     }
