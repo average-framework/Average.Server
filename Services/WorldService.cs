@@ -1,6 +1,7 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
+using Average.Server.Framework.Model;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
 using Average.Shared.Enums;
@@ -63,6 +64,8 @@ namespace Average.Server.Services
 
                 _threadManager.StartThread(TimeUpdate);
                 _threadManager.StartThread(WeatherUpdate);
+
+                Logger.Write("WorldService", "Initialized successfully");
             });
         }
 
@@ -169,10 +172,10 @@ namespace Average.Server.Services
             }
         }
 
-        internal void OnSetWorldForClient()
+        internal void OnSetWorldForClient(Client client)
         {
-            _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)World.Weather, true, true, true, 0f, false);
-            _rpcService.GlobalNativeCall(0x669E223E64B1903C, World.Time.Hours, World.Time.Minutes, World.Time.Seconds, 5000, true);
+            _rpcService.NativeCall(client, 0x59174F1AFE095B5A, (uint)World.Weather, true, true, true, 0f, false);
+            _rpcService.NativeCall(client, 0x669E223E64B1903C, World.Time.Hours, World.Time.Minutes, World.Time.Seconds, 5000, true);
         }
 
         internal void SetTime(TimeSpan time, int transitionTime = 0)

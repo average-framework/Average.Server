@@ -75,6 +75,8 @@ namespace Average.Server
             _container.Register<RequestInternalService>();
             _container.Register<RequestService>();
             _container.Register<ServerJobService>();
+            _container.Register<ClientService>();
+            _container.Register<InputService>();
 
             // Repositories
             _container.Register<UserRepository>();
@@ -86,7 +88,6 @@ namespace Average.Server
             _container.Register<CharacterService>();
             _container.Register<JobService>();
             _container.Register<PermissionService>();
-            _container.Register<ClientService>();
             _container.Register<UserStateService>();
             _container.Register<AreaService>();
             _container.Register<CharacterCreatorService>();
@@ -98,6 +99,7 @@ namespace Average.Server
             _container.Register<UserHandler>();
             _container.Register<ClientHandler>();
             _container.Register<CharacterHandler>();
+            _container.Register<InputHandler>();
 
             // Commands
             _container.Register<CharacterCommand>();

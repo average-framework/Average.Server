@@ -1,4 +1,5 @@
-﻿using Average.Server.Framework.Extensions;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Framework.Rpc;
@@ -29,6 +30,8 @@ namespace Average.Server.Services
             _serializer = new RpcSerializer();
 
             _eventService = eventService;
+
+            //Logger.Write("RpcService", "Initialized successfully");
         }
 
         internal void NativeCall(Client client, long native, params object[] args)

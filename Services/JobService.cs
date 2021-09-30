@@ -12,6 +12,8 @@ namespace Average.Server.Services
         public JobService(CharacterService characterService)
         {
             _characterService = characterService;
+
+            Logger.Write("JobService", "Initialized successfully");
         }
 
         internal async Task SetJob(Client client, Client target, string jobName, int jobLevel)

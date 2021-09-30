@@ -14,13 +14,15 @@ namespace Average.Server.Services
     internal class ServerJobService : IService
     {
         private readonly IContainer _container;
-        private readonly List<Tuple<IServerJob, ServerJobAttribute>> _jobs = new();
+        private readonly List<IServerJob> _jobs = new();
 
         private const int Delay = 1000;
 
         public ServerJobService(IContainer container)
         {
             _container = container;
+
+            Logger.Write("ServerJobService", "Initialized successfully");
         }
 
         [Thread]
@@ -28,25 +30,19 @@ namespace Average.Server.Services
         {
             for (int i = 0; i < _jobs.Count; i++)
             {
-                var tuple = _jobs[i];
+                var job = _jobs[i];
 
-                if (tuple.Item1.State == JobState.Stopped)
+                if (job.State == JobState.Stopped)
                 {
-                    var job = tuple.Item1;
-
                     if (job.StartCondition.Invoke())
                     {
                         OnStartJob(job);
                         OnUpdateJob(job);
                     }
-
-                    _jobs[i] = new Tuple<IServerJob, ServerJobAttribute>(job, tuple.Item2);
                 }
 
-                if (tuple.Item1.State == JobState.Started)
+                if (job.State == JobState.Started)
                 {
-                    var job = tuple.Item1;
-
                     if (job.StopCondition.Invoke())
                     {
                         OnStopJob(job);
@@ -86,7 +82,7 @@ namespace Average.Server.Services
                         var attr = type.GetCustomAttribute<ServerJobAttribute>();
                         if (attr == null) continue;
 
-                        RegisterInternalJob(attr, @job);
+                        RegisterInternalJob(@job);
                     }
                 }
             }
@@ -131,10 +127,10 @@ namespace Average.Server.Services
             }
         }
 
-        private void RegisterInternalJob(ServerJobAttribute attr, IServerJob classObj)
+        private void RegisterInternalJob(IServerJob job)
         {
-            _jobs.Add(new Tuple<IServerJob, ServerJobAttribute>(classObj, attr));
-            Logger.Debug($"Registering [ServerJob] of type: {classObj.GetType().Name} with id {classObj.Id}.");
+            _jobs.Add(job);
+            Logger.Write("ServerJob", $"Registering [ServerJob] of type: {job.GetType().Name} with id %{job.Id}%.", new Logger.TextColor(foreground: ConsoleColor.DarkYellow));
         }
     }
 }

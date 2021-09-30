@@ -1,4 +1,5 @@
-﻿using Average.Server.Framework.Interfaces;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 
 namespace Average.Server.Services
@@ -10,6 +11,8 @@ namespace Average.Server.Services
         public CharacterCreatorService(EventService eventManager)
         {
             _eventManager = eventManager;
+
+            Logger.Write("CharacterCreatorService", "Initialized successfully");
         }
 
         internal void StartCreator(Client client)

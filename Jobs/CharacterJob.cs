@@ -3,9 +3,6 @@ using Average.Server.Framework.Diagnostics;
 using Average.Server.Interfaces;
 using Average.Server.Services;
 using Average.Shared.DataModels;
-using CitizenFX.Core;
-using System;
-using System.Threading.Tasks;
 
 namespace Average.Server.Jobs
 {
@@ -55,13 +52,13 @@ namespace Average.Server.Jobs
 
         public async void OnUpdate()
         {
-            for(int i = 0; i < _clientService.ClientCount; i++)
+            for (int i = 0; i < _clientService.ClientCount; i++)
             {
                 var client = _clientService[i];
                 var characterData = await _characterService.Get(client);
                 var characterPosition = client.Player.Character.Position;
                 var characterHeading = client.Player.Character.Heading;
-                
+
                 characterData.Position = new PositionData(characterPosition.X, characterPosition.Y, characterPosition.Z, characterHeading);
                 _characterService.Update(characterData);
             }

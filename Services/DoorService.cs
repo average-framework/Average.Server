@@ -82,6 +82,8 @@ namespace Average.Server.Services
             _infos = Configuration.Parse<List<DoorInfo>>("utilities/doors.json");
 
             //Add(new DoorModel());
+
+            Logger.Write("DoorService", "Initialized successfully");
         }
 
         private Vector3 _position;

@@ -26,6 +26,8 @@
       <Copyright>Average Framework</Copyright>
       <Product>Average Framework</Product>
       <Authors>bub.bl</Authors>
+      <ImplicitUsings>disable</ImplicitUsings>
+      <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg\</OutputPath>
@@ -43,16 +45,18 @@
       <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\god\</OutputPath>
       <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
       <Optimize>false</Optimize>
-      <PlatformTarget>AnyCPU</PlatformTarget>
+      <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
       <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+      <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
       <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+      <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
   
     <ItemGroup>

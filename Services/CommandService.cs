@@ -120,7 +120,7 @@ namespace Average.Server.Services
                 }
             }), false);
 
-            Logger.Debug($"Registering [ServerCommand]: {commandName} on method: {action.Method.Name}");
+            Logger.Write("Command", $"Registering [ServerCommand]: %{commandName}% on method: {action.Method.Name}.", new Logger.TextColor(foreground: ConsoleColor.DarkYellow));
         }
 
         internal void RegisterInternalServerCommand(ServerCommandAttribute cmdAttr, CommandAliasAttribute aliasAttr, object classObj, MethodInfo method)
@@ -139,8 +139,6 @@ namespace Average.Server.Services
             }
 
             _serverCommands.Add(new Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate>(cmdAttr, aliasAttr, action));
-
-            Logger.Debug($"Registering [ServerCommand]: {cmdAttr.Command} on method: {method.Name}");
         }
 
         internal void RegisterInternalClientCommand(ClientCommandAttribute commandAttr, CommandAliasAttribute aliasAttr, object classObj, MethodInfo method)
@@ -148,7 +146,7 @@ namespace Average.Server.Services
             var action = Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
             _clientCommands.Add(new Command(commandAttr, aliasAttr, action));
 
-            Logger.Debug($"Registering [Command]: {commandAttr.Command} on method: {method.Name} with alias: {(aliasAttr != null ? $"[{string.Join(", ", aliasAttr.Alias)}]" : "empty")}, params [{string.Join(", ", method.GetParameters().Select(x => x.ParameterType))}]");
+            Logger.Write("Command", $"Registering [ClientCommand]: %{commandAttr.Command}% on method: {action.Method.Name}.", new Logger.TextColor(foreground: ConsoleColor.DarkYellow));
         }
 
         internal void ExecuteClientCommand(Client client, string commandName, List<object> args)

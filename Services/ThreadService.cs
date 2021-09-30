@@ -117,7 +117,7 @@ namespace Average.Server.Services
                     _threads.Add(thread);
                     Main.AddTick(func);
 
-                    Logger.Debug($"Registering [Thread] to method: {method.Name}.");
+                    Logger.Debug($"Registering [Thread]: {classObj.GetType()} to method: {method.Name}.");
                 }
             }
             else

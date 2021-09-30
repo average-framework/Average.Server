@@ -22,6 +22,8 @@ namespace Average.Server.Services
         {
             _repository = repository;
             _eventManager = eventManager;
+
+            Logger.Write("CharacterService", "Initialized successfully");
         }
 
         public async Task<IEnumerable<CharacterData>> GetAll() => _repository.GetAll();

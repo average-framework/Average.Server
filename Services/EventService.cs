@@ -109,13 +109,13 @@ namespace Average.Server.Services
 
         public void EmitClient(Client client, string eventName, params object[] args)
         {
-            Logger.Debug("trigger server event on client: " + client.Name + ", " + eventName + ", " + args.Count());
+            //Logger.Debug("trigger server event on client: " + client.Name + ", " + eventName + ", " + args.Count());
             client.Player.TriggerEvent("server-event:triggered", eventName, args);
         }
 
         public void EmitClients(string eventName, params object[] args)
         {
-            Logger.Debug("trigger server event on clients: " + eventName + ", " + args.Count());
+            //Logger.Debug("trigger server event on clients: " + eventName + ", " + args.Count());
 
             var clientService = _container.Resolve<ClientService>();
 
@@ -136,7 +136,7 @@ namespace Average.Server.Services
                 _events[eventName].Add(action);
             }
 
-            Logger.Debug($"Registering [ServerEvent]: {eventName} on method: {action.Method.Name}.");
+            Logger.Write("Thread", $"Registering [ServerEvent]: %{eventName}% on method: {action.Method.Name}.", new Logger.TextColor(foreground: ConsoleColor.DarkYellow));
         }
 
         public void UnregisterEvent(string eventName)
