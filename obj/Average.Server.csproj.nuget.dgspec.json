@@ -1,33 +1,38 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj": {}
+    "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Server\\Average.Server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj": {
+    "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Server\\Average.Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
+        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Server\\Average.Server.csproj",
         "projectName": "Average.Server.net",
-        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\Average.Server.csproj",
+        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Server\\Average.Server.csproj",
         "packagesPath": "C:\\Users\\bub.bl\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework\\Average.Server\\obj\\",
+        "outputPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Server\\obj\\",
         "projectStyle": "PackageReference",
+        "crossTargeting": true,
         "configFilePaths": [
           "C:\\Users\\bub.bl\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
-          "net48"
+          "netstandard2.1"
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net48": {
-            "targetAlias": "net48",
-            "projectReferences": {}
+          "netstandard2.1": {
+            "targetAlias": "netstandard2.1",
+            "projectReferences": {
+              "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj": {
+                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj"
+              }
+            }
           }
         },
         "warningProperties": {
@@ -37,13 +42,9 @@
         }
       },
       "frameworks": {
-        "net48": {
-          "targetAlias": "net48",
+        "netstandard2.1": {
+          "targetAlias": "netstandard2.1",
           "dependencies": {
-            "Discord.Net": {
-              "target": "Package",
-              "version": "[1.0.2, )"
-            },
             "DryIoc": {
               "target": "Package",
               "version": "[4.8.1, )"
@@ -56,49 +57,75 @@
               "target": "Package",
               "version": "[4.7.0, )"
             },
-            "Microsoft.EntityFrameworkCore": {
+            "MongoDB.Bson": {
               "target": "Package",
-              "version": "[3.1.18, )"
+              "version": "[2.13.1, )"
             },
-            "Microsoft.EntityFrameworkCore.Abstractions": {
+            "MongoDB.Driver": {
               "target": "Package",
-              "version": "[3.1.18, )"
+              "version": "[2.13.1, )"
             },
-            "Microsoft.EntityFrameworkCore.Analyzers": {
+            "MongoDB.Driver.Core": {
               "target": "Package",
-              "version": "[3.1.18, )"
+              "version": "[2.13.1, )"
             },
-            "Microsoft.EntityFrameworkCore.Design": {
-              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
-              "suppressParent": "All",
+            "Newtonsoft.Json": {
               "target": "Package",
-              "version": "[3.1.18, )"
+              "version": "[12.0.2, )"
             },
-            "Microsoft.EntityFrameworkCore.Relational": {
+            "System.Dynamic.Runtime": {
               "target": "Package",
-              "version": "[3.1.18, )"
+              "version": "[4.3.0, )"
             },
-            "Microsoft.EntityFrameworkCore.Tools": {
-              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
-              "suppressParent": "All",
+            "System.Threading": {
               "target": "Package",
-              "version": "[3.1.18, )"
+              "version": "[4.3.0, )"
             },
-            "Microsoft.Extensions.DependencyInjection": {
+            "System.Threading.Tasks": {
               "target": "Package",
-              "version": "[5.0.2, )"
+              "version": "[4.3.0, )"
             },
-            "Microsoft.XmlSerializer.Generator": {
+            "System.Threading.Tasks.Extensions": {
               "target": "Package",
-              "version": "[1.0.0, )"
+              "version": "[4.5.4, )"
             },
-            "Pomelo.EntityFrameworkCore.MySql": {
+            "mongocsharpdriver": {
               "target": "Package",
-              "version": "[3.2.6, )"
+              "version": "[2.13.1, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "NETStandard.Library": {
+              "privateAssets": "all"
             }
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.100-rc.1.21463.6\\RuntimeIdentifierGraph.json"
         }
+      }
+    },
+    "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj": {
+      "restore": {
+        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj",
+        "projectName": "Average.Shared",
+        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj",
+        "frameworks": {
+          "net48": {
+            "projectReferences": {}
+          }
+        }
+      },
+      "frameworks": {
+        "net48": {}
       }
     }
   }

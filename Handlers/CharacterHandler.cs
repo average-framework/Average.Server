@@ -1,12 +1,9 @@
 ﻿using Average.Server.Framework.Attributes;
-using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
 using Average.Shared.DataModels;
-using Newtonsoft.Json;
-using System;
 
 namespace Average.Server.Handlers
 {
@@ -22,15 +19,12 @@ namespace Average.Server.Handlers
         }
 
         [ServerEvent("character:create_character")]
-        private async void OnCreateCharacter(Client client, string json)
+        private void OnCreateCharacter(Client client, string json)
         {
             var characterData = json.Convert<CharacterData>();
             characterData.License = client.License;
 
-            var userData = await _userService.Get(client);
-            characterData.UserId = userData.Id;
-
-            _characterService.Create(userData, characterData);
+            _characterService.Create(characterData);
         }
     }
 }

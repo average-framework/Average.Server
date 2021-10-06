@@ -1,117 +1,71 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-      <TargetFramework>net48</TargetFramework>
-      <DebugType>embedded</DebugType>
-      <TargetName>$(AssemblyName).net</TargetName>
-      <DefineConstants>DEBUG;SERVER</DefineConstants>
-      <AssemblyName>Average.Server.net</AssemblyName>
-      <LangVersion>10</LangVersion>
-      <Platforms>AnyCPU;x64;x86</Platforms>
-      <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-      <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-      <EnableNETAnalyzers>true</EnableNETAnalyzers>
-      <BaseOutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg</BaseOutputPath>
-      <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
-      <GenerateDocumentationFile>False</GenerateDocumentationFile>
-      <SignAssembly>True</SignAssembly>
-      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-      <ApplicationIcon />
-      <OutputType>Library</OutputType>
-      <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-      <StartupObject />
-      <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-      <Company>Average</Company>
-      <Description>Framework for RedM</Description>
-      <Copyright>Average Framework</Copyright>
-      <Product>Average Framework</Product>
-      <Authors>bub.bl</Authors>
-      <ImplicitUsings>disable</ImplicitUsings>
-      <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-      <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg\</OutputPath>
-      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-      <PlatformTarget>AnyCPU</PlatformTarget>
-      <DebugSymbols>true</DebugSymbols>
-      <Optimize>false</Optimize>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <OutputPath>C:\Users\beenj\Desktop\DesktopSync\GitLab\RedDeadRoleplay\ServerFiles\resources\godcountry\</OutputPath>
-      <PlatformTarget>x64</PlatformTarget>
-      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\god\</OutputPath>
-      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-      <Optimize>false</Optimize>
-      <PlatformTarget>x64</PlatformTarget>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-      <PlatformTarget>x64</PlatformTarget>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-      <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-      <PlatformTarget>x64</PlatformTarget>
-    </PropertyGroup>
-  
-    <ItemGroup>
-      <PackageReference Include="Discord.Net" Version="1.0.2" />
-      <PackageReference Include="DryIoc" Version="4.8.1" />
-      <PackageReference Include="MemBus" Version="4.0.1" />
-      <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.18" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="3.1.18" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Analyzers" Version="3.1.18" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.18">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.18" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.18">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
-      <PackageReference Include="Microsoft.XmlSerializer.Generator" Version="1.0.0" />
-      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.6" />
-  
-      <Compile Include="../GodCountryShared/**/*.cs" />
-    </ItemGroup>
-  
-    <ItemGroup>
-      <Compile Remove="Scripts\**" />
-      <EmbeddedResource Remove="Scripts\**" />
-      <None Remove="Scripts\**" />
-    </ItemGroup>
-  
-    <ItemGroup>
-      <Compile Remove="..\GodCountryShared\obj\Debug\.NETFramework,Version=v4.8.AssemblyAttributes.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <DotNetCliToolReference Include="Microsoft.XmlSerializer.Generator" Version="1.0.0" />
-    </ItemGroup>
-    <ItemGroup>
-      <Reference Include="average.shared.net">
-        <HintPath>..\..\AverageFrameworkServer\resources\avg\libs\average.shared.net.dll</HintPath>
-      </Reference>
-      <Reference Include="CitizenFX.Core">
-        <HintPath>..\..\AverageFrameworkServer\resources\avg\CitizenFX.Core.dll</HintPath>
-      </Reference>
-      <Reference Include="Newtonsoft.Json">
-        <HintPath>..\..\AverageFrameworkServer\resources\avg\libs\Newtonsoft.Json.dll</HintPath>
-        <SpecificVersion>false</SpecificVersion>
-        <Private>false</Private>
-      </Reference>
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Commands\" />
-      <Folder Include="Framework\Managers\" />
-      <Folder Include="Migrations\" />
-    </ItemGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+	  <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
+	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+      <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServerMongo\resources\avg</OutputPath>
+	  <BaseOutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServerMongo\resources\avg</BaseOutputPath>
+	  <AssemblyName>Average.Server.net</AssemblyName>
+	  <RootNamespace>Average.Server</RootNamespace>
+	  <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DryIoc" Version="4.8.1" />
+    <PackageReference Include="MemBus" Version="4.0.1" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="mongocsharpdriver" Version="2.13.1" />
+    <PackageReference Include="MongoDB.Bson" Version="2.13.1" />
+    <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
+    <PackageReference Include="MongoDB.Driver.Core" Version="2.13.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Threading" Version="4.3.0" />
+    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Commands\" />
+    <Folder Include="Framework\Managers\" />
+    <Folder Include="Framework\Rpc\" />
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Average.Shared\Average.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CitizenFX.Core">
+      <HintPath>..\..\AverageFrameworkServerMongo\resources\avg\libs\CitizenFX.Server.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\..\..\Desktop\AverageFrameworkServerMongo\resources\avg\libs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\bub.bl\.nuget\packages\mongodb.driver.core\2.13.1\build\../runtimes/win/native/snappy32.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\bub.bl\.nuget\packages\mongodb.driver.core\2.13.1\build\../runtimes/win/native/snappy32.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\bub.bl\.nuget\packages\mongodb.driver.core\2.13.1\build\../runtimes/win/native/snappy32.dll" />
+  </ItemGroup>
+
 </Project>
-  

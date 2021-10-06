@@ -2,13 +2,17 @@
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
+using Average.Server.Framework.Mongo;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
+using Average.Shared.Interfaces;
 using CitizenFX.Core;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Average.Server.Services
@@ -26,38 +30,38 @@ namespace Average.Server.Services
             Logger.Write("CharacterService", "Initialized successfully");
         }
 
-        public async Task<IEnumerable<CharacterData>> GetAll() => _repository.GetAll();
-        public async Task<CharacterData> Get(long characterId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.Id == characterId);
-        public async Task<CharacterData> Get(Player player, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.License == player.License());
-        public async Task<CharacterData> Get(string license, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.License == license);
-        public async Task<CharacterData> GetByUserId(long userId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.UserId == userId);
-        public async Task<List<CharacterData>> GetPlayerCharacters(Player player) => _repository.GetAll().Where(x => x.License == player.License()).ToList();
+        public async Task<IEnumerable<CharacterData>> GetAll() => await _repository.GetAllAsync();
+        public async Task<CharacterData> Get(Player player) => await _repository.GetAsync(x => x.License == player.License());
+        public async Task<CharacterData> Get(string license) => await _repository.GetAsync(x => x.License == license);
+        public async Task<List<CharacterData>> GetCharacters(Player player) => await _repository.GetAllAsync(x => x.License == player.License());
+        public async Task<bool> Update(CharacterData data) => await _repository.ReplaceOneAsync(x => x.Id, data.Id, data);
+        public async Task<bool> Update(Expression<Func<CharacterData, bool>> expression, params UpdateDefinition<CharacterData>[] definitions) => await _repository.UpdateOneAsync(expression, definitions);
+        public async Task<bool> Delete(CharacterData data) => await _repository.DeleteOneAsync(x => x.Id == data.Id);
+        public async Task<bool> Exists(Player player) => await _repository.ExistsAsync(x => x.License == player.License());
+        public async Task<bool> Exists(string license) => await _repository.ExistsAsync(x => x.License == license);
 
-        public async void Create(UserData userData, CharacterData characterData)
+        public async void Create(CharacterData characterData)
         {
             try
             {
-                var exists = await ExistsByUserId(userData.Id);
+                var exists = await _repository.ExistsAsync(x => x.License == characterData.License);
 
                 if (!exists)
                 {
-                    characterData.UserId = userData.Id;
-                    await _repository.Add(characterData);
+                    var added = await _repository.AddAsync(characterData);
+                    Logger.Debug("Is added: " + added);
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error($"[CharacterService] Unable to create character for player {characterData.License}. Error: {ex.Message}\n{ex.InnerException}.");
+                Logger.Error($"[CharacterService] Unable to create character for player {characterData.License}. Error: {ex.Message}\n{ex.StackTrace}.");
             }
         }
 
-        public async Task<CharacterData> Update(CharacterData data) => await _repository.Update(data);
-        public async void UpdateWithChilds(CharacterData data) => await _repository.UpdateWithChilds(data);
-        public async void Delete(CharacterData data) => await _repository.Delete(data.Id);
-        public async Task<bool> Exists(Player player) => await Get(player) != null;
-        public async Task<bool> Exists(long characterId) => await Get(characterId) != null;
-        public async Task<bool> Exists(string license) => await Get(license) != null;
-        public async Task<bool> ExistsByUserId(long userId) => await GetByUserId(userId) != null;
+        public async void UpdatePosition(CharacterData character, PositionData position)
+        {
+            await Update(x => x.Id == character.Id, _repository.USet(x => x.Position, position));
+        }
 
         internal void OnSetPed(Client client, uint model, int variation) => _eventManager.EmitClient(client, "character:set_ped", model, variation);
 
@@ -73,50 +77,50 @@ namespace Average.Server.Services
 
         internal async void OnSpawnPed(Client client)
         {
-            var characterData = await Get(client, true);
-            _eventManager.EmitClient(client, "character:spawn_ped", characterData.ToJson());
+            var characterData = await Get(client);
+            _eventManager.EmitClient(client, "character:spawn_ped", characterData.ToJson(Formatting.None));
         }
 
         internal async void OnSetMoney(Client client, decimal amount)
         {
             var data = await Get(client);
             data.Economy.Money = amount;
-            Update(data);
+            await Update(data);
         }
 
         internal async void OnSetBank(Client client, decimal amount)
         {
             var data = await Get(client);
             data.Economy.Bank = amount;
-            Update(data);
+            await Update(data);
         }
 
         internal async void OnAddMoney(Client client, decimal amount)
         {
             var data = await Get(client);
             data.Economy.Money += amount;
-            Update(data);
+            await Update(data);
         }
 
         internal async void OnAddBank(Client client, decimal amount)
         {
             var data = await Get(client);
             data.Economy.Bank += amount;
-            Update(data);
+            await Update(data);
         }
 
         internal async void OnRemoveMoney(Client client, decimal amount)
         {
             var data = await Get(client);
             data.Economy.Money -= amount;
-            Update(data);
+            await Update(data);
         }
 
         internal async void OnRemoveBank(Client client, decimal amount)
         {
             var data = await Get(client);
             data.Economy.Bank -= amount;
-            Update(data);
+            await Update(data);
         }
     }
 }

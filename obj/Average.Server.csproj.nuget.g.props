@@ -12,8 +12,8 @@
   <ItemGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <SourceRoot Include="C:\Users\bub.bl\.nuget\packages\" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(Language)' == 'C#' AND '$(ExcludeRestorePackageImports)' != 'true' ">
-    <Compile Include="$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\net45\DryIoc\Container.cs" Condition="Exists('$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\net45\DryIoc\Container.cs')">
+  <ItemGroup Condition=" '$(Language)' == 'C#' AND '$(TargetFramework)' == 'netstandard2.1' AND '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Compile Include="$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\netstandard2.0\DryIoc\Container.cs" Condition="Exists('$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\netstandard2.0\DryIoc\Container.cs')">
       <NuGetPackageId>DryIoc</NuGetPackageId>
       <NuGetPackageVersion>4.8.1</NuGetPackageVersion>
       <NuGetItemType>Compile</NuGetItemType>
@@ -21,7 +21,7 @@
       <Private>False</Private>
       <Link>DryIoc\Container.cs</Link>
     </Compile>
-    <Compile Include="$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\net45\DryIoc\Expression.cs" Condition="Exists('$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\net45\DryIoc\Expression.cs')">
+    <Compile Include="$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\netstandard2.0\DryIoc\Expression.cs" Condition="Exists('$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\netstandard2.0\DryIoc\Expression.cs')">
       <NuGetPackageId>DryIoc</NuGetPackageId>
       <NuGetPackageVersion>4.8.1</NuGetPackageVersion>
       <NuGetItemType>Compile</NuGetItemType>
@@ -29,7 +29,7 @@
       <Private>False</Private>
       <Link>DryIoc\Expression.cs</Link>
     </Compile>
-    <Compile Include="$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\net45\DryIoc\FastExpressionCompiler.cs" Condition="Exists('$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\net45\DryIoc\FastExpressionCompiler.cs')">
+    <Compile Include="$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\netstandard2.0\DryIoc\FastExpressionCompiler.cs" Condition="Exists('$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\netstandard2.0\DryIoc\FastExpressionCompiler.cs')">
       <NuGetPackageId>DryIoc</NuGetPackageId>
       <NuGetPackageVersion>4.8.1</NuGetPackageVersion>
       <NuGetItemType>Compile</NuGetItemType>
@@ -37,7 +37,7 @@
       <Private>False</Private>
       <Link>DryIoc\FastExpressionCompiler.cs</Link>
     </Compile>
-    <Compile Include="$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\net45\DryIoc\ImTools.cs" Condition="Exists('$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\net45\DryIoc\ImTools.cs')">
+    <Compile Include="$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\netstandard2.0\DryIoc\ImTools.cs" Condition="Exists('$(NuGetPackageRoot)dryioc\4.8.1\contentFiles\cs\netstandard2.0\DryIoc\ImTools.cs')">
       <NuGetPackageId>DryIoc</NuGetPackageId>
       <NuGetPackageVersion>4.8.1</NuGetPackageVersion>
       <NuGetItemType>Compile</NuGetItemType>
@@ -46,13 +46,36 @@
       <Link>DryIoc\ImTools.cs</Link>
     </Compile>
   </ItemGroup>
-  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <Import Project="$(NuGetPackageRoot)microsoft.xmlserializer.generator\1.0.0\build\Microsoft.XmlSerializer.Generator.props" Condition="Exists('$(NuGetPackageRoot)microsoft.xmlserializer.generator\1.0.0\build\Microsoft.XmlSerializer.Generator.props')" />
-    <Import Project="$(NuGetPackageRoot)microsoft.entityframeworkcore.design\3.1.18\build\net461\Microsoft.EntityFrameworkCore.Design.props" Condition="Exists('$(NuGetPackageRoot)microsoft.entityframeworkcore.design\3.1.18\build\net461\Microsoft.EntityFrameworkCore.Design.props')" />
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' AND '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Content Include="$(NuGetPackageRoot)mongodb.driver.core\2.13.1\contentFiles\any\netstandard2.1\Core\Compression\Snappy\lib\win\snappy32.dll" Condition="Exists('$(NuGetPackageRoot)mongodb.driver.core\2.13.1\contentFiles\any\netstandard2.1\Core\Compression\Snappy\lib\win\snappy32.dll')">
+      <NuGetPackageId>MongoDB.Driver.Core</NuGetPackageId>
+      <NuGetPackageVersion>2.13.1</NuGetPackageVersion>
+      <NuGetItemType>Content</NuGetItemType>
+      <Pack>false</Pack>
+      <Private>False</Private>
+      <Link>Core\Compression\Snappy\lib\win\snappy32.dll</Link>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)mongodb.driver.core\2.13.1\contentFiles\any\netstandard2.1\Core\Compression\Snappy\lib\win\snappy64.dll" Condition="Exists('$(NuGetPackageRoot)mongodb.driver.core\2.13.1\contentFiles\any\netstandard2.1\Core\Compression\Snappy\lib\win\snappy64.dll')">
+      <NuGetPackageId>MongoDB.Driver.Core</NuGetPackageId>
+      <NuGetPackageVersion>2.13.1</NuGetPackageVersion>
+      <NuGetItemType>Content</NuGetItemType>
+      <Pack>false</Pack>
+      <Private>False</Private>
+      <Link>Core\Compression\Snappy\lib\win\snappy64.dll</Link>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)mongodb.driver.core\2.13.1\contentFiles\any\netstandard2.1\Core\Compression\Zstandard\lib\win\libzstd.dll" Condition="Exists('$(NuGetPackageRoot)mongodb.driver.core\2.13.1\contentFiles\any\netstandard2.1\Core\Compression\Zstandard\lib\win\libzstd.dll')">
+      <NuGetPackageId>MongoDB.Driver.Core</NuGetPackageId>
+      <NuGetPackageVersion>2.13.1</NuGetPackageVersion>
+      <NuGetItemType>Content</NuGetItemType>
+      <Pack>false</Pack>
+      <Private>False</Private>
+      <Link>Core\Compression\Zstandard\lib\win\libzstd.dll</Link>
+    </Content>
+  </ItemGroup>
+  <ImportGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' AND '$(ExcludeRestorePackageImports)' != 'true' ">
     <Import Project="$(NuGetPackageRoot)dryioc\4.8.1\build\DryIoc.props" Condition="Exists('$(NuGetPackageRoot)dryioc\4.8.1\build\DryIoc.props')" />
   </ImportGroup>
-  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
-    <PkgMicrosoft_EntityFrameworkCore_Tools Condition=" '$(PkgMicrosoft_EntityFrameworkCore_Tools)' == '' ">C:\Users\bub.bl\.nuget\packages\microsoft.entityframeworkcore.tools\3.1.18</PkgMicrosoft_EntityFrameworkCore_Tools>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' AND '$(ExcludeRestorePackageImports)' != 'true' ">
     <PkgDryIoc Condition=" '$(PkgDryIoc)' == '' ">C:\Users\bub.bl\.nuget\packages\dryioc\4.8.1</PkgDryIoc>
   </PropertyGroup>
 </Project>

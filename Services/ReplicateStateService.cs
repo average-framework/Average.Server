@@ -19,7 +19,7 @@ namespace Average.Server.Services
         private readonly ThreadService _threadService;
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
-        private readonly Dictionary<string, ReplicatedState> _replicatedStates = new();
+        private readonly Dictionary<string, ReplicatedState> _replicatedStates = new Dictionary<string, ReplicatedState>();
 
         private const int SyncRate = 60;
 

@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using Average.Server.Framework.Diagnostics;
+using System.IO;
 using static CitizenFX.Core.Native.API;
 
 namespace Average.Server.Framework.Utilities
@@ -27,7 +28,7 @@ namespace Average.Server.Framework.Utilities
 
         internal static string ReadFileFromRootDir(string path)
         {
-            return File.ReadAllText(string.Join(@"\", GetRootDir(), path));
+            return File.ReadAllText(string.Join(@"/", GetRootDir(), path));
         }
 
         internal static void WriteFile(string path, string content)

@@ -1,0 +1,97 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\bub.bl\\Desktop\\Test - Copie\\Test\\AverageServer.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\bub.bl\\Desktop\\Test - Copie\\Test\\AverageServer.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Test - Copie\\Test\\AverageServer.csproj",
+        "projectName": "Average.Server.net",
+        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Test - Copie\\Test\\AverageServer.csproj",
+        "packagesPath": "C:\\Users\\bub.bl\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\bub.bl\\Desktop\\Test - Copie\\Test\\obj\\",
+        "projectStyle": "PackageReference",
+        "crossTargeting": true,
+        "configFilePaths": [
+          "C:\\Users\\bub.bl\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netstandard2.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netstandard2.1": {
+            "targetAlias": "netstandard2.1",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netstandard2.1": {
+          "targetAlias": "netstandard2.1",
+          "dependencies": {
+            "DryIoc": {
+              "target": "Package",
+              "version": "[4.8.1, )"
+            },
+            "MemBus": {
+              "target": "Package",
+              "version": "[4.0.1, )"
+            },
+            "Microsoft.CSharp": {
+              "target": "Package",
+              "version": "[4.7.0, )"
+            },
+            "Pomelo.EntityFrameworkCore.MySql": {
+              "target": "Package",
+              "version": "[2.2.6, )"
+            },
+            "System.Dynamic.Runtime": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            },
+            "System.Threading": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            },
+            "System.Threading.Tasks": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            },
+            "System.Threading.Tasks.Extensions": {
+              "target": "Package",
+              "version": "[4.5.4, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "NETStandard.Library": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.400\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

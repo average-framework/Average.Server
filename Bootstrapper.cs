@@ -1,7 +1,7 @@
 ﻿using Average.Server.Framework.Commands;
-using Average.Server.Framework.Database;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
+using Average.Server.Framework.Mongo;
 using Average.Server.Framework.Utilities;
 using Average.Server.Handlers;
 using Average.Server.Jobs;
@@ -11,9 +11,7 @@ using CitizenFX.Core;
 using DryIoc;
 using MemBus;
 using MemBus.Configurators;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
-using System.Linq;
 
 namespace Average.Server
 {
@@ -23,7 +21,7 @@ namespace Average.Server
         private readonly EventHandlerDictionary _eventHandlers;
         private readonly PlayerList _players;
 
-        internal static JObject BaseConfig = null;
+        internal static JObject BaseConfig;
 
         public Bootstrapper(IContainer container, EventHandlerDictionary eventHandlers, PlayerList players)
         {
@@ -34,25 +32,7 @@ namespace Average.Server
             BaseConfig = FileUtility.ReadFileFromRootDir("config.json").ToJObject();
 
             Init();
-            MigrateDatabase();
             Register();
-        }
-
-        internal void MigrateDatabase()
-        {
-            var context = new DbContextFactory().CreateDbContext();
-            var pendingMigrations = context.Database.GetPendingMigrations().ToList();
-
-            if (pendingMigrations.Count != 0)
-            {
-                Logger.Warn("[Database] Appling pending migrations.. this may take a few moments.");
-                context.Database.Migrate();
-                Logger.Warn($"[Database] Successfully applied {pendingMigrations.Count} pending migrations.");
-            }
-            else
-            {
-                Logger.Warn("[Database] No pending database migrations.");
-            }
         }
 
         internal void Register()
@@ -64,11 +44,11 @@ namespace Average.Server
             _container.RegisterInstance(_players);
 
             // Database
-            _container.Register<DbContextFactory>();
+            _container.Register<DatabaseContextFactory>();
 
             // Framework Services
             _container.Register<EventService>();
-            _container.Register<RpcService>(Reuse.Transient);
+            _container.Register<RpcService>();
             _container.Register<CommandService>();
             _container.Register<ThreadService>();
             _container.Register<ReplicateStateService>();
@@ -94,19 +74,21 @@ namespace Average.Server
             _container.Register<WorldService>();
             _container.Register<DoorService>();
 
+            // Jobs
+            _container.Register<CharacterJob>();
+
             // Handlers
             _container.Register<CommandHandler>();
             _container.Register<UserHandler>();
             _container.Register<ClientHandler>();
             _container.Register<CharacterHandler>();
             _container.Register<InputHandler>();
+            _container.Register<RpcHandler>();
 
             // Commands
+            _container.Register<ServerJobCommand>();
             _container.Register<CharacterCommand>();
             _container.Register<WorldCommand>();
-
-            // Jobs
-            _container.Register<CharacterJob>();
 
             // Reflections
             _container.GetService<ThreadService>().Reflect();

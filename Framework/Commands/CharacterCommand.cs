@@ -1,7 +1,4 @@
-﻿using Average.Server.Framework.Attributes;
-using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Model;
+﻿using Average.Server.Framework.Interfaces;
 
 namespace Average.Server.Framework.Commands
 {
@@ -11,17 +8,5 @@ namespace Average.Server.Framework.Commands
         {
 
         }
-
-        //[ClientCommand("character:set_money")]
-        //private void OnCharacterSetMoney(Client client, string amount)
-        //{
-        //    Logger.Debug("Set money for: " + client.Name + ", " + amount);
-        //}
-
-        //[ClientCommand("character:set_bank")]
-        //private void OnCharacterSetBank(Client client, string amount, string amount1, int amount2)
-        //{
-        //    Logger.Debug("Set money for: " + client.Name + ", " + amount);
-        //}
     }
 }

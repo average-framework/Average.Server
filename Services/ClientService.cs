@@ -49,13 +49,14 @@ namespace Average.Server.Services
 
         internal void RemoveClient(Client client)
         {
-            OnClientRemoved(client);
 
             if (client == null)
             {
                 Logger.Debug("Client is null");
                 return;
             }
+
+            OnClientRemoved(client);
 
             Logger.Debug("Remove client info: " + client.Name);
 

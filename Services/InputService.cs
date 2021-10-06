@@ -5,7 +5,6 @@ using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Shared.Enums;
 using CitizenFX.Core;
-using DryIoc;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -16,7 +15,7 @@ namespace Average.Server.Services
     {
         private readonly EventService _eventService;
         private readonly ClientService _clientService;
-        private readonly List<Input> _inputs = new();
+        private readonly List<Input> _inputs = new List<Input>();
 
         public class Input
         {
@@ -37,13 +36,10 @@ namespace Average.Server.Services
             }
         }
 
-        private readonly IContainer _container;
-
-        public InputService(EventService eventService, ClientService clientService, IContainer container)
+        public InputService(EventService eventService, ClientService clientService)
         {
             _eventService = eventService;
             _clientService = clientService;
-            _container = container;
 
             Logger.Write("InputService", "Initialized successfully");
         }
@@ -83,7 +79,7 @@ namespace Average.Server.Services
 
             _inputs.ForEach(x => newInputs.Add(new
             {
-                Id = x.Id,
+                x.Id,
                 Key = (uint)x.Key
             }));
 

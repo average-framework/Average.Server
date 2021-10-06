@@ -1,38 +1,335 @@
-﻿using Average.Server.Framework.Diagnostics;
+﻿using Average.Server.Framework.Attributes;
+using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
-using Average.Server.Framework.Rpc;
 using Average.Shared.Rpc;
 using CitizenFX.Core;
 using CitizenFX.Core.Native;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using static CitizenFX.Core.Native.API;
 
 namespace Average.Server.Services
 {
     internal class RpcService : IService
     {
-        private RpcMessage _message;
-        private readonly RpcHandler _handler;
-        private readonly RpcTrigger _trigger;
-        private readonly RpcSerializer _serializer;
         private readonly EventService _eventService;
 
         internal delegate object RpcCallback(params object[] args);
 
-        public RpcService(EventHandlerDictionary eventHandlers, PlayerList players, EventService eventService)
-        {
-            _message = new RpcMessage();
-            _handler = new RpcHandler(eventHandlers);
-            _trigger = new RpcTrigger(players);
-            _serializer = new RpcSerializer();
+        private readonly Dictionary<string, Delegate> _events = new();
 
+        public RpcService(EventService eventService)
+        {
             _eventService = eventService;
 
-            //Logger.Write("RpcService", "Initialized successfully");
+            OnRequest<int>("rpc:test2", (client, cb, age) =>
+            {
+                Logger.Debug("Age is: " + age);
+                cb(age > 20);
+            });
+
+            OnRequest("player_count", (client, cb) =>
+            {
+                Logger.Debug("Send player count: " + 128);
+                cb(128);
+            });
+
+            Logger.Write("RpcService", "Initialized successfully");
         }
+
+        [ClientCommand("rpc:test")]
+        private async void RpcTestCommand(Client client)
+        {
+            Logger.Error("Exec command: rpc:test");
+            OnResponse<string>("rpc:test", ageResult =>
+            {
+                Logger.Error("rpc:test response: " + ageResult);
+            }).Emit(client, "rpc:test", 24);
+
+            Logger.Error("Getting value..");
+            var result = await Request<float>(client, "GetPedScale");
+            Logger.Error("Ped scale: " + result.Item1);
+        }
+
+        internal void TriggerResponse(string @event, string response)
+        {
+            if (_events.ContainsKey(@event))
+            {
+                _events[@event].DynamicInvoke(response);
+            }
+        }
+
+        internal void OnInternalRequest(Client client, string @event, string request)
+        {
+            var message = request.Convert<RpcMessage>();
+
+            if (_events.ContainsKey(@event))
+            {
+                var newArgs = new List<object>();
+
+                newArgs.Add(client);
+                newArgs.Add(new RpcCallback(args =>
+                {
+                    var response = new RpcMessage();
+                    response.Event = @event;
+                    response.Args = args.ToList();
+
+                    _eventService.EmitClient(client, "rpc:send_response", @event, response.ToJson());
+                    return args;
+                }));
+
+                // Need to skip two first args (Client & RpcCallback) args
+                var methodParams = _events[@event].Method.GetParameters().Skip(2).ToList();
+
+                for (int i = 0; i < methodParams.Count; i++)
+                {
+                    var arg = message.Args[i];
+                    var param = methodParams[i];
+
+                    if (arg.GetType() != param.ParameterType)
+                    {
+                        if (arg.GetType() == typeof(JArray))
+                        {
+                            // Need to convert arg or type JArray to param type if is it not the same
+                            var array = arg as JArray;
+                            var newArg = array.ToObject(param.ParameterType);
+                            newArgs.Add(newArg);
+                        }
+                        else
+                        {
+                            // Need to convert arg type to param type if is it not the same
+                            var newArg = Convert.ChangeType(arg, param.ParameterType);
+                            newArgs.Add(newArg);
+                        }
+                    }
+                    else
+                    {
+                        newArgs.Add(arg);
+                    }
+                }
+
+                _events[@event].DynamicInvoke(newArgs.ToArray());
+            }
+        }
+
+        internal void OnInternalResponse(string @event, Delegate callback)
+        {
+            Action<string> action = null;
+            action = response =>
+            {
+                Unregister(@event);
+
+                var message = response.Convert<RpcMessage>();
+                var @params = callback.Method.GetParameters().ToList();
+                var newArgs = new List<object>();
+
+                for (int i = 0; i < message.Args.Count; i++)
+                {
+                    var arg = message.Args[i];
+                    var param = @params[i];
+
+                    if (arg.GetType() != param.ParameterType)
+                    {
+                        if (arg.GetType() == typeof(JArray))
+                        {
+                            // Need to convert arg or type JArray to param type if is it not the same
+                            var array = arg as JArray;
+                            var newArg = array.ToObject(param.ParameterType);
+                            newArgs.Add(newArg);
+                        }
+                        else
+                        {
+                            // Need to convert arg type to param type if is it not the same
+                            var newArg = Convert.ChangeType(arg, param.ParameterType);
+                            newArgs.Add(newArg);
+                        }
+                    }
+                    else
+                    {
+                        newArgs.Add(arg);
+                    }
+                }
+
+                callback.DynamicInvoke(newArgs.ToArray());
+            };
+
+            Register(@event, action);
+        }
+
+        private void Register(string @event, Delegate callback)
+        {
+            if (!_events.ContainsKey(@event))
+            {
+                _events.Add(@event, callback);
+            }
+        }
+
+        private void Unregister(string @event)
+        {
+            if (_events.ContainsKey(@event))
+            {
+                _events.Remove(@event);
+            }
+        }
+
+        internal void Emit(Client client, string @event, params object[] args)
+        {
+            var message = new RpcMessage();
+            message.Event = @event;
+            message.Args = args.ToList();
+
+            _eventService.EmitClient(client, "rpc:trigger_event", message.Event, message.ToJson());
+        }
+
+        #region OnRequest<,>
+
+        internal void OnRequest(string @event, Action<Client, RpcCallback> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1>(string @event, Action<Client, RpcCallback, T1> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1, T2>(string @event, Action<Client, RpcCallback, T1, T2> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1, T2, T3>(string @event, Action<Client, RpcCallback, T1, T2, T3> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1, T2, T3, T4>(string @event, Action<Client, RpcCallback, T1, T2, T3, T4> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1, T2, T3, T4, T5>(string @event, Action<Client, RpcCallback, T1, T2, T3, T4, T5> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1, T2, T3, T4, T5, T6>(string @event, Action<Client, RpcCallback, T1, T2, T3, T4, T5, T6> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1, T2, T3, T4, T5, T6, T7>(string @event, Action<Client, RpcCallback, T1, T2, T3, T4, T5, T6, T7> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1, T2, T3, T4, T5, T6, T7, T8>(string @event, Action<Client, RpcCallback, T1, T2, T3, T4, T5, T6, T7, T8> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1, T2, T3, T4, T5, T6, T7, T8, T9>(string @event, Action<Client, RpcCallback, T1, T2, T3, T4, T5, T6, T7, T8, T9> callback)
+        {
+            Register(@event, callback);
+        }
+
+        internal void OnRequest<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(string @event, Action<Client, RpcCallback, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> callback)
+        {
+            Register(@event, callback);
+        }
+
+        #endregion
+
+        #region OnResponse<,>
+
+        public RpcService OnResponse(string @event, Action callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1>(string @event, Action<T1> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1, T2>(string @event, Action<T1, T2> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1, T2, T3>(string @event, Action<T1, T2, T3> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1, T2, T3, T4>(string @event, Action<T1, T2, T3, T4> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1, T2, T3, T4, T5>(string @event, Action<T1, T2, T3, T4, T5> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1, T2, T3, T4, T5, T6>(string @event, Action<T1, T2, T3, T4, T5, T6> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1, T2, T3, T4, T5, T6, T7>(string @event, Action<T1, T2, T3, T4, T5, T6, T7> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1, T2, T3, T4, T5, T6, T7, T8>(string @event, Action<T1, T2, T3, T4, T5, T6, T7, T8> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1, T2, T3, T4, T5, T6, T7, T8, T9>(string @event, Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        public RpcService OnResponse<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(string @event, Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> callback)
+        {
+            OnInternalResponse(@event, callback);
+            return this;
+        }
+
+        #endregion
+
+        public async Task<Tuple<T1>> Request<T1>(Client client, string @event, params object[] args)
+        {
+            object result = null;
+
+            OnResponse<T1>(@event, arg0 =>
+            {
+                result = Tuple.Create(arg0);
+            }).Emit(client, @event, args);
+
+            while (result == null) await BaseScript.Delay(1);
+
+            return result as Tuple<T1>;
+        }
+
+        #region Native Game Call
 
         internal void NativeCall(Client client, long native, params object[] args)
         {
@@ -72,528 +369,6 @@ namespace Average.Server.Services
         internal void GlobalNativeCall(string native, params object[] args)
         {
             _eventService.EmitClients("rpc:native_call", (long)GetHashKey(native), args);
-        }
-
-        internal RpcService Event(string eventName)
-        {
-            _message.Event = eventName;
-            return this;
-        }
-
-        internal void Emit(RpcMessage message)
-        {
-            _trigger.Trigger(message);
-        }
-
-        internal void Emit(params object[] args)
-        {
-            args.ToList().ForEach(x => _message.Args.Add(x));
-            _trigger.Trigger(_message);
-        }
-
-        internal RpcService To(Client client)
-        {
-            _message.Target = int.Parse(client.Player.Handle);
-            return this;
-        }
-
-        internal void On(Action action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1>(Action<T1> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2>(Action<T1, T2> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3>(Action<T1, T2, T3> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> action)
-        {
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On(Action<RpcMessage, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                callback(_message, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        #region On<T>
-
-        internal void On<T1>(Action<T1, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-
-                callback(arg1, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2>(Action<T1, T2, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-
-                callback(arg1, arg2, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3>(Action<T1, T2, T3, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-
-                callback(arg1, arg2, arg3, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void GlobalNativeCall(long v1, object p, int hours, int minutes, int seconds, int transitionTime, bool v2)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal void On<T1, T2, T3, T4>(Action<T1, T2, T3, T4, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-
-                callback(arg1, arg2, arg3, arg4, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5>(Action<T1, T2, T3, T4, T5, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6>(Action<T1, T2, T3, T4, T5, T6, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7>(Action<T1, T2, T3, T4, T5, T6, T7, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-                var arg7 = _message.Args[6].Convert<T7>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8>(Action<T1, T2, T3, T4, T5, T6, T7, T8, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-                var arg7 = _message.Args[6].Convert<T7>();
-                var arg8 = _message.Args[7].Convert<T8>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-                var arg7 = _message.Args[6].Convert<T7>();
-                var arg8 = _message.Args[7].Convert<T8>();
-                var arg9 = _message.Args[8].Convert<T9>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-                var arg7 = _message.Args[6].Convert<T7>();
-                var arg8 = _message.Args[7].Convert<T8>();
-                var arg9 = _message.Args[8].Convert<T9>();
-                var arg10 = _message.Args[9].Convert<T10>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-                var arg7 = _message.Args[6].Convert<T7>();
-                var arg8 = _message.Args[7].Convert<T8>();
-                var arg9 = _message.Args[8].Convert<T9>();
-                var arg10 = _message.Args[9].Convert<T10>();
-                var arg11 = _message.Args[10].Convert<T11>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-                var arg7 = _message.Args[6].Convert<T7>();
-                var arg8 = _message.Args[7].Convert<T8>();
-                var arg9 = _message.Args[8].Convert<T9>();
-                var arg10 = _message.Args[9].Convert<T10>();
-                var arg11 = _message.Args[10].Convert<T11>();
-                var arg12 = _message.Args[11].Convert<T12>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-                var arg7 = _message.Args[6].Convert<T7>();
-                var arg8 = _message.Args[7].Convert<T8>();
-                var arg9 = _message.Args[8].Convert<T9>();
-                var arg10 = _message.Args[9].Convert<T10>();
-                var arg11 = _message.Args[10].Convert<T11>();
-                var arg12 = _message.Args[11].Convert<T12>();
-                var arg13 = _message.Args[12].Convert<T13>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-                var arg7 = _message.Args[6].Convert<T7>();
-                var arg8 = _message.Args[7].Convert<T8>();
-                var arg9 = _message.Args[8].Convert<T9>();
-                var arg10 = _message.Args[9].Convert<T10>();
-                var arg11 = _message.Args[10].Convert<T11>();
-                var arg12 = _message.Args[11].Convert<T12>();
-                var arg13 = _message.Args[12].Convert<T13>();
-                var arg14 = _message.Args[13].Convert<T14>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
-        }
-
-        internal void On<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(Action<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, RpcCallback> callback)
-        {
-            var action = new Action<string>(request =>
-            {
-                _message = _serializer.Deserialize<RpcMessage>(request);
-
-                var arg1 = _message.Args[0].Convert<T1>();
-                var arg2 = _message.Args[1].Convert<T2>();
-                var arg3 = _message.Args[2].Convert<T3>();
-                var arg4 = _message.Args[3].Convert<T4>();
-                var arg5 = _message.Args[4].Convert<T5>();
-                var arg6 = _message.Args[5].Convert<T6>();
-                var arg7 = _message.Args[6].Convert<T7>();
-                var arg8 = _message.Args[7].Convert<T8>();
-                var arg9 = _message.Args[8].Convert<T9>();
-                var arg10 = _message.Args[9].Convert<T10>();
-                var arg11 = _message.Args[10].Convert<T11>();
-                var arg12 = _message.Args[11].Convert<T12>();
-                var arg13 = _message.Args[12].Convert<T13>();
-                var arg14 = _message.Args[13].Convert<T14>();
-                var arg15 = _message.Args[14].Convert<T15>();
-
-                callback(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, args =>
-                {
-                    _message.Args = args.ToList();
-                    _trigger.Trigger(_message);
-                    return args;
-                });
-            });
-
-            _handler.Attach(_message.Event, action);
         }
 
         #endregion

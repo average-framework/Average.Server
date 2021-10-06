@@ -20,11 +20,11 @@ namespace Average.Server.Services
         private readonly WorldRepository _repository;
         private readonly RpcService _rpcService;
 
-        private int _minTransitionTime;
-        private int _maxTransitionTime;
-        private int _minTimeBetweenWeatherChanging;
-        private int _maxTimeBetweenWeatherChanging;
-        private JObject _baseConfig;
+        private readonly int _minTransitionTime;
+        private readonly int _maxTransitionTime;
+        private readonly int _minTimeBetweenWeatherChanging;
+        private readonly int _maxTimeBetweenWeatherChanging;
+        private readonly JObject _baseConfig;
 
         public WorldData World { get; private set; }
 
@@ -44,7 +44,7 @@ namespace Average.Server.Services
 
             Task.Factory.StartNew(async () =>
             {
-                if (!Exists(0))
+                if (!await Exists(0))
                 {
                     var world = new WorldData
                     {
@@ -54,12 +54,12 @@ namespace Average.Server.Services
                     };
 
                     World = world;
-                    await Add(world);
+                    await Create(world);
                 }
                 else
                 {
                     // Get default world
-                    World = Get(0);
+                    World = await Get(0);
                 }
 
                 _threadManager.StartThread(TimeUpdate);
@@ -72,7 +72,7 @@ namespace Average.Server.Services
         private async Task TimeUpdate()
         {
             World.Time += TimeSpan.FromSeconds(120);
-            
+
             _eventManager.EmitClients("world:set_time", World.Time.Hours, World.Time.Minutes, World.Time.Seconds);
             await BaseScript.Delay(10000);
 
@@ -216,13 +216,13 @@ namespace Average.Server.Services
 
         #region Repository
 
-        public async Task Add(WorldData data) => await _repository.Add(data);
-        public ICollection<WorldData> GetAll() => _repository.GetAll();
-        public WorldData Get(long worldId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.WorldId == worldId);
-        public async void Update(WorldData data) => await _repository.Update(data);
-        public async void Delete(WorldData data) => await _repository.Delete(data.Id);
-        public bool Exists(WorldData data) => Get(data.WorldId) != null;
-        public bool Exists(long worldId) => Get(worldId) != null;
+        public async Task<bool> Create(WorldData data) => await _repository.AddAsync(data);
+        public async Task<List<WorldData>> GetAll() => await _repository.GetAllAsync();
+        public async Task<WorldData> Get(long worldId) => await _repository.GetAsync(x => x.WorldId == worldId);
+        public async Task<bool> Update(WorldData data) => await _repository.ReplaceOneAsync(x => x.Id, data.Id, data);
+        public async Task<bool> Delete(WorldData data) => await _repository.DeleteOneAsync(x => x.Id == data.Id);
+        public async Task<bool> Exists(WorldData data) => await _repository.ExistsAsync(x => x.Id == data.Id);
+        public async Task<bool> Exists(long worldId) => await _repository.ExistsAsync(x => x.WorldId == worldId);
 
         #endregion
     }

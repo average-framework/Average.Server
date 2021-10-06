@@ -1,0 +1,28 @@
+C:\Users\bub.bl\source\repos\Test\Test\bin\Debug\Test.deps.json
+C:\Users\bub.bl\source\repos\Test\Test\bin\Debug\Test.dll
+C:\Users\bub.bl\source\repos\Test\Test\bin\Debug\Test.pdb
+C:\Users\bub.bl\source\repos\Test\Test\bin\Debug\CitizenFX.Server.Core.dll
+C:\Users\bub.bl\source\repos\Test\Test\obj\Debug\Test.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\bub.bl\source\repos\Test\Test\obj\Debug\Test.AssemblyInfoInputs.cache
+C:\Users\bub.bl\source\repos\Test\Test\obj\Debug\Test.AssemblyInfo.cs
+C:\Users\bub.bl\source\repos\Test\Test\obj\Debug\Test.csproj.CoreCompileInputs.cache
+C:\Users\bub.bl\source\repos\Test\Test\obj\Debug\Test.csproj.AssemblyReference.cache
+C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg\Average.Server.net.deps.json
+C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg\Average.Server.net.dll
+C:\Users\bub.bl\Desktop\AverageFrameworkServer\resources\avg\Average.Server.net.pdb
+C:\Users\bub.bl\source\repos\Test\Test\obj\Debug\Average.Server.net.dll
+C:\Users\bub.bl\source\repos\Test\Test\obj\Debug\Average.Server.net.pdb
+C:\Users\bub.bl\source\repos\Test - Copie\Test\obj\Debug\Test.csproj.AssemblyReference.cache
+C:\Users\bub.bl\source\repos\Test - Copie\Test\obj\Debug\Test.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\bub.bl\source\repos\Test - Copie\Test\obj\Debug\Test.AssemblyInfoInputs.cache
+C:\Users\bub.bl\source\repos\Test - Copie\Test\obj\Debug\Test.AssemblyInfo.cs
+C:\Users\bub.bl\source\repos\Test - Copie\Test\obj\Debug\Test.csproj.CoreCompileInputs.cache
+C:\Users\bub.bl\source\repos\Test - Copie\Test\obj\Debug\Average.Server.net.dll
+C:\Users\bub.bl\source\repos\Test - Copie\Test\obj\Debug\Average.Server.net.pdb
+C:\Users\bub.bl\Desktop\Test - Copie\Test\obj\Debug\Test.csproj.AssemblyReference.cache
+C:\Users\bub.bl\Desktop\Test - Copie\Test\obj\Debug\Test.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\bub.bl\Desktop\Test - Copie\Test\obj\Debug\Test.AssemblyInfoInputs.cache
+C:\Users\bub.bl\Desktop\Test - Copie\Test\obj\Debug\Test.AssemblyInfo.cs
+C:\Users\bub.bl\Desktop\Test - Copie\Test\obj\Debug\Test.csproj.CoreCompileInputs.cache
+C:\Users\bub.bl\Desktop\Test - Copie\Test\obj\Debug\Average.Server.net.dll
+C:\Users\bub.bl\Desktop\Test - Copie\Test\obj\Debug\Average.Server.net.pdb

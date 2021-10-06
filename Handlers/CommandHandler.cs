@@ -1,4 +1,5 @@
-﻿using Average.Server.Framework.Extensions;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
@@ -17,17 +18,16 @@ namespace Average.Server.Handlers
         private readonly CommandService _commandManager;
         private readonly ClientService _clientService;
         private readonly RpcService _rpc;
-        private readonly PlayerList _players;
 
-        public CommandHandler(EventService eventManager, CommandService commandManager, ClientService clientService, RpcService rpc, PlayerList players)
+        public CommandHandler(EventService eventManager, CommandService commandManager, ClientService clientService, RpcService rpc)
         {
             _eventManager = eventManager;
             _commandManager = commandManager;
             _clientService = clientService;
             _rpc = rpc;
-            _players = players;
 
-            _rpc.Event("command:execute").On(OnClientExecuteCommand);
+            //_rpc.Event("command:execute").On(OnClientExecuteCommand);
+            _rpc.OnRequest<string, List<object>>("command:execute", OnClientExecuteCommand);
         }
 
         internal void OnClientInitialized(Client client)
@@ -39,15 +39,16 @@ namespace Average.Server.Handlers
             _eventManager.EmitClient(client, "command:register_commands", newCommands.ToJson());
         }
 
-        private void OnClientExecuteCommand(RpcMessage message, RpcCallback callback)
+        private void OnClientExecuteCommand(Client client, RpcCallback callback, string commandName, List<object> args)
         {
-            var commandName = message.Args[0].Convert<string>();
-            var args = message.Args[1].Convert<List<object>>();
+            Logger.Error("-1");
 
             try
             {
-                var player = _players[message.Target];
-                var client = _clientService.Get(player);
+                Logger.Error("0");
+
+                //var player = _players[message.Target];
+                //var client = _clientService.Get(player);
 
                 _commandManager.ExecuteClientCommand(client, commandName, args);
 
@@ -56,6 +57,8 @@ namespace Average.Server.Handlers
             }
             catch
             {
+                Logger.Error("1");
+
                 var command = _commandManager.GetCommand(commandName);
                 var usage = "";
                 command.Action.Method.GetParameters().Skip(1).ToList().ForEach(x => usage += $"<[{x.ParameterType.Name}] {x.Name}> ");

@@ -1,6 +1,7 @@
 ﻿using Average.Server.Framework.Extensions;
 using CitizenFX.Core;
 using System;
+using System.Collections.Generic;
 
 namespace Average.Server.Framework.Model
 {
@@ -11,6 +12,7 @@ namespace Average.Server.Framework.Model
         public string License { get => Player.License(); }
         public string Name { get => Player.Name; }
         public int ServerId { get => int.Parse(Player.Handle); }
+        public Dictionary<string, object> TempData { get; } = new Dictionary<string, object>();
 
         public Client(Player player)
         {
@@ -18,7 +20,7 @@ namespace Average.Server.Framework.Model
             CreatedAt = DateTime.Now;
         }
 
-        public void Kick(string reason)
+        public void Kick(string reason = "")
         {
             Player.Drop(reason);
         }

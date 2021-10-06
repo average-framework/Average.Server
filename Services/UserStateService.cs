@@ -4,6 +4,7 @@ using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Events;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
+using CitizenFX.Core;
 
 namespace Average.Server.Services
 {
@@ -32,7 +33,7 @@ namespace Average.Server.Services
 
             if (!userExist)
             {
-                _userService.Create(e.Player);
+                await _userService.Create(e.Player);
             }
             else
             {
@@ -44,45 +45,55 @@ namespace Average.Server.Services
                     Logger.Info($"[Server] Player: {e.Player.Name} [{e.Player.License()}] is banned.");
 
                     _userService.UpdateConnectionState(userData, false);
+
+                    await BaseScript.Delay(0);
                     e.Deferrals.done("Vous êtes bannis du serveur.");
                     return;
                 }
 
-                if ((bool)Bootstrapper.BaseConfig["UseWhitelistSystem"])
+                if ((bool)Bootstrapper.BaseConfig["IsServerWhitelisted"])
                 {
                     if (!userData.IsWhitelisted)
                     {
                         Logger.Info($"[Server] Player: {e.Player.Name} [{e.Player.License()}] is not whitelisted.");
 
                         _userService.UpdateConnectionState(userData, false);
+
+                        await BaseScript.Delay(0);
                         e.Deferrals.done("Vous n'êtes pas whitelist.");
                     }
                     else
                     {
                         _userService.UpdateConnectionState(userData, true);
+
+                        await BaseScript.Delay(0);
                         e.Deferrals.done();
                     }
                 }
                 else
                 {
                     _userService.UpdateConnectionState(userData, true);
+
+                    await BaseScript.Delay(0);
                     e.Deferrals.done();
                 }
 
-                _userService.Update(userData);
+                //await _userService.Update(userData);
             }
         }
 
         [ServerEvent(ServerEvent.PlayerDisconnecting)]
         internal async void PlayerDisconnecting(PlayerDisconnectingEventArgs e)
         {
-            var userData = await _userService.Get(e.Player);
-            var client = _clientService.Get(e.Player);
+            var player = e.Player;
+            var userData = await _userService.Get(player);
+            var client = _clientService.Get(player);
 
             _clientService.RemoveClient(client);
-            _clientService.CleanupDuplicate(e.Player);
+            _clientService.CleanupDuplicate(player);
             _userService.UpdateConnectionState(userData, false);
-            _userService.Update(userData);
+
+            await _userService.Update(userData);
         }
     }
 }
