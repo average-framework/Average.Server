@@ -1,5 +1,4 @@
-﻿using Average.Server.Framework.Attributes;
-using Average.Server.Framework.Diagnostics;
+﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
@@ -27,33 +26,7 @@ namespace Average.Server.Services
         {
             _eventService = eventService;
 
-            OnRequest<int>("rpc:test2", (client, cb, age) =>
-            {
-                Logger.Debug("Age is: " + age);
-                cb(age > 20);
-            });
-
-            OnRequest("player_count", (client, cb) =>
-            {
-                Logger.Debug("Send player count: " + 128);
-                cb(128);
-            });
-
             Logger.Write("RpcService", "Initialized successfully");
-        }
-
-        [ClientCommand("rpc:test")]
-        private async void RpcTestCommand(Client client)
-        {
-            Logger.Error("Exec command: rpc:test");
-            OnResponse<string>("rpc:test", ageResult =>
-            {
-                Logger.Error("rpc:test response: " + ageResult);
-            }).Emit(client, "rpc:test", 24);
-
-            Logger.Error("Getting value..");
-            var result = await Request<float>(client, "GetPedScale");
-            Logger.Error("Ped scale: " + result.Item1);
         }
 
         internal void TriggerResponse(string @event, string response)
@@ -117,7 +90,7 @@ namespace Average.Server.Services
             }
         }
 
-        internal void OnInternalResponse(string @event, Delegate callback)
+        private void OnInternalResponse(string @event, Delegate callback)
         {
             Action<string> action = null;
             action = response =>
@@ -315,6 +288,8 @@ namespace Average.Server.Services
 
         #endregion
 
+        #region Request<,>
+
         public async Task<Tuple<T1>> Request<T1>(Client client, string @event, params object[] args)
         {
             object result = null;
@@ -325,9 +300,62 @@ namespace Average.Server.Services
             }).Emit(client, @event, args);
 
             while (result == null) await BaseScript.Delay(1);
-
             return result as Tuple<T1>;
         }
+
+        public async Task<Tuple<T1, T2>> Request<T1, T2>(Client client, string @event, params object[] args)
+        {
+            object result = null;
+
+            OnResponse<T1, T2>(@event, (arg0, arg1) =>
+            {
+                result = Tuple.Create(arg0, arg1);
+            }).Emit(client, @event, args);
+
+            while (result == null) await BaseScript.Delay(1);
+            return result as Tuple<T1, T2>;
+        }
+
+        public async Task<Tuple<T1, T2, T3>> Request<T1, T2, T3>(Client client, string @event, params object[] args)
+        {
+            object result = null;
+
+            OnResponse<T1, T2, T3>(@event, (arg0, arg1, arg2) =>
+            {
+                result = Tuple.Create(arg0, arg1, arg2);
+            }).Emit(client, @event, args);
+
+            while (result == null) await BaseScript.Delay(1);
+            return result as Tuple<T1, T2, T3>;
+        }
+
+        public async Task<Tuple<T1, T2, T3, T4>> Request<T1, T2, T3, T4>(Client client, string @event, params object[] args)
+        {
+            object result = null;
+
+            OnResponse<T1, T2, T3, T4>(@event, (arg0, arg1, arg2, arg3) =>
+            {
+                result = Tuple.Create(arg0, arg1, arg2, arg3);
+            }).Emit(client, @event, args);
+
+            while (result == null) await BaseScript.Delay(1);
+            return result as Tuple<T1, T2, T3, T4>;
+        }
+
+        public async Task<Tuple<T1, T2, T3, T4, T5>> Request<T1, T2, T3, T4, T5>(Client client, string @event, params object[] args)
+        {
+            object result = null;
+
+            OnResponse<T1, T2, T3, T4, T5>(@event, (arg0, arg1, arg2, arg3, arg4) =>
+            {
+                result = Tuple.Create(arg0, arg1, arg2, arg3, arg4);
+            }).Emit(client, @event, args);
+
+            while (result == null) await BaseScript.Delay(1);
+            return result as Tuple<T1, T2, T3, T4, T5>;
+        }
+
+        #endregion
 
         #region Native Game Call
 
