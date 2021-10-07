@@ -2,10 +2,13 @@
 using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Events;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
+using Average.Shared.Rpc;
 using CitizenFX.Core;
 using DryIoc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -160,7 +163,7 @@ namespace Average.Server.Services
 
         private void OnTriggerEvent([FromSource] Player player, string eventName, List<object> args)
         {
-            Logger.Debug("Receive client event from client: " + player.Name + ", " + eventName);
+            Logger.Debug("Receive client event from client: " + player.Name + ", " + eventName + ", " + string.Join(", ", args));
 
             var client = _container.Resolve<ClientService>().Get(player);
             var newArgs = new List<object>();

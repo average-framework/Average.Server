@@ -115,6 +115,13 @@ namespace Average.Server.Services
                             var newArg = array.ToObject(param.ParameterType);
                             newArgs.Add(newArg);
                         }
+                        else if (arg.GetType() == typeof(JObject))
+                        {
+                            // Need to convert arg or type JArray to param type if is it not the same
+                            var obj = arg as JObject;
+                            var newArg = obj.ToObject(param.ParameterType);
+                            newArgs.Add(newArg);
+                        }
                         else
                         {
                             // Need to convert arg type to param type if is it not the same
@@ -359,6 +366,30 @@ namespace Average.Server.Services
 
         #region Native Game Call
 
+        internal async Task<T> NativeCall<T>(Client client, long native, params object[] args)
+        {
+            var result = await Request<T>(client, "rpc:native_call_result", (object)native, typeof(T).AssemblyQualifiedName, args.ToList());
+            return result.Item1;
+        }
+
+        internal async Task<T> NativeCall<T>(Client client, ulong native, params object[] args)
+        {
+            var result = await Request<T>(client, "rpc:native_call_result", (object)native, args.ToList());
+            return result.Item1;
+        }
+
+        internal async Task<T> NativeCall<T>(Client client, Hash native, params object[] args)
+        {
+            var result = await Request<T>(client, "rpc:native_call_result", ((object)(long)native), args.ToList());
+            return result.Item1;
+        }
+
+        internal async Task<T> NativeCall<T>(Client client, string native, params object[] args)
+        {
+            var result = await Request<T>(client, "rpc:native_call_result", ((object)(long)GetHashKey(native)), args.ToList());
+            return result.Item1;
+        }
+
         internal void NativeCall(Client client, long native, params object[] args)
         {
             _eventService.EmitClient(client, "rpc:native_call", native, args);
@@ -377,6 +408,30 @@ namespace Average.Server.Services
         internal void NativeCall(Client client, string native, params object[] args)
         {
             _eventService.EmitClient(client, "rpc:native_call", (long)GetHashKey(native), args);
+        }
+
+        internal async Task<T> GlobalNativeCall<T>(Client client, long native, params object[] args)
+        {
+            var result = await Request<T>(client, "rpc:native_call_result", native, args);
+            return result.Item1;
+        }
+
+        internal async Task<T> GlobalNativeCall<T>(Client client, ulong native, params object[] args)
+        {
+            var result = await Request<T>(client, "rpc:native_call_result", native, args);
+            return result.Item1;
+        }
+
+        internal async Task<T> GlobalNativeCall<T>(Client client, Hash native, params object[] args)
+        {
+            var result = await Request<T>(client, "rpc:native_call_result", (long)native, args);
+            return result.Item1;
+        }
+
+        internal async Task<T> GlobalNativeCall<T>(Client client, string native, params object[] args)
+        {
+            var result = await Request<T>(client, "rpc:native_call_result", (uint)GetHashKey(native), args);
+            return result.Item1;
         }
 
         internal void GlobalNativeCall(long native, params object[] args)

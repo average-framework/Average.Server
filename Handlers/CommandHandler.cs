@@ -1,11 +1,8 @@
-﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Extensions;
+﻿using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
 using Average.Shared.Models;
-using Average.Shared.Rpc;
-using CitizenFX.Core;
 using System.Collections.Generic;
 using System.Linq;
 using static Average.Server.Services.RpcService;
@@ -26,7 +23,6 @@ namespace Average.Server.Handlers
             _clientService = clientService;
             _rpc = rpc;
 
-            //_rpc.Event("command:execute").On(OnClientExecuteCommand);
             _rpc.OnRequest<string, List<object>>("command:execute", OnClientExecuteCommand);
         }
 
@@ -41,15 +37,8 @@ namespace Average.Server.Handlers
 
         private void OnClientExecuteCommand(Client client, RpcCallback callback, string commandName, List<object> args)
         {
-            Logger.Error("-1");
-
             try
             {
-                Logger.Error("0");
-
-                //var player = _players[message.Target];
-                //var client = _clientService.Get(player);
-
                 _commandManager.ExecuteClientCommand(client, commandName, args);
 
                 // Send empty response
@@ -57,8 +46,6 @@ namespace Average.Server.Handlers
             }
             catch
             {
-                Logger.Error("1");
-
                 var command = _commandManager.GetCommand(commandName);
                 var usage = "";
                 command.Action.Method.GetParameters().Skip(1).ToList().ForEach(x => usage += $"<[{x.ParameterType.Name}] {x.Name}> ");

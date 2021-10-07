@@ -89,6 +89,7 @@ namespace Average.Server
             _container.Register<ServerJobCommand>();
             _container.Register<CharacterCommand>();
             _container.Register<WorldCommand>();
+            _container.Register<DebugCommand>();
 
             // Reflections
             _container.GetService<ThreadService>().Reflect();
