@@ -192,8 +192,10 @@ namespace Average.Server.Services
 
         internal void OnPlayerDisconnecting([FromSource] Player player, string reason)
         {
-            PlayerDisconnecting?.Invoke(this, new PlayerDisconnectingEventArgs(player, reason));
-            Emit(ServerEvent.PlayerDisconnecting, new PlayerDisconnectingEventArgs(player, reason));
+            var p = player;
+
+            PlayerDisconnecting?.Invoke(this, new PlayerDisconnectingEventArgs(p, reason));
+            Emit(ServerEvent.PlayerDisconnecting, new PlayerDisconnectingEventArgs(p, reason));
         }
 
         internal void OnResourceStop(string resource)

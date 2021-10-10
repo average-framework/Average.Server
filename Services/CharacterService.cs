@@ -2,10 +2,8 @@
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
-using Average.Server.Framework.Mongo;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
-using Average.Shared.Interfaces;
 using CitizenFX.Core;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -49,7 +47,6 @@ namespace Average.Server.Services
                 if (!exists)
                 {
                     var added = await _repository.AddAsync(characterData);
-                    Logger.Debug("Is added: " + added);
                 }
             }
             catch (Exception ex)

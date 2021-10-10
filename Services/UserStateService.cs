@@ -5,6 +5,7 @@ using Average.Server.Framework.Events;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using CitizenFX.Core;
+using CitizenFX.Core.Native;
 
 namespace Average.Server.Services
 {
@@ -22,7 +23,7 @@ namespace Average.Server.Services
         }
 
         [ServerEvent(ServerEvent.PlayerConnecting)]
-        internal async void PlayerConnecting(PlayerConnectingEventArgs e)
+        private async void PlayerConnecting(PlayerConnectingEventArgs e)
         {
             Logger.Info($"[Server] Player connecting: {e.Player.Name} [{e.Player.License()}]");
 
@@ -77,23 +78,36 @@ namespace Average.Server.Services
                     await BaseScript.Delay(0);
                     e.Deferrals.done();
                 }
-
-                //await _userService.Update(userData);
             }
         }
 
         [ServerEvent(ServerEvent.PlayerDisconnecting)]
-        internal async void PlayerDisconnecting(PlayerDisconnectingEventArgs e)
+        private async void PlayerDisconnecting(PlayerDisconnectingEventArgs e)
         {
             var player = e.Player;
-            var userData = await _userService.Get(player);
-            var client = _clientService.Get(player);
 
-            _clientService.RemoveClient(client);
-            _clientService.CleanupDuplicate(player);
-            _userService.UpdateConnectionState(userData, false);
+            if (player != null)
+            {
+                var name = API.GetPlayerName(player.Handle);
+                var userData = await _userService.Get(player);
 
-            await _userService.Update(userData);
+                if(userData != null)
+                {
+                    _userService.UpdateConnectionState(userData, false);
+                    await _userService.Update(userData);
+                }
+
+                var client = _clientService.Get(player);
+
+                if (client != null)
+                {
+                    _clientService.RemoveClient(client);
+                }
+
+                Logger.Info("[Server] Client disconnected: " + name);
+
+                _clientService.CleanupDuplicate(player);
+            }
         }
     }
 }
