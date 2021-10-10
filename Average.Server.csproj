@@ -41,6 +41,7 @@
     <Folder Include="Framework\Managers\" />
     <Folder Include="Framework\Rpc\" />
     <Folder Include="Migrations\" />
+    <Folder Include="Settings\" />
   </ItemGroup>
 
   <ItemGroup>

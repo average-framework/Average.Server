@@ -21,11 +21,12 @@ namespace Average.Server.Framework.Commands
         private async void OnGotow(Client client)
         {
             Logger.Debug("Gotow: " + client.Name);
+
             try
             {
                 var coords = await _rpcService.NativeCall<Vector3>(client, 0x29B30D07C3F7873B);
-                _rpcService.NativeCall(client, 0x06843DA7060A026B, coords.X, coords.Y, coords.Z, true, true, true, false);
                 Logger.Debug("Gotow result: " + coords);
+                _rpcService.NativeCall(client, 0x06843DA7060A026B, coords.X, coords.Y, coords.Z, true, true, true, false);
             }
             catch (Exception ex)
             {
