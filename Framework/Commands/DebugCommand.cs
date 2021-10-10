@@ -1,10 +1,8 @@
 ﻿using Average.Server.Framework.Attributes;
-using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
 using CitizenFX.Core;
-using System;
 
 namespace Average.Server.Framework.Commands
 {
@@ -22,17 +20,8 @@ namespace Average.Server.Framework.Commands
         [ClientCommand("debug.gotow")]
         private async void OnGotow(Client client)
         {
-            Logger.Debug("Gotow: " + client.Name);
-
-            try
-            {
-                var coords = await _rpcService.NativeCall<Vector3>(client, 0x29B30D07C3F7873B);
-                _characterService.OnTeleport(client, coords);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("Ex: " + ex.Message + ", " + ex.StackTrace);
-            }
+            var coords = await _rpcService.NativeCall<Vector3>(client, 0x29B30D07C3F7873B);
+            _characterService.OnTeleport(client, coords);
         }
     }
 }

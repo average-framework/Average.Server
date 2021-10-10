@@ -17,6 +17,7 @@ namespace Average.Server.Services
         private readonly EventService _eventService;
         private readonly ClientService _clientService;
         private readonly InputService _inputService;
+        private readonly RpcService _rpcService;
 
         private readonly List<DoorInfo> _infos = new();
         private readonly DoorList _doors = new();
@@ -76,17 +77,18 @@ namespace Average.Server.Services
             }
         }
 
-        public DoorService(EventService eventService, ClientService clientService, InputService inputService)
+        public DoorService(EventService eventService, ClientService clientService, InputService inputService, RpcService rpcService)
         {
             _eventService = eventService;
             _clientService = clientService;
             _inputService = inputService;
+            _rpcService = rpcService;
 
             // Get list of doors
             _infos = Configuration.Parse<List<DoorInfo>>("utilities/doors.json");
 
             // Doors
-            Add(new DoorModel(new Vector3(0, 0, 0), 2f, true, nearAction: (client, door, isNear) =>
+            Add(new DoorModel(new Vector3(-276.02f, 802.59f, 118.41f), 2f, true, nearAction: (client, door, isNear) =>
             {
                 Logger.Debug($"Player {client.Name} is near of door ?? " + isNear);
             },
@@ -96,11 +98,10 @@ namespace Average.Server.Services
             }));
 
             // Inputs
-            _inputService.RegisterKey(new Input(Control.Reload,
+            _inputService.RegisterKey(new Input((Control)0x8CC9CD42,
             condition: (client) =>
             {
                 var exists = _doors.ToList().Exists(x => Vector3.Distance(client.Player.Character.Position, x.Position) < x.Range);
-                //Logger.Debug($"Client {client.Name} can open/close door: " + exists);
                 return exists;
             },
             onStateChanged: (client, state) =>
@@ -110,56 +111,12 @@ namespace Average.Server.Services
             onKeyReleased: (client) =>
             {
                 var door = _doors.ToList().Find(x => Vector3.Distance(client.Player.Character.Position, x.Position) < x.Range);
-                OnSetDoorState(ref door);
-                //_eventService.EmitClient(client, "door:is_near", door != null);
+                OnSetDoorState(client, ref door);
                 Logger.Debug($"Client {client.Name} can open/close door: " + (door != null));
             }));
 
             Logger.Write("DoorService", "Initialized successfully");
         }
-
-        //[Thread]
-        //private async Task Update()
-        //{
-        //    for (int i = 0; i < _clientService.ClientCount; i++)
-        //    {
-        //        var client = _clientService[i];
-
-        //        if (client?.Player?.Character != null)
-        //        {
-        //            var door = _doors.ToList().Find(x => Vector3.Distance(client.Player.Character.Position, x.Position) < x.Range);
-
-        //            if (!client.TempData.ContainsKey("IS_NEAR_OF_DOOR"))
-        //            {
-        //                client.TempData.Add("IS_NEAR_OF_DOOR", new Tuple<DoorModel, bool>(door, door != null));
-        //            }
-
-        //            client.TempData["IS_NEAR_OF_DOOR"] = door != null;
-        //            _eventService.EmitClient(client, "door:is_near", door != null);
-
-        //            Logger.Debug($"Client {client.Name} is near of door: " + (door != null));
-
-        //            //if(!client.TempData.ContainsKey("LAST_POSITION"))
-        //            //{
-        //            //    client.TempData.Add("LAST_POSITION", Vector3.Zero);
-        //            //}
-
-        //            //var lastPosition = (Vector3)client.TempData["LAST_POSITION"];
-
-        //            //if (lastPosition != client.Player.Character.Position)
-        //            //{
-        //            //    var door = _doors.ToList().Find(x => Vector3.Distance(client.Player.Character.Position, x.Position) < 5f);
-
-        //            //    client.TempData["IS_NEAR_OF_DOOR"] = door != null;
-        //            //    _eventService.EmitClient(client, "door:is_near", door != null);
-
-        //            //    Logger.Debug($"Client {client.Name} is near of door: " + (door != null));
-        //            //}
-        //        }
-        //    }
-
-        //    await BaseScript.Delay(1000);
-        //}
 
         internal DoorList Add(DoorModel door)
         {
@@ -176,10 +133,15 @@ namespace Average.Server.Services
                 Math.Round(x.Position.Y) == Math.Round(position.Y) &&
                 Math.Round(x.Position.Z) == Math.Round(position.Z));
 
-        internal void OnSetDoorState(ref DoorModel door)
+        internal void OnSetDoorState(Client client, ref DoorModel door)
         {
+            if (door == null) return;
+
+            var info = GetDoorInfo(door.Position);
             door.IsLocked = !door.IsLocked;
-            _eventService.EmitClients("door:set_state", door.Position, door.IsLocked);
+
+            _rpcService.NativeCall(client, 0xD99229FE93B46286, info.Hash, 1, 0, 0, 0, 0, 0);
+            _rpcService.NativeCall(client, 0x6BAB9442830C7F53, (dynamic)info.Hash, door.IsLocked ? 1 : 0);
         }
 
         internal void OnSetDoorState(Vector3 doorPosition)
