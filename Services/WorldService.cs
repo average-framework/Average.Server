@@ -75,8 +75,7 @@ namespace Average.Server.Services
 
             _eventManager.EmitClients("world:set_time", World.Time.Hours, World.Time.Minutes, World.Time.Seconds);
             await BaseScript.Delay(10000);
-
-            Update(World);
+            await Update(World);
         }
 
         private async Task WeatherUpdate()
@@ -91,7 +90,7 @@ namespace Average.Server.Services
             Logger.Info($"Changing weather from {World.Weather} to {nextWeather}, waiting time: {rndTimeToWait}, transition time: {rndTransitionTime} seconds.");
 
             World.Weather = nextWeather;
-            Update(World);
+            await Update(World);
 
             _eventManager.EmitClients("world:set_weather", nextWeather, rndTransitionTime);
         }
@@ -178,7 +177,7 @@ namespace Average.Server.Services
             _rpcService.NativeCall(client, 0x669E223E64B1903C, World.Time.Hours, World.Time.Minutes, World.Time.Seconds, 5000, true);
         }
 
-        internal void SetTime(TimeSpan time, int transitionTime = 0)
+        internal async void SetTime(TimeSpan time, int transitionTime = 0)
         {
             if (time.Hours == 0)
             {
@@ -189,10 +188,10 @@ namespace Average.Server.Services
             Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime} second(s).");
 
             World.Time = time;
-            Update(World);
+            await Update(World);
         }
 
-        internal void SetWeather(Weather weather, float transitionTime)
+        internal async void SetWeather(Weather weather, float transitionTime)
         {
             _rpcService.GlobalNativeCall(0xD74ACDF7DB8114AF, false);
             _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)weather, true, true, true, transitionTime, false);
@@ -200,10 +199,10 @@ namespace Average.Server.Services
             Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
 
             World.Weather = weather;
-            Update(World);
+            await Update(World);
         }
 
-        internal void SetNextWeather(float transitionTime)
+        internal async void SetNextWeather(float transitionTime)
         {
             var nextWeather = GetNextWeather();
 
@@ -211,7 +210,7 @@ namespace Average.Server.Services
             Logger.Debug($"[World] Set next weather from {World.Weather} to {nextWeather} in {transitionTime} second(s).");
 
             World.Weather = nextWeather;
-            Update(World);
+            await Update(World);
         }
 
         #region Repository
@@ -221,6 +220,7 @@ namespace Average.Server.Services
         public async Task<WorldData> Get(long worldId) => await _repository.GetAsync(x => x.WorldId == worldId);
         public async Task<bool> Update(WorldData data) => await _repository.ReplaceOneAsync(x => x.Id, data.Id, data);
         public async Task<bool> Delete(WorldData data) => await _repository.DeleteOneAsync(x => x.Id == data.Id);
+        public async Task<bool> Delete(long worldId) => await _repository.DeleteOneAsync(x => x.WorldId == worldId);
         public async Task<bool> Exists(WorldData data) => await _repository.ExistsAsync(x => x.Id == data.Id);
         public async Task<bool> Exists(long worldId) => await _repository.ExistsAsync(x => x.WorldId == worldId);
 
