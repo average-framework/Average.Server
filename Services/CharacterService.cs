@@ -78,6 +78,11 @@ namespace Average.Server.Services
             _eventManager.EmitClient(client, "character:spawn_ped", characterData.ToJson(Formatting.None));
         }
 
+        internal void OnTeleport(Client client, Vector3 position)
+        {
+            _eventManager.EmitClient(client, "character:teleport", position);
+        }
+
         internal async void OnSetMoney(Client client, decimal amount)
         {
             var data = await Get(client);

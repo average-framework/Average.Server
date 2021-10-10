@@ -11,10 +11,12 @@ namespace Average.Server.Framework.Commands
     internal class DebugCommand : ICommand
     {
         private readonly RpcService _rpcService;
+        private readonly CharacterService _characterService;
 
-        public DebugCommand(RpcService rpcService)
+        public DebugCommand(RpcService rpcService, CharacterService characterService)
         {
             _rpcService = rpcService;
+            _characterService = characterService;
         }
 
         [ClientCommand("debug.gotow")]
@@ -25,8 +27,7 @@ namespace Average.Server.Framework.Commands
             try
             {
                 var coords = await _rpcService.NativeCall<Vector3>(client, 0x29B30D07C3F7873B);
-                Logger.Debug("Gotow result: " + coords);
-                _rpcService.NativeCall(client, 0x06843DA7060A026B, coords.X, coords.Y, coords.Z, true, true, true, false);
+                _characterService.OnTeleport(client, coords);
             }
             catch (Exception ex)
             {
