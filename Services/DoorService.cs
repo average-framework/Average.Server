@@ -1,9 +1,9 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
+using Average.Server.Models;
 using Average.Shared.Enums;
 using CitizenFX.Core;
-using SDK.Server.Models;
 using System;
 using System.Collections;
 using System.Collections.Generic;

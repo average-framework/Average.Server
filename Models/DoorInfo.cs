@@ -1,6 +1,6 @@
 ﻿using CitizenFX.Core;
 
-namespace SDK.Server.Models
+namespace Average.Server.Models
 {
     public class DoorInfo
     {

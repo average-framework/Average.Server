@@ -1,4 +1,5 @@
 ﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Shared.Attributes;
@@ -6,6 +7,7 @@ using DryIoc;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using static Average.Server.Services.RpcService;
 
 namespace Average.Server.Services
@@ -86,5 +88,75 @@ namespace Average.Server.Services
 
             Logger.Debug($"Registering [UICallback]: {redirectName} on method: {method.Name}.");
         }
+
+        internal void FocusFrame(Client client, string frame) => Emit(client, new
+        {
+            eventName = "ui:frame_focus",
+            frame
+        });
+
+        internal void Focus(Client client, bool showCursor = true)
+        {
+            _eventService.EmitClient(client, "ui:focus", false, showCursor);
+        }
+
+        internal void Unfocus(Client client)
+        {
+            _eventService.EmitClient(client, "ui:unfocus", false, false);
+        }
+        internal async void Emit(Client client, object message)
+        {
+            _eventService.EmitClient(client, "ui:emit", message.ToJson());
+        }
+
+        internal void SendMessage(Client client, string frame, string requestType, object message = null)
+        {
+            _eventService.EmitClient(client, frame, requestType, message.ToJson());
+        }
+
+        internal void LoadFrame(Client client, string frame) => Emit(client, new
+        {
+            eventName = "ui:load_frame",
+            frame
+        });
+
+        internal void DestroyFrame(Client client, string frame) => Emit(client, new
+        {
+            eventName = "ui:destroy_frame",
+            frame
+        });
+
+        internal void Show(Client client, string frame) => Emit(client, new
+        {
+            eventName = "ui:show",
+            frame
+        });
+
+        internal void Hide(Client client, string frame) => Emit(client, new
+        {
+            eventName = "ui:hide",
+            frame
+        });
+
+        internal void FadeIn(Client client, string frame, int fadeDuration = 100) => Emit(client, new
+        {
+            eventName = "ui:fadein",
+            frame,
+            fade = fadeDuration
+        });
+
+        internal void FadeOut(Client client, string frame, int fadeDuration = 100) => Emit(client, new
+        {
+            eventName = "ui:fadeout",
+            frame,
+            fade = fadeDuration
+        });
+
+        internal void SetZIndex(Client client, string frame, int zIndex) => Emit(client, new
+        {
+            eventName = "ui:zindex",
+            frame,
+            zIndex
+        });
     }
 }
