@@ -73,6 +73,13 @@ namespace Average.Server.Services
                             var newArg = array.ToObject(param.ParameterType);
                             newArgs.Add(newArg);
                         }
+                        else if (arg.GetType() == typeof(JObject))
+                        {
+                            // Need to convert arg or type JArray to param type if is it not the same
+                            var obj = arg as JObject;
+                            var newArg = obj.ToObject(param.ParameterType);
+                            newArgs.Add(newArg);
+                        }
                         else
                         {
                             // Need to convert arg type to param type if is it not the same

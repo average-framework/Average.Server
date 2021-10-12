@@ -49,6 +49,7 @@ namespace Average.Server
             // Framework Services
             _container.Register<EventService>();
             _container.Register<RpcService>();
+            _container.Register<UIService>();
             _container.Register<CommandService>();
             _container.Register<ThreadService>();
             _container.Register<ReplicateStateService>();
@@ -98,6 +99,7 @@ namespace Average.Server
             _container.GetService<ThreadService>().Reflect();
             _container.GetService<ReplicateStateService>().Reflect();
             _container.GetService<EventService>().Reflect();
+            _container.GetService<UIService>().Reflect();
             _container.GetService<CommandService>().Reflect();
             _container.GetService<ServerJobService>().Reflect();
         }

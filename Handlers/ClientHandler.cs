@@ -16,8 +16,9 @@ namespace Average.Server.Handlers
         private readonly CommandHandler _commandHandler;
         private readonly WorldService _worldService;
         private readonly GameService _gameService;
+        private readonly UIService _uiService;
 
-        public ClientHandler(GameService gameService, InputService inputService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
+        public ClientHandler(UIService uiService, GameService gameService, InputService inputService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
         {
             _gameService = gameService;
             _inputService = inputService;
@@ -26,6 +27,7 @@ namespace Average.Server.Handlers
             _characterService = characterService;
             _commandHandler = commandHandler;
             _worldService = worldService;
+            _uiService = uiService;
         }
 
         [ServerEvent("client:initialized")]
@@ -35,6 +37,9 @@ namespace Average.Server.Handlers
 
             // Commands
             _commandHandler.OnClientInitialized(client);
+
+            // UI Events
+            _uiService.OnClientInitialized(client);
 
             // Inputs
             _inputService.OnRegisteringInputs(client);

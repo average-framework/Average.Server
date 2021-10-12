@@ -49,10 +49,13 @@ namespace Average.Server.Services
         {
             if (_inputs.Count > 0)
             {
-                foreach (var client in _clientService.Clients)
+                for(int i = 0; i < _clientService.Clients.Count; i++)
                 {
-                    foreach (var input in _inputs)
+                    var client = _clientService.Clients[i];
+
+                    for(int o = 0; o < _inputs.Count; o++)
                     {
+                        var input = _inputs[o];
                         var isValidate = input.Condition.Invoke(client);
 
                         if (input.LastConditionState != isValidate)

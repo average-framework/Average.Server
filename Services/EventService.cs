@@ -35,7 +35,7 @@ namespace Average.Server.Services
 
             // Internal events
             _eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);
-            _eventHandlers["client-event:triggered"] += new Action<Player, string, List<object>>(OnTriggerEvent);
+            _eventHandlers["client-event:triggered"] += new Action<Player, string, List<object>>(OnTriggerClientEvent);
 
             // Custom events
             _eventHandlers["playerConnecting"] += new Action<Player, string, dynamic, dynamic>(OnPlayerConnecting);
@@ -148,11 +148,11 @@ namespace Average.Server.Services
             {
                 _events.Remove(eventName);
 
-                Logger.Debug($"Removing [ServerEvent]: {eventName}");
+                Logger.Debug($"Removing [ServerEvent]: {eventName}.");
             }
             else
             {
-                Logger.Debug($"Unable to remove [ServerEvent]: {eventName}");
+                Logger.Debug($"Unable to remove [ServerEvent]: {eventName}.");
             }
         }
 
@@ -161,7 +161,7 @@ namespace Average.Server.Services
             RegisterEvent(eventAttr.Event, Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method));
         }
 
-        private void OnTriggerEvent([FromSource] Player player, string eventName, List<object> args)
+        private void OnTriggerClientEvent([FromSource] Player player, string eventName, List<object> args)
         {
             Logger.Debug("Receive client event from client: " + player.Name + ", " + eventName + ", " + string.Join(", ", args));
 

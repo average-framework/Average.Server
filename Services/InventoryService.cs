@@ -1,8 +1,12 @@
-﻿using Average.Server.Framework.Interfaces;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Repositories;
+using Average.Shared.Attributes;
 using Average.Shared.DataModels;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using static Average.Server.Services.RpcService;
 
 namespace Average.Server.Services
 {
@@ -13,6 +17,14 @@ namespace Average.Server.Services
         public InventoryService(InventoryRepository repository)
         {
             _repository = repository;
+        }
+
+        [UICallback("inventorytest")]
+        private void OnTest(Dictionary<string, object> args, RpcCallback cb)
+        {
+            Logger.Error("inventorytest triggered: " + string.Join(", ", args));
+
+            cb("enculer", "enculer 2");
         }
 
         public async Task<bool> Create(StorageData data) => await _repository.AddAsync(data);
