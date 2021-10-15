@@ -88,12 +88,14 @@ namespace Average.Server
             _container.Register<CharacterHandler>();
             _container.Register<InputHandler>();
             _container.Register<RpcHandler>();
+            _container.Register<InventoryHandler>();
 
             // Commands
             _container.Register<ServerJobCommand>();
             _container.Register<CharacterCommand>();
             _container.Register<WorldCommand>();
             _container.Register<DebugCommand>();
+            _container.Register<InventoryCommand>();
 
             // Reflections
             _container.GetService<ThreadService>().Reflect();

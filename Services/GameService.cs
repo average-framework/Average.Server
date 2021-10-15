@@ -1,6 +1,6 @@
-﻿using Average.Server.Framework.Interfaces;
+﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
-using static Average.Server.Framework.ServerAPI;
 
 namespace Average.Server.Services
 {
@@ -11,6 +11,8 @@ namespace Average.Server.Services
         public GameService(RpcService rpcService)
         {
             _rpcService = rpcService;
+
+            Logger.Write("GameService", "Initialized successfully");
         }
 
         internal void Init(Client client)

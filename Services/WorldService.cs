@@ -2,6 +2,7 @@
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
+using Average.Server.Models;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
 using Average.Shared.Enums;
@@ -211,6 +212,12 @@ namespace Average.Server.Services
 
             World.Weather = nextWeather;
             await Update(World);
+        }
+
+        internal async Task<RaycastHit> GetEntityFrontOfPlayer(Client client, float range)
+        {
+            var result = await _rpcService.Request<RaycastHit>(client, "world:get_entity_front_of_player", range);
+            return result.Item1;
         }
 
         #region Repository

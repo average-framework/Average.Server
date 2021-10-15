@@ -17,8 +17,9 @@ namespace Average.Server.Handlers
         private readonly WorldService _worldService;
         private readonly GameService _gameService;
         private readonly UIService _uiService;
+        private readonly InventoryService _inventoryService;
 
-        public ClientHandler(UIService uiService, GameService gameService, InputService inputService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
+        public ClientHandler(InventoryService inventoryService, UIService uiService, GameService gameService, InputService inputService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
         {
             _gameService = gameService;
             _inputService = inputService;
@@ -28,6 +29,7 @@ namespace Average.Server.Handlers
             _commandHandler = commandHandler;
             _worldService = worldService;
             _uiService = uiService;
+            _inventoryService = inventoryService;
         }
 
         [ServerEvent("client:initialized")]
@@ -43,6 +45,12 @@ namespace Average.Server.Handlers
 
             // Inputs
             _inputService.OnRegisteringInputs(client);
+
+            // Inventory
+            _inventoryService.OnClientInitialized(client);
+
+            // Game
+            _gameService.Init(client);
 
             if (await _characterService.Exists(client))
             {
@@ -60,8 +68,6 @@ namespace Average.Server.Handlers
                 Logger.Debug($"[ClientHandler] Creating character for client: {client.Name}.");
                 _characterCreatorService.StartCreator(client);
             }
-
-            _gameService.Init(client);
 
             Logger.Write("Client", $"%{client.Name}({client.ServerId}) is initialized%", new Logger.TextColor(foreground: ConsoleColor.Green));
         }

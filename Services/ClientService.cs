@@ -15,12 +15,9 @@ namespace Average.Server.Services
 
         public List<Client> Clients { get; } = new List<Client>();
 
-        private PlayerList _players;
-
         public ClientService(EventService eventManager, PlayerList players)
         {
             _eventManager = eventManager;
-            _players = players;
 
             Logger.Write("ClientService", "Initialized successfully");
         }
@@ -36,6 +33,11 @@ namespace Average.Server.Services
             return Clients.Find(x => x.Player.License() == player.License());
         }
 
+        internal Client Get(string license)
+        {
+            return Clients.Find(x => x.Player?.License() == license);
+        }
+
         internal bool Exists(Client client)
         {
             return Clients.Contains(client);
@@ -49,7 +51,6 @@ namespace Average.Server.Services
 
         internal void RemoveClient(Client client)
         {
-
             if (client == null)
             {
                 Logger.Debug("Client is null");

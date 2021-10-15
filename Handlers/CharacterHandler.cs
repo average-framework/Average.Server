@@ -10,12 +10,12 @@ namespace Average.Server.Handlers
     internal class CharacterHandler : IHandler
     {
         private readonly CharacterService _characterService;
-        private readonly UserService _userService;
+        private readonly EventService _eventService;
 
-        public CharacterHandler(CharacterService characterService, UserService userService)
+        public CharacterHandler(CharacterService characterService, EventService eventService)
         {
             _characterService = characterService;
-            _userService = userService;
+            _eventService = eventService;
         }
 
         [ServerEvent("character:create_character")]
@@ -25,6 +25,7 @@ namespace Average.Server.Handlers
             characterData.License = client.License;
 
             _characterService.Create(characterData);
+            _eventService.Emit("character:character_created", client.License, characterData.CharacterId);
         }
     }
 }
