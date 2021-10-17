@@ -14,7 +14,6 @@ namespace Average.Server.Handlers
     internal class InventoryHandler : IHandler
     {
         private readonly InventoryService _inventoryService;
-        private readonly ClientService _clientService;
 
         public InventoryHandler(InventoryService inventoryService)
         {
@@ -22,7 +21,7 @@ namespace Average.Server.Handlers
         }
 
         [ServerEvent("character:character_created")]
-        private async void OnCharacterCreated(string clientLicense, string characterId)
+        private async void OnCharacterCreated(Client client, string characterId)
         {
             var storage = new StorageData
             {
@@ -34,9 +33,40 @@ namespace Average.Server.Handlers
 
             await _inventoryService.Create(storage);
 
-            Logger.Write("Inventory", $"Inventory created for {clientLicense} with storage id: %{characterId}% of type %{storage.Type}%",
+            Logger.Write("Inventory", $"Inventory created for {client.License} with storage id: %{characterId}% of type %{storage.Type}%",
                 new Logger.TextColor(foreground: ConsoleColor.DarkYellow),
                 new Logger.TextColor(foreground: ConsoleColor.Cyan));
+        }
+
+        [UICallback("window_ready")]
+        private void OnWindowReady(Client client, Dictionary<string, object> args, RpcCallback cb)
+        {
+            Logger.Error("Window ready");
+
+            _inventoryService.OnClientWindowInitialized(client);
+        }
+
+        [UICallback("frame_ready")]
+        private void OnFrameReady(Client client, Dictionary<string, object> args, RpcCallback cb)
+        {
+            if (args.TryGetValue("frame", out object frame))
+            {
+                if ((string)frame == "storage")
+                {
+                    _inventoryService.InitSlots(client);
+                }
+            }
+        }
+
+        [UICallback("storage/drop_slot")]
+        private void OnDropSlot(Client client, Dictionary<string, object> args, RpcCallback cb)
+        {
+            var slotId = int.Parse(args["slotId"].ToString());
+            var targetSlotId = int.Parse(args["targetSlotId"].ToString());
+
+            var storage = _inventoryService.GetLocalStorage(client);
+
+            _inventoryService.SetItemOnSlot(client, storage, slotId, targetSlotId);
         }
 
         [UICallback("storage/keydown")]
@@ -63,13 +93,13 @@ namespace Average.Server.Handlers
             Logger.Error("storage/inv/context_menu triggered: " + string.Join(", ", args));
 
             var itemName = (string)args["name"];
-            var itemId = (string)args["tempId"];
+            var slotId = int.Parse(args["slotId"].ToString());
             var eventName = (string)args["eventName"];
 
             var storage = _inventoryService.GetLocalStorage(client);
             if (storage == null) return;
 
-            await _inventoryService.OnStorageContextMenu(client, itemName, itemId, eventName, storage);
+            await _inventoryService.OnStorageContextMenu(client, itemName, slotId, eventName, storage);
         }
 
         [UICallback("storage/chest/context_menu")]
@@ -78,39 +108,39 @@ namespace Average.Server.Handlers
             Logger.Error("storage/chest/context_menu triggered: " + string.Join(", ", args));
 
             var itemName = (string)args["name"];
-            var itemId = (string)args["tempId"];
+            var slotId = int.Parse(args["slotId"].ToString());
             var eventName = (string)args["eventName"];
 
             var chestData = _inventoryService.GetData<StorageData>(client, "CurrentChestData");
             if (chestData == null) return;
 
-            await _inventoryService.OnStorageContextMenu(client, itemName, itemId, eventName, chestData);
+            await _inventoryService.OnStorageContextMenu(client, itemName, slotId, eventName, chestData);
         }
 
-        [UICallback("storage/inv/input_count")]
-        private void OnInventoryInputCount(Client client, Dictionary<string, object> args, RpcCallback cb)
-        {
-            Logger.Error("storage/inv/input_count triggered: " + string.Join(", ", args));
+        //[UICallback("storage/inv/input_count")]
+        //private void OnInventoryInputCount(Client client, Dictionary<string, object> args, RpcCallback cb)
+        //{
+        //    Logger.Error("storage/inv/input_count triggered: " + string.Join(", ", args));
 
-            var val = (string)args["value"];
+        //    var val = (string)args["value"];
 
-            var storage = _inventoryService.GetLocalStorage(client);
-            if (storage == null) return;
+        //    var storage = _inventoryService.GetLocalStorage(client);
+        //    if (storage == null) return;
 
-            _inventoryService.OnStorageInputCount(client, storage, val);
-        }
+        //    _inventoryService.OnStorageInputCount(client, storage, val);
+        //}
 
-        [UICallback("storage/chest/input_count")]
-        private void OnChestInputCount(Client client, Dictionary<string, object> args, RpcCallback cb)
-        {
-            Logger.Error("storage/chest/input_count triggered: " + string.Join(", ", args));
+        //[UICallback("storage/chest/input_count")]
+        //private void OnChestInputCount(Client client, Dictionary<string, object> args, RpcCallback cb)
+        //{
+        //    Logger.Error("storage/chest/input_count triggered: " + string.Join(", ", args));
 
-            var val = (string)args["value"];
+        //    var val = (string)args["value"];
 
-            var chestData = _inventoryService.GetData<StorageData>(client, "CurrentChestData");
-            if (chestData == null) return;
+        //    var chestData = _inventoryService.GetData<StorageData>(client, "CurrentChestData");
+        //    if (chestData == null) return;
 
-            _inventoryService.OnStorageInputCount(client, chestData, val);
-        }
+        //    _inventoryService.OnStorageInputCount(client, chestData, val);
+        //}
     }
 }

@@ -1,20 +1,25 @@
-﻿using Newtonsoft.Json;
+﻿using Average.Shared.DataModels;
+using Newtonsoft.Json;
 using System;
 
 namespace Average.Server.Models
 {
     public class StorageItemInfo
     {
-        public string Name { get; private set; }
-        public string Text { get; private set; }
-        public string Img { get; private set; }
-        public double Weight { get; private set; }
-        public bool Stackable { get; private set; }
-        public bool RemoveOnGive { get; private set; } = true;
+        public string Name { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string Img { get; set; }
+        public double Weight { get; set; }
+        public bool CanBeStacked { get; set; }
+        public bool RemoveOnGive { get; set; } = true;
         public StorageContextMenu ContextMenu { get; set; }
 
         [JsonIgnore]
-        public Action OnUpdateRender { get; set; }
+        public Func<StorageItemData, StorageItemData, StorageItemData> OnStacking { get; set; }
+
+        [JsonIgnore]
+        public Func<StorageItemData, object> OnRenderStack { get; set; }
 
         [JsonIgnore]
         public Action OnInventoryLoading { get; set; }
@@ -24,17 +29,17 @@ namespace Average.Server.Models
 
         public StorageItemInfo()
         {
-
+            
         }
 
         [JsonConstructor]
-        public StorageItemInfo(string name, string text, string img, double weight, bool stackable)
+        public StorageItemInfo(string name, string title, string description, string img, double weight)
         {
             Name = name;
-            Text = text;
+            Title = title;
+            Description = Description;
             Img = img;
             Weight = weight;
-            Stackable = stackable;
         }
     }
 }

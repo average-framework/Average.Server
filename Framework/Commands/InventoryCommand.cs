@@ -1,4 +1,5 @@
 ﻿using Average.Server.Framework.Attributes;
+using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
@@ -27,13 +28,18 @@ namespace Average.Server.Framework.Commands
         }
 
         [ClientCommand("storage.add_item")]
-        private void AddItem(Client client, string itemName, int count)
+        private void AddItem(Client client, string itemName, int itemCount)
         {
+            var storage = _inventoryService.GetLocalStorage(client);
+            if (storage == null) return;
 
+            Logger.Error($"Try to add item to client: {client.Name}, item: {itemName} count: {itemCount}");
+
+            _inventoryService.AddItem(client, new StorageItemData(itemName, itemCount), storage);
         }
 
         [ClientCommand("storage.remove_item")]
-        private void RemoveItem(Client client, string itemName, int count)
+        private void RemoveItem(Client client, string itemName, int itemCount)
         {
 
         }

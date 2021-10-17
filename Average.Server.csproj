@@ -40,7 +40,6 @@
     <Folder Include="Commands\" />
     <Folder Include="Framework\Managers\" />
     <Folder Include="Framework\Rpc\" />
-    <Folder Include="Inventory\" />
   </ItemGroup>
 
   <ItemGroup>
