@@ -77,6 +77,7 @@ namespace Average.Server
             _container.Register<DoorService>();
             _container.Register<GameService>();
             _container.Register<InventoryService>();
+            _container.Register<InventoryItemsService>();
 
             // Jobs
             _container.Register<CharacterJob>();

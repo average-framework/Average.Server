@@ -1,6 +1,7 @@
 ﻿using Average.Shared.DataModels;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace Average.Server.Models
 {
@@ -13,33 +14,19 @@ namespace Average.Server.Models
         public double Weight { get; set; }
         public bool CanBeStacked { get; set; }
         public bool RemoveOnGive { get; set; } = true;
+        public Dictionary<string, object> DefaultData { get; set; }
         public StorageContextMenu ContextMenu { get; set; }
 
         [JsonIgnore]
         public Func<StorageItemData, StorageItemData, StorageItemData> OnStacking { get; set; }
 
         [JsonIgnore]
-        public Func<StorageItemData, object> OnRenderStack { get; set; }
+        public Func<StorageItemData, object> OnRenderStacking { get; set; }
 
         [JsonIgnore]
         public Action OnInventoryLoading { get; set; }
 
         [JsonIgnore]
         public Action OnChestLoading { get; set; }
-
-        public StorageItemInfo()
-        {
-            
-        }
-
-        [JsonConstructor]
-        public StorageItemInfo(string name, string title, string description, string img, double weight)
-        {
-            Name = name;
-            Title = title;
-            Description = Description;
-            Img = img;
-            Weight = weight;
-        }
     }
 }

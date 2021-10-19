@@ -3,7 +3,6 @@ using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Models;
 using Average.Server.Repositories;
-using Average.Shared;
 using Average.Shared.DataModels;
 using Average.Shared.Enums;
 using System.Collections.Generic;
@@ -21,7 +20,6 @@ namespace Average.Server.Services
         private readonly WorldService _worldService;
 
         private readonly List<StorageItemInfo> _items = new();
-
         private readonly Dictionary<string, Dictionary<string, object>> _clients = new();
 
         public const double DefaultMaxInventoryWeight = 20.0;
@@ -37,34 +35,44 @@ namespace Average.Server.Services
             _uiService = uiService;
             _inputService = inputService;
 
-            RegisterItem(new StorageItemInfo
-            {
-                Name = "money",
-                Img = "money_moneystack",
-                Title = "Du fric",
-                Description = "Un petit peu de flouz",
-                Weight = 1.0,
-                CanBeStacked = true,
-                //OnStacking = (lastItem, targetItem) =>
-                //{
-                //    var cash = decimal.Parse(lastItem.Data["cash"].ToString()) + decimal.Parse(targetItem.Data["cash"].ToString());
-                //    targetItem.Data["cash"] = cash;
-                //    return targetItem;
-                //},
-                //OnRenderStack = (item) =>
-                //{
-                //    return item.Data["cash"];
-                //},
-                ContextMenu = new StorageContextMenu(new StorageContextItem
-                {
-                    EventName = "drop",
-                    Text = "Jeter par la fenêtre",
-                    Action = (itemData, raycast) =>
-                    {
-                        Logger.Debug("item: " + itemData.Name + ", " + raycast.EntityHit);
-                    }
-                })
-            });
+            //RegisterItem(new StorageItemInfo
+            //{
+            //    Name = "money",
+            //    Img = "money_moneystack",
+            //    Title = "Du fric",
+            //    Description = "Un petit peu de flouz",
+            //    Weight = 1.0,
+            //    CanBeStacked = true,
+            //    //OnStacking = (lastItem, targetItem) =>
+            //    //{
+            //    //    var cash = decimal.Parse(lastItem.Data["cash"].ToString()) + decimal.Parse(targetItem.Data["cash"].ToString());
+            //    //    targetItem.Data["cash"] = cash;
+            //    //    return targetItem;
+            //    //},
+            //    //OnRenderStacking = (item) =>
+            //    //{
+            //    //    return item.Data["cash"];
+            //    //},
+            //    ContextMenu = new StorageContextMenu(new StorageContextItem
+            //    {
+            //        EventName = "drop",
+            //        Emoji = "",
+            //        Text = "Jeter par la fenêtre",
+            //        Action = (itemData, raycast) =>
+            //        {
+            //            Logger.Debug("item: " + itemData.Name + ", " + raycast.EntityHit);
+            //        }
+            //    }, new StorageContextItem
+            //    {
+            //        EventName = "drop",
+            //        Emoji = "",
+            //        Text = "Jeter par la fenêtre",
+            //        Action = (itemData, raycast) =>
+            //        {
+            //            Logger.Debug("item: " + itemData.Name + ", " + raycast.EntityHit);
+            //        }
+            //    })
+            //});
 
             // Inputs
             _inputService.RegisterKey(new Input((Control)0xC1989F95,
@@ -341,6 +349,17 @@ namespace Average.Server.Services
 
             newItem.Data ??= new Dictionary<string, object>();
 
+            if(info.DefaultData != null)
+            {
+                foreach(var d in info.DefaultData)
+                {
+                    if (!newItem.Data.ContainsKey(d.Key))
+                    {
+                        newItem.Data.Add(d.Key, d.Value);
+                    }
+                }
+            }
+
             Logger.Debug("Add item: " + info.Name + ", " + info.CanBeStacked);
 
             var availableSlot = -1;
@@ -372,6 +391,14 @@ namespace Average.Server.Services
                     if (IsSlotAvailable(availableSlot, storageData))
                     {
                         newItem.SlotId = availableSlot;
+
+                        object itemStackValue = null;
+
+                        if (info.CanBeStacked && info.OnRenderStacking != null)
+                        {
+                            itemStackValue = info.OnRenderStacking.Invoke(newItem);
+                        }
+
                         storageData.Items.Add(newItem);
 
                         SetItemOnEmptySlot(client, storageData, newItem);
@@ -433,9 +460,9 @@ namespace Average.Server.Services
 
             object itemStackValue = null;
 
-            if (info.CanBeStacked && info.OnRenderStack != null)
+            if (info.CanBeStacked && info.OnRenderStacking != null)
             {
-                itemStackValue = info.OnRenderStack.Invoke(itemResult);
+                itemStackValue = info.OnRenderStacking.Invoke(itemResult);
             }
             else
             {
@@ -464,32 +491,23 @@ namespace Average.Server.Services
             var info = GetItemInfo(item.Name);
 
             var targetItem = GetItemOnSlot(targetSlotId, storageData);
-            StorageItemInfo targetInfo = null;
-
-            var targetExists = targetItem is not null;
-
-            // La cible peu soit être un slot d'item ou un slot vide
-            if (targetItem is not null)
-            {
-                targetItem.SlotId = currentSlotId;
-                targetInfo = GetItemInfo(targetItem.Name);
-            }
+            var haveTarget = targetItem is not null;
 
             // On alterne le slotId des cibles pour inverser leur position dans l'interface
             item.SlotId = targetSlotId;
 
-            var target1 = GetItemOnSlot(currentSlotId, storageData);
-            var item1 = GetItemOnSlot(targetSlotId, storageData);
-
             Logger.Debug("current: " + currentSlotId + ", " + targetSlotId);
-            Logger.Debug("move item: " + item.SlotId + ", " + targetItem?.SlotId + ", " + target1?.SlotId + ", " + item1?.SlotId);
 
             switch (storageData.Type)
             {
                 case StorageDataType.PlayerInventory:
-                    if (targetExists)
+                    // La cible peu soit être un slot d'item ou un slot vide
+                    if (haveTarget)
                     {
                         Logger.Debug("Alternate");
+
+                        targetItem.SlotId = currentSlotId;
+                        var targetInfo = GetItemInfo(targetItem.Name);
 
                         // Alterne la position de deux slot, ItemA -> ItemB, ItemB -> ItemA
                         // Si la propriété "CanBeStacked" à la valeur true, les items ne doivent pas être alterner mais "additionner"
@@ -497,12 +515,14 @@ namespace Average.Server.Services
                         {
                             // Base Slot
                             slotId = item.SlotId,
-                            count = item.Count,
+                            count = (info.CanBeStacked && info.OnRenderStacking != null) ? info.OnRenderStacking.Invoke(item) : item.Count,
+                            //count = item.Count,
                             img = info.Img,
 
                             // Target Slot
                             targetSlotId = targetItem.SlotId,
-                            targetCount = targetItem.Count,
+                            targetCount = (targetInfo.CanBeStacked && targetInfo.OnRenderStacking != null) ? targetInfo.OnRenderStacking.Invoke(targetItem) : targetItem.Count,
+                            //targetCount = targetItem.Count,
                             targetImg = targetInfo.Img,
                             contextItems = GetItemContextMenu(targetItem.Name)
                         });
@@ -519,7 +539,8 @@ namespace Average.Server.Services
 
                             // Target Slot
                             targetSlotId = targetSlotId,
-                            targetCount = item.Count,
+                            targetCount = (info.CanBeStacked && info.OnRenderStacking != null) ? info.OnRenderStacking.Invoke(item) : item.Count,
+                            //targetCount = item.Count,
                             targetImg = info.Img,
                             contextItems = GetItemContextMenu(item.Name)
                         });
@@ -534,7 +555,6 @@ namespace Average.Server.Services
         private void SetItemOnEmptySlot(Client client, StorageData storageData, StorageItemData storageItemData)
         {
             var info = GetItemInfo(storageItemData.Name);
-            if (info == null) return;
 
             switch (storageData.Type)
             {
@@ -542,7 +562,8 @@ namespace Average.Server.Services
                     _uiService.SendMessage(client, "storage", "setItemOnEmptySlot", new
                     {
                         slotId = storageItemData.SlotId,
-                        count = storageItemData.Count,
+                        count = (info.CanBeStacked && info.OnRenderStacking != null) ? info.OnRenderStacking.Invoke(storageItemData) : storageItemData.Count,
+                        //count = storageItemData.Count,
                         img = info.Img,
                         contextItems = GetItemContextMenu(storageItemData.Name)
                     });
@@ -577,7 +598,6 @@ namespace Average.Server.Services
         internal async Task OnStorageContextMenu(Client client, string itemName, int slotId, string eventName, StorageData storageData)
         {
             var info = GetItemInfo(itemName);
-            if (info == null) return;
 
             var context = info.ContextMenu.GetContext(eventName);
             if (context == null) return;
