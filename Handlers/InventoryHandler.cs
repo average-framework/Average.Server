@@ -92,14 +92,16 @@ namespace Average.Server.Handlers
         {
             Logger.Error("storage/inv/context_menu triggered: " + string.Join(", ", args));
 
-            var itemName = (string)args["name"];
             var slotId = int.Parse(args["slotId"].ToString());
             var eventName = (string)args["eventName"];
 
             var storage = _inventoryService.GetLocalStorage(client);
             if (storage == null) return;
 
-            await _inventoryService.OnStorageContextMenu(client, itemName, slotId, eventName, storage);
+            var item = _inventoryService.GetItemOnSlot(slotId, storage);
+            if(item == null) return;
+
+            await _inventoryService.OnStorageContextMenu(client, item.Name, slotId, eventName, storage);
         }
 
         [UICallback("storage/chest/context_menu")]
@@ -116,31 +118,5 @@ namespace Average.Server.Handlers
 
             await _inventoryService.OnStorageContextMenu(client, itemName, slotId, eventName, chestData);
         }
-
-        //[UICallback("storage/inv/input_count")]
-        //private void OnInventoryInputCount(Client client, Dictionary<string, object> args, RpcCallback cb)
-        //{
-        //    Logger.Error("storage/inv/input_count triggered: " + string.Join(", ", args));
-
-        //    var val = (string)args["value"];
-
-        //    var storage = _inventoryService.GetLocalStorage(client);
-        //    if (storage == null) return;
-
-        //    _inventoryService.OnStorageInputCount(client, storage, val);
-        //}
-
-        //[UICallback("storage/chest/input_count")]
-        //private void OnChestInputCount(Client client, Dictionary<string, object> args, RpcCallback cb)
-        //{
-        //    Logger.Error("storage/chest/input_count triggered: " + string.Join(", ", args));
-
-        //    var val = (string)args["value"];
-
-        //    var chestData = _inventoryService.GetData<StorageData>(client, "CurrentChestData");
-        //    if (chestData == null) return;
-
-        //    _inventoryService.OnStorageInputCount(client, chestData, val);
-        //}
     }
 }

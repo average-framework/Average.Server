@@ -5,9 +5,9 @@ namespace Average.Server.Models
 {
     public class StorageContextMenu
     {
-        public StorageContextMenu(params StorageContextItem[] items) => Items = items.ToList();
-
         public List<StorageContextItem> Items { get; } = new List<StorageContextItem>();
+
+        public StorageContextMenu(params StorageContextItem[] items) => Items = items.ToList();
 
         public void AddContext(StorageContextItem item) => Items.Add(item);
         public void RemoveContext(StorageContextItem item) => Items.Remove(item);

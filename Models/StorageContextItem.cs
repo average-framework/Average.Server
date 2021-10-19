@@ -7,8 +7,6 @@ namespace Average.Server.Models
 {
     public class StorageContextItem
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
         public string Text { get; set; }
         public string Emoji { get; set; }
         public string EventName { get; set; }
@@ -16,6 +14,9 @@ namespace Average.Server.Models
         [JsonIgnore]
         public Action<StorageItemData, RaycastHit> Action { get; set; }
 
-        public StorageContextItem() => Id = RandomString();
+        public StorageContextItem()
+        {
+
+        }
     }
 }
