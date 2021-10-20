@@ -18,9 +18,11 @@ namespace Average.Server.Handlers
         private readonly GameService _gameService;
         private readonly UIService _uiService;
         private readonly InventoryService _inventoryService;
+        private readonly UserService _userService;
 
-        public ClientHandler(InventoryService inventoryService, UIService uiService, GameService gameService, InputService inputService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
+        public ClientHandler(UserService userService, InventoryService inventoryService, UIService uiService, GameService gameService, InputService inputService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
         {
+            _userService = userService;
             _gameService = gameService;
             _inputService = inputService;
             _characterCreatorService = characterCreatorService;
@@ -46,9 +48,6 @@ namespace Average.Server.Handlers
             // Inputs
             _inputService.OnRegisteringInputs(client);
 
-            // Inventory
-            _inventoryService.OnClientInitialized(client);
-
             // Game
             _gameService.Init(client);
 
@@ -60,6 +59,11 @@ namespace Average.Server.Handlers
 
                 _characterService.OnSpawnPed(client);
                 _worldService.OnSetWorldForClient(client);
+
+                var userData = await _userService.Get(client);
+
+                // Inventory
+                _inventoryService.OnClientInitialized(client, userData.SelectedCharacterId);
             }
             else
             {

@@ -81,6 +81,7 @@ namespace Average.Server
 
             // Jobs
             _container.Register<CharacterJob>();
+            _container.Register<InventoryJob>();
 
             // Handlers
             _container.Register<CommandHandler>();

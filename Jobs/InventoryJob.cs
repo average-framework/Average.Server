@@ -1,5 +1,6 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
 using Average.Server.Interfaces;
 using Average.Server.Services;
 using Average.Shared.DataModels;
@@ -8,24 +9,24 @@ using System;
 namespace Average.Server.Jobs
 {
     [ServerJob]
-    internal class CharacterJob : IServerJob
+    internal class InventoryJob : IServerJob
     {
         private readonly ClientService _clientService;
         private readonly CharacterService _characterService;
-        private readonly UserService _userService;
+        private readonly InventoryService _inventoryService;
 
         public Guid Id => Guid.NewGuid();
         public DateTime LastTriggered { get; set; }
-        public TimeSpan Recurring => new TimeSpan(0, 1, 0);
+        public TimeSpan Recurring => new TimeSpan(0, 0, 5);
         public JobState State { get; set; }
         public Func<bool> StartCondition => OnStartCondition;
         public Func<bool> StopCondition => OnStopCondition;
 
-        public CharacterJob(ClientService clientService, UserService userService, CharacterService characterService)
+        public InventoryJob(ClientService clientService, CharacterService characterService, InventoryService inventoryService)
         {
             _clientService = clientService;
             _characterService = characterService;
-            _userService = userService;
+            _inventoryService = inventoryService;
         }
 
         private bool OnStartCondition()
@@ -61,17 +62,16 @@ namespace Average.Server.Jobs
                 for (int i = 0; i < _clientService.Clients.Count; i++)
                 {
                     var client = _clientService[i];
-                    var characterData = await _characterService.Get(client);
 
-                    if (characterData == null) continue;
+                    var inventoryData = _inventoryService.GetLocalStorage(client);
+                    if (inventoryData == null) continue;
 
-                    var characterPosition = client.Player.Character.Position;
-                    var characterHeading = client.Player.Character.Heading;
+                    Logger.Debug("inventory data: " + inventoryData.ToJson());
 
-                    _characterService.UpdatePosition(characterData, new PositionData(characterPosition.X, characterPosition.Y, characterPosition.Z, characterHeading));
+                    await _inventoryService.Update(inventoryData);
                 }
 
-                //Logger.Info($"[{GetType().Name}] job executed successfully.");
+                Logger.Info($"[{GetType().Name}] job executed successfully.");
             }
             catch (Exception ex)
             {

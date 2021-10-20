@@ -57,19 +57,21 @@ namespace Average.Server.Services
             Logger.Write("InventoryService", "Initialized successfully");
         }
 
-        internal async void OnClientInitialized(Client client)
+        internal async void OnClientInitialized(Client client, string characterId)
         {
             if (!_clients.ContainsKey(client.License))
             {
                 var dict = new Dictionary<string, object>();
-                var storage = await Get(client.License);
+                var storage = await Get(characterId);
 
                 dict.Add("Storage", storage ?? new StorageData
                 {
-                    StorageId = client.License,
+                    //StorageId = client.License,
+                    StorageId = characterId,
                     MaxWeight = DefaultMaxInventoryWeight,
                     Type = StorageDataType.PlayerInventory
                 });
+                //dict.Add("CharacterId", characterId);
                 dict.Add("IsOpen", false);
 
                 _clients.Add(client.License, dict);
@@ -97,6 +99,14 @@ namespace Average.Server.Services
 
                 type
             });
+        }
+
+        internal async Task<bool> SaveInventory(Client client)
+        {
+            var storage = GetLocalStorage(client);
+            if (storage == null) return false;
+
+            return await Update(storage);
         }
 
         private Dictionary<string, object> GetLocal(Client client)
@@ -387,14 +397,8 @@ namespace Average.Server.Services
                     if (info.OnSplit != null)
                     {
                         // Split custom
-                        //var itemSlotId = item.SlotId;
-                        info.OnSplit.Invoke(item, valResult, StorageItemInfo.SplitType.BaseItem);
-
-                        //Logger.Debug("item slot: " + itemSlotId + ", result: " + item);
-
                         // Application des modifications sur l'item après le split
-                        //item = itemResult;
-                        //item.SlotId = itemSlotId;
+                        info.OnSplit.Invoke(item, valResult, StorageItemInfo.SplitType.BaseItem);
                     }
                     else
                     {
@@ -477,7 +481,6 @@ namespace Average.Server.Services
                     Logger.Debug("before split: " + item.Data["cash"] + ", " + newItem.Data["cash"]);
                     info.OnSplit.Invoke(newItem, valDecResult, StorageItemInfo.SplitType.TargetItem);
                     Logger.Debug("after split: " + item.Data["cash"] + ", " + newItem.Data["cash"]);
-                    //newItem.Data = itemResult.Data;
 
                     Logger.Debug("before: " + item.ToJson(Newtonsoft.Json.Formatting.Indented) + "\n" + newItem.ToJson(Newtonsoft.Json.Formatting.Indented));
 
@@ -558,6 +561,11 @@ namespace Average.Server.Services
 
                         object itemStackValue = null;
 
+                        if(info.OnStacking != null)
+                        {
+                            newItem.Count = 1;
+                        }
+
                         if (info.CanBeStacked && info.OnRenderStacking != null)
                         {
                             itemStackValue = info.OnRenderStacking.Invoke(newItem);
@@ -574,6 +582,8 @@ namespace Average.Server.Services
 
                             if (info.OnStacking != null)
                             {
+                                newItem.Count = 1;
+
                                 // Appel une action définis
                                 Logger.Debug("Stack on slot: " + availableSlot);
 

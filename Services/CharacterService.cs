@@ -31,6 +31,7 @@ namespace Average.Server.Services
         public async Task<IEnumerable<CharacterData>> GetAll() => await _repository.GetAllAsync();
         public async Task<CharacterData> Get(Player player) => await _repository.GetAsync(x => x.License == player.License());
         public async Task<CharacterData> Get(string license) => await _repository.GetAsync(x => x.License == license);
+        public async Task<CharacterData> GetByCharacterId(string characterId) => await _repository.GetAsync(x => x.CharacterId == characterId);
         public async Task<List<CharacterData>> GetCharacters(Player player) => await _repository.GetAllAsync(x => x.License == player.License());
         public async Task<bool> Update(CharacterData data) => await _repository.ReplaceOneAsync(x => x.Id, data.Id, data);
         public async Task<bool> Update(Expression<Func<CharacterData, bool>> expression, params UpdateDefinition<CharacterData>[] definitions) => await _repository.UpdateOneAsync(expression, definitions);
