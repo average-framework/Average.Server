@@ -38,11 +38,11 @@ namespace Average.Server.Services
             {
                 { "cash", 0m }
             },
-            OnStacking = (lastItem, targetItem) =>
+            OnStacking = (source, destination) =>
             {
-                var cash = decimal.Parse(lastItem.Data["cash"].ToString()) + decimal.Parse(targetItem.Data["cash"].ToString());
-                targetItem.Data["cash"] = cash;
-                return targetItem;
+                var cash = decimal.Parse(source.Data["cash"].ToString());
+                var destCash = decimal.Parse(destination.Data["cash"].ToString());
+                destination.Data["cash"] = cash + destCash;
             },
             OnRenderStacking = (item) =>
             {
@@ -62,8 +62,16 @@ namespace Average.Server.Services
                         item.Data["cash"] = splitValue;
                         break;
                 }
-
-                return item;
+            },
+            SplitCondition = (item) =>
+            {
+                return (decimal)item.Data["cash"] != 1;
+            },
+            OnStackCombine = (source, destination) =>
+            {
+                var cash = decimal.Parse(source.Data["cash"].ToString());
+                var destCash = decimal.Parse(destination.Data["cash"].ToString());
+                destination.Data["cash"] = cash + destCash;
             },
             ContextMenu = GetMoneyContextMenu()
         };
@@ -90,7 +98,7 @@ namespace Average.Server.Services
             EventName = "drop",
             Emoji = "",
             Text = "Jeter",
-            Action = (client, itemData, raycast) =>
+            Action = (client, storageData, itemData, raycast) =>
             {
                 Logger.Debug("item: " + itemData.Name + ", " + raycast.EntityHit);
             }
@@ -102,7 +110,7 @@ namespace Average.Server.Services
             EventName = "drop",
             Emoji = "",
             Text = "Jeter",
-            Action = (client, itemData, raycast) =>
+            Action = (client, storageData, itemData, raycast) =>
             {
                 Logger.Debug("item: " + itemData.Name + ", " + raycast.EntityHit);
             }
@@ -118,7 +126,7 @@ namespace Average.Server.Services
             EventName = "split",
             Emoji = "✂️",
             Text = "Séparer",
-            Action = (client, itemData, raycast) =>
+            Action = (client, storageData, itemData, raycast) =>
             {
                 Logger.Debug("Split decimal item: " + itemData.Name);
 
@@ -126,7 +134,7 @@ namespace Average.Server.Services
                 var minValue = 1m;
                 var maxValue = decimal.Parse(itemData.Data["cash"].ToString());
 
-                _inventoryService.ShowSplitMenu(client, info, itemData.SlotId, minValue, maxValue, minValue);
+                _inventoryService.ShowSplitMenu(client, storageData.Type, info, itemData.SlotId, minValue, maxValue, minValue);
             }
         };
 
@@ -135,7 +143,7 @@ namespace Average.Server.Services
             EventName = "split",
             Emoji = "✂️",
             Text = "Séparer",
-            Action = (client, itemData, raycast) =>
+            Action = (client, storageData, itemData, raycast) =>
             {
                 Logger.Debug("Split int item: " + itemData.Name);
 
@@ -143,7 +151,7 @@ namespace Average.Server.Services
                 var minValue = 1;
                 var maxValue = itemData.Count;
 
-                _inventoryService.ShowSplitMenu(client, info, itemData.SlotId, minValue, maxValue, minValue);
+                _inventoryService.ShowSplitMenu(client, storageData.Type, info, itemData.SlotId, minValue, maxValue, minValue);
             }
         };
 

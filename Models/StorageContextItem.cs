@@ -12,6 +12,6 @@ namespace Average.Server.Models
         public string EventName { get; set; }
 
         [JsonIgnore]
-        public Action<Client, StorageItemData, RaycastHit> Action { get; set; }
+        public Action<Client, StorageData, StorageItemData, RaycastHit> Action { get; set; }
     }
 }

@@ -22,10 +22,13 @@ namespace Average.Server.Models
         public StorageContextMenu ContextMenu { get; set; }
 
         [JsonIgnore]
-        public Func<StorageItemData, StorageItemData, StorageItemData> OnStacking { get; set; }
+        public Action<StorageItemData, StorageItemData> OnStacking { get; set; }
 
         [JsonIgnore]
         public Func<StorageItemData, object> OnRenderStacking { get; set; }
+
+        [JsonIgnore]
+        public Action<StorageItemData, StorageItemData> OnStackCombine { get; set; }
 
         internal enum SplitType
         {
@@ -33,7 +36,10 @@ namespace Average.Server.Models
         }
 
         [JsonIgnore]
-        public Func<StorageItemData, object, SplitType, StorageItemData> OnSplit { get; set; }
+        public Action<StorageItemData, object, SplitType> OnSplit { get; set; }
+
+        [JsonIgnore]
+        public Func<StorageItemData, bool> SplitCondition { get; set; }
 
         [JsonIgnore]
         public Func<StorageItemData, object> OnRenderSplit { get; set; }

@@ -38,10 +38,13 @@ namespace Average.Server.Framework.Commands
             _inventoryService.AddItem(client, new StorageItemData(itemName, itemCount), storage);
         }
 
-        [ClientCommand("storage.remove_item")]
-        private void RemoveItem(Client client, string itemName, int itemCount)
+        [ClientCommand("storage.remove_item_on_slot")]
+        private void RemoveItemOnSlot(Client client, int slotId)
         {
+            var storage = _inventoryService.GetLocalStorage(client);
+            if (storage == null) return;
 
+            _inventoryService.RemoveItemOnSlot(client, storage, slotId);
         }
     }
 }
