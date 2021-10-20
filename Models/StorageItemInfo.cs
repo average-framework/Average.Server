@@ -5,16 +5,20 @@ using System.Collections.Generic;
 
 namespace Average.Server.Models
 {
-    public class StorageItemInfo
+    internal class StorageItemInfo
     {
         public string Name { get; set; }
+        public string Text { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public string Img { get; set; }
         public double Weight { get; set; }
         public bool CanBeStacked { get; set; }
         public bool RemoveOnGive { get; set; } = true;
+        public Type SplitValueType { get; set; } = typeof(int);
         public Dictionary<string, object> DefaultData { get; set; }
+
+        [JsonIgnore]
         public StorageContextMenu ContextMenu { get; set; }
 
         [JsonIgnore]
@@ -22,6 +26,17 @@ namespace Average.Server.Models
 
         [JsonIgnore]
         public Func<StorageItemData, object> OnRenderStacking { get; set; }
+
+        internal enum SplitType
+        {
+            BaseItem, TargetItem
+        }
+
+        [JsonIgnore]
+        public Func<StorageItemData, object, SplitType, StorageItemData> OnSplit { get; set; }
+
+        [JsonIgnore]
+        public Func<StorageItemData, object> OnRenderSplit { get; set; }
 
         [JsonIgnore]
         public Action OnInventoryLoading { get; set; }

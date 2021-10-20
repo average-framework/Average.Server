@@ -1,10 +1,12 @@
 ﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Models;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
 using Average.Shared.Enums;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using static Average.Server.Services.InputService;
@@ -334,7 +336,140 @@ namespace Average.Server.Services
             return -1;
         }
 
-        internal void AddItem(Client client, StorageItemData newItem, StorageData storageData)
+        internal void ShowSplitMenu(Client client, StorageItemInfo itemInfo, int slotId, object minValue, object maxValue, object defaultValue) => _uiService.SendMessage(client, "storage", "showInvSplitMenu", new
+        {
+            slotId,
+            title = itemInfo.Text,
+            img = itemInfo.Img,
+            defaultValue,
+            minValue,
+            maxValue
+        });
+
+        internal void OnSplitItem(Client client, int slotId, object minValue, object maxValue, object value, StorageData storage)
+        {
+            SplitItem(client, slotId, minValue, maxValue, value, storage);
+        }
+
+        internal void SplitItem(Client client, int slotId, object minValue, object maxValue, object value, StorageData storageData)
+        {
+            var item = GetItemOnSlot(slotId, storageData);
+            if (item == null) return;
+
+            var info = GetItemInfo(item.Name);
+            minValue = Convert.ChangeType(minValue, info.SplitValueType);
+            maxValue = Convert.ChangeType(maxValue, info.SplitValueType);
+            value = Convert.ChangeType(value, info.SplitValueType);
+
+            Logger.Debug("Values: " + minValue + ", " + maxValue + ", " + value + ", " + item.Count);
+
+            switch (value)
+            {
+                case int convertedValue:
+                    Logger.Debug("item value type: " + convertedValue.GetType() + ", " + convertedValue);
+                    // Item count = 50
+                    // MaxValue = 50
+                    // Split Value = 15
+                    // First Item Count = (50 - 15 = 35)
+                    // Second Item Count = (15)
+                    // Result = First Item Count
+
+                    // MaxValue = nombre total d'item
+                    // Value = nombre d'item a split
+
+                    // On ne split pas la quantité si la valeur est égale a la valeur minimal (1 - 1 = 0)
+                    // On ne split pas la quantité si la valeur est égale a la valeur maximal (50 - 50 = 0)
+
+                    var valResult = 0;
+
+                    Logger.Debug("value if: " + ((int)convertedValue == (int)minValue) + ", " + ((int)convertedValue == (int)maxValue));
+
+                    if((int)convertedValue == (int)minValue || (int)convertedValue == (int)maxValue)
+                    {
+                        // 15 - 15 = 0
+                        // 15 - (15 - 1) = f:14 / s:1
+                        valResult = (int)maxValue - 1;
+                    }
+                    else
+                    {
+                        //valResult = (int)maxValue - (int)convertedValue;
+                        valResult = (int)convertedValue;
+                    }
+
+                    Logger.Debug("Split ???: " + (info.OnSplit != null));
+
+                    if (info.OnSplit != null)
+                    {
+                        // Split custom
+                        var itemSlotId = item.SlotId;
+                        var itemResult = info.OnSplit.Invoke(item, valResult, StorageItemInfo.SplitType.BaseItem);
+
+                        Logger.Debug("item slot: " + itemSlotId + ", result: " + itemResult);
+
+                        // Application des modifications sur l'item après le split
+                        item = itemResult;
+                        item.SlotId = itemSlotId;
+                    }
+                    else
+                    {
+                        // Split par défaut
+                        item.Count = valResult;
+
+                        Logger.Debug("item slot: " + item.SlotId + ", result: " + valResult);
+                    }
+
+                    // Besoin de modifier visuellement la valeur de quantité de l'item actuelle (premier item)
+
+
+                    // Appel l'action par defaut
+                    //var itemInstance = storageData.Items.Find(x => x.SlotId == item.SlotId);
+                    //itemInstance.Count += newItem.Count;
+                    Logger.Debug("value: " + item.Count);
+                    //itemInstance.Count -= item.Count;
+
+                    // Met à jour l'affichage du premier item
+                    _uiService.SendMessage(client, "storage", "updateItemRender", new
+                    {
+                        slotId = item.SlotId,
+                        count = (info.CanBeStacked && info.OnRenderStacking != null) ? info.OnRenderStacking.Invoke(item) : item.Count,
+                        //count = storageItemData.Count,
+                        img = info.Img,
+                    });
+
+                    Logger.Debug("Slot count: " + item.Name + ", " + item.SlotId);
+
+                    //SetItemOnEmptySlot(client, storageData, newItem);
+
+                    // Besoin de créer un nouvelle item avec la quantité restante (second item)
+
+                    //item.SlotId = newSlotId;
+
+
+                    var newSlotId = GetAvailableSlot(client);
+                    //var newItem = item;
+                    var newItem = new StorageItemData(item.Name, (int)maxValue - valResult);
+                    newItem.SlotId = newSlotId;
+                    newItem.Data = item.Data;
+
+                    Logger.Debug("before: " + item.ToJson(Newtonsoft.Json.Formatting.Indented) + "\n" + newItem.ToJson(Newtonsoft.Json.Formatting.Indented));
+
+                    storageData = GetLocalStorage(client);
+                    if (storageData == null) return;
+
+                    storageData.Items.Add(newItem);
+                    SetItemOnEmptySlot(client, storageData, newItem);
+                    //AddItem(client, newItem, storageData, true);
+                    break;
+                case double:
+                    break;
+                case float:
+                    break;
+                case decimal:
+                    break;
+            }
+        }
+
+        internal void AddItem(Client client, StorageItemData newItem, StorageData storageData, bool createInNewSlot = false)
         {
             var info = GetItemInfo(newItem.Name);
 
@@ -345,13 +480,13 @@ namespace Average.Server.Services
             }
 
             newItem.Count = (newItem.Count > 0 ? newItem.Count : newItem.Count = 1);
-            var weight = info.Weight * newItem.Count;
-
             newItem.Data ??= new Dictionary<string, object>();
 
-            if(info.DefaultData != null)
+            var weight = info.Weight * newItem.Count;
+
+            if (info.DefaultData != null)
             {
-                foreach(var d in info.DefaultData)
+                foreach (var d in info.DefaultData)
                 {
                     if (!newItem.Data.ContainsKey(d.Key))
                     {
@@ -390,7 +525,9 @@ namespace Average.Server.Services
                 {
                     if (IsSlotAvailable(availableSlot, storageData))
                     {
+                        // Créer un nouvelle item dans un slot disponible
                         newItem.SlotId = availableSlot;
+                        storageData.Items.Add(newItem);
 
                         object itemStackValue = null;
 
@@ -399,14 +536,15 @@ namespace Average.Server.Services
                             itemStackValue = info.OnRenderStacking.Invoke(newItem);
                         }
 
-                        storageData.Items.Add(newItem);
-
                         SetItemOnEmptySlot(client, storageData, newItem);
                     }
                     else
                     {
                         if (info.CanBeStacked)
                         {
+                            // Modifie un item dans un slot existant
+                            // Modifie la quantité de l'item sur un slot existant
+
                             if (info.OnStacking != null)
                             {
                                 // Appel une action définis
@@ -425,17 +563,21 @@ namespace Average.Server.Services
                             }
                             else
                             {
-                                // Appel l'action par defaut
-                                var itemInstance = storageData.Items.Find(x => x.SlotId == newItem.SlotId);
-                                itemInstance.Count += newItem.Count;
+                                if (!createInNewSlot)
+                                {
+                                    // Appel l'action par defaut
+                                    var itemInstance = storageData.Items.Find(x => x.SlotId == newItem.SlotId);
+                                    itemInstance.Count += newItem.Count;
 
-                                Logger.Debug("Slot count: " + newItem.Name + ", " + newItem.SlotId + ", " + itemInstance.SlotId);
+                                    Logger.Debug("Slot count: " + newItem.Name + ", " + newItem.SlotId + ", " + itemInstance.SlotId);
 
-                                StackItemOnSlot(client, storageData, itemInstance);
+                                    StackItemOnSlot(client, storageData, itemInstance);
+                                }
                             }
                         }
                         else
                         {
+                            // Créer un nouvelle item dans un slot disponible
                             newItem.SlotId = availableSlot;
                             storageData.Items.Add(newItem);
 
@@ -607,7 +749,7 @@ namespace Average.Server.Services
 
             var raycast = await _worldService.GetEntityFrontOfPlayer(client, 6f);
 
-            context.Action.Invoke(item, raycast);
+            context.Action.Invoke(client, item, raycast);
         }
 
         public async Task<bool> Create(StorageData data) => await _repository.AddAsync(data);

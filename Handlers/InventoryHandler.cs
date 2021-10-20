@@ -104,6 +104,28 @@ namespace Average.Server.Handlers
             await _inventoryService.OnStorageContextMenu(client, item.Name, slotId, eventName, storage);
         }
 
+        [UICallback("storage/inv/split/result")]
+        private void OnSplitResult(Client client, Dictionary<string, object> args, RpcCallback cb)
+        {
+            var slotId = int.Parse(args["slotId"].ToString());
+            var minValue = args["minValue"];
+            var maxValue = args["maxValue"];
+            var value = args["value"];
+
+            var storage = _inventoryService.GetLocalStorage(client);
+            if (storage == null) return;
+
+            _inventoryService.OnSplitItem(client, slotId, minValue, maxValue, value, storage);
+
+            Logger.Debug("Split result: " + slotId + ", " + minValue + ", " + maxValue + ", " + value);
+        }
+
+        //[UICallback("storage/inv/split/close")]
+        //private void OnSplitMenuClosed(Client client, Dictionary<string, object> args, RpcCallback cb)
+        //{
+
+        //}
+
         [UICallback("storage/chest/context_menu")]
         private async void OnChestContextMenu(Client client, Dictionary<string, object> args, RpcCallback cb)
         {

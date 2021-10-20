@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Average.Server.Models
 {
-    public class StorageContextMenu
+    internal class StorageContextMenu
     {
         public List<StorageContextItem> Items { get; } = new List<StorageContextItem>();
 
