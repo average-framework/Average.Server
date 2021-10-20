@@ -46,7 +46,7 @@ namespace Average.Server.Services
             },
             OnRenderStacking = (item) =>
             {
-                return item.Data["cash"];
+                return "$" + item.Data["cash"];
             },
             OnSplit = (item, splitValue, splitType) =>
             {
@@ -93,7 +93,6 @@ namespace Average.Server.Services
             Action = (client, itemData, raycast) =>
             {
                 Logger.Debug("item: " + itemData.Name + ", " + raycast.EntityHit);
-                //_inventoryService.Remove
             }
         },
         GetMoneySplitContextItem());
@@ -106,7 +105,6 @@ namespace Average.Server.Services
             Action = (client, itemData, raycast) =>
             {
                 Logger.Debug("item: " + itemData.Name + ", " + raycast.EntityHit);
-                //_inventoryService.Remove
             }
         },
         GetDefaultSplitContextItem());

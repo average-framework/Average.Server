@@ -71,7 +71,7 @@ namespace Average.Server.Jobs
                     _characterService.UpdatePosition(characterData, new PositionData(characterPosition.X, characterPosition.Y, characterPosition.Z, characterHeading));
                 }
 
-                Logger.Info($"[{GetType().Name}] job executed successfully.");
+                //Logger.Info($"[{GetType().Name}] job executed successfully.");
             }
             catch (Exception ex)
             {

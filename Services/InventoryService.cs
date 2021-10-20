@@ -8,6 +8,7 @@ using Average.Shared.DataModels;
 using Average.Shared.Enums;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using static Average.Server.Services.InputService;
 
@@ -363,28 +364,18 @@ namespace Average.Server.Services
 
             Logger.Debug("Values: " + minValue + ", " + maxValue + ", " + value + ", " + item.Count);
 
+            StorageItemData itemResult = null;
+
             switch (value)
             {
                 case int convertedValue:
                     Logger.Debug("item value type: " + convertedValue.GetType() + ", " + convertedValue);
-                    // Item count = 50
-                    // MaxValue = 50
-                    // Split Value = 15
-                    // First Item Count = (50 - 15 = 35)
-                    // Second Item Count = (15)
-                    // Result = First Item Count
-
-                    // MaxValue = nombre total d'item
-                    // Value = nombre d'item a split
-
-                    // On ne split pas la quantité si la valeur est égale a la valeur minimal (1 - 1 = 0)
-                    // On ne split pas la quantité si la valeur est égale a la valeur maximal (50 - 50 = 0)
 
                     var valResult = 0;
 
-                    Logger.Debug("value if: " + ((int)convertedValue == (int)minValue) + ", " + ((int)convertedValue == (int)maxValue));
+                    Logger.Debug("value if: " + (convertedValue == (int)minValue) + ", " + (convertedValue == (int)maxValue));
 
-                    if((int)convertedValue == (int)minValue || (int)convertedValue == (int)maxValue)
+                    if(convertedValue == (int)minValue || convertedValue == (int)maxValue)
                     {
                         // 15 - 15 = 0
                         // 15 - (15 - 1) = f:14 / s:1
@@ -393,7 +384,7 @@ namespace Average.Server.Services
                     else
                     {
                         //valResult = (int)maxValue - (int)convertedValue;
-                        valResult = (int)convertedValue;
+                        valResult = convertedValue;
                     }
 
                     Logger.Debug("Split ???: " + (info.OnSplit != null));
@@ -402,7 +393,7 @@ namespace Average.Server.Services
                     {
                         // Split custom
                         var itemSlotId = item.SlotId;
-                        var itemResult = info.OnSplit.Invoke(item, valResult, StorageItemInfo.SplitType.BaseItem);
+                        itemResult = info.OnSplit.Invoke(item, valResult, StorageItemInfo.SplitType.BaseItem);
 
                         Logger.Debug("item slot: " + itemSlotId + ", result: " + itemResult);
 
@@ -418,38 +409,25 @@ namespace Average.Server.Services
                         Logger.Debug("item slot: " + item.SlotId + ", result: " + valResult);
                     }
 
-                    // Besoin de modifier visuellement la valeur de quantité de l'item actuelle (premier item)
-
-
                     // Appel l'action par defaut
-                    //var itemInstance = storageData.Items.Find(x => x.SlotId == item.SlotId);
-                    //itemInstance.Count += newItem.Count;
                     Logger.Debug("value: " + item.Count);
-                    //itemInstance.Count -= item.Count;
 
                     // Met à jour l'affichage du premier item
                     _uiService.SendMessage(client, "storage", "updateItemRender", new
                     {
                         slotId = item.SlotId,
                         count = (info.CanBeStacked && info.OnRenderStacking != null) ? info.OnRenderStacking.Invoke(item) : item.Count,
-                        //count = storageItemData.Count,
                         img = info.Img,
                     });
 
                     Logger.Debug("Slot count: " + item.Name + ", " + item.SlotId);
 
-                    //SetItemOnEmptySlot(client, storageData, newItem);
-
-                    // Besoin de créer un nouvelle item avec la quantité restante (second item)
-
-                    //item.SlotId = newSlotId;
-
-
                     var newSlotId = GetAvailableSlot(client);
-                    //var newItem = item;
                     var newItem = new StorageItemData(item.Name, (int)maxValue - valResult);
                     newItem.SlotId = newSlotId;
-                    newItem.Data = item.Data;
+
+                    var newDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
+                    newItem.Data = newDictionary;
 
                     Logger.Debug("before: " + item.ToJson(Newtonsoft.Json.Formatting.Indented) + "\n" + newItem.ToJson(Newtonsoft.Json.Formatting.Indented));
 
@@ -458,13 +436,72 @@ namespace Average.Server.Services
 
                     storageData.Items.Add(newItem);
                     SetItemOnEmptySlot(client, storageData, newItem);
-                    //AddItem(client, newItem, storageData, true);
                     break;
-                case double:
-                    break;
-                case float:
-                    break;
-                case decimal:
+                //case double:
+                //    break;
+                //case float:
+                //    break;
+                case decimal convertedValue:
+                    Logger.Debug("item value type: " + convertedValue.GetType() + ", " + convertedValue);
+
+                    var valDecResult = 0m;
+
+                    Logger.Debug("value if: " + (convertedValue == (decimal)minValue) + ", " + (convertedValue == (decimal)maxValue));
+
+                    if (convertedValue == (decimal)minValue || convertedValue == (decimal)maxValue)
+                    {
+                        // 15 - 15 = 0
+                        // 15 - (15 - 1) = f:14 / s:1
+                        valDecResult = (decimal)maxValue - 1;
+                    }
+                    else
+                    {
+                        //valResult = (decimal)maxValue - (decimal)convertedValue;
+                        valDecResult = convertedValue;
+                    }
+
+                    Logger.Debug("Split ???: " + (info.OnSplit != null));
+
+                    if (info.OnSplit != null)
+                    {
+                        Logger.Debug("before split: " + item.Data["cash"]);
+                        info.OnSplit.Invoke(item, valDecResult, StorageItemInfo.SplitType.BaseItem);
+                        Logger.Debug("after split: " + item.Data["cash"]);
+                    }
+
+                    // Appel l'action par defaut
+                    Logger.Debug("value: " + item.Count);
+
+                    // Met à jour l'affichage du premier item
+                    _uiService.SendMessage(client, "storage", "updateItemRender", new
+                    {
+                        slotId = item.SlotId,
+                        count = (info.CanBeStacked && info.OnRenderStacking != null) ? info.OnRenderStacking.Invoke(item) : item.Count,
+                        img = info.Img,
+                    });
+
+                    Logger.Debug("Slot count: " + item.Name + ", " + item.SlotId);
+
+                    newSlotId = GetAvailableSlot(client);
+                    newItem = new StorageItemData(item.Name, 1);
+                    newItem.SlotId = newSlotId;
+
+                    // Besoin de copier les données, sinon les données du base item et du target item sont encore lier
+                    newDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
+
+                    newItem.Data = newDictionary;
+                    Logger.Debug("before split: " + item.Data["cash"] + ", " + newItem.Data["cash"]);
+                    info.OnSplit.Invoke(newItem, valDecResult, StorageItemInfo.SplitType.TargetItem);
+                    Logger.Debug("after split: " + item.Data["cash"] + ", " + newItem.Data["cash"]);
+                    //newItem.Data = itemResult.Data;
+
+                    Logger.Debug("before: " + item.ToJson(Newtonsoft.Json.Formatting.Indented) + "\n" + newItem.ToJson(Newtonsoft.Json.Formatting.Indented));
+
+                    storageData = GetLocalStorage(client);
+                    if (storageData == null) return;
+
+                    storageData.Items.Add(newItem);
+                    SetItemOnEmptySlot(client, storageData, newItem);
                     break;
             }
         }
@@ -493,6 +530,11 @@ namespace Average.Server.Services
                         newItem.Data.Add(d.Key, d.Value);
                     }
                 }
+            }
+
+            if (newItem.Name == "money")
+            {
+                newItem.Data["cash"] = 500m;
             }
 
             Logger.Debug("Add item: " + info.Name + ", " + info.CanBeStacked);
