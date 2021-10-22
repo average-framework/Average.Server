@@ -101,6 +101,11 @@ namespace Average.Server.Services
             _eventService.EmitClient(client, "ui:send_message", frameName, requestType, message.ToJson());
         }
 
+        internal void SendGlobalMessage(string frameName, string requestType, object message = null)
+        {
+            _eventService.EmitClients("ui:send_message", frameName, requestType, message.ToJson());
+        }
+
         internal void FocusFrame(Client client, string frameName)
         {
             _eventService.EmitClient(client, "ui:frame_focus", frameName);

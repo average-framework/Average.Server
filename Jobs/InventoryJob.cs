@@ -1,9 +1,7 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Extensions;
 using Average.Server.Interfaces;
 using Average.Server.Services;
-using Average.Shared.DataModels;
 using System;
 
 namespace Average.Server.Jobs
@@ -12,20 +10,18 @@ namespace Average.Server.Jobs
     internal class InventoryJob : IServerJob
     {
         private readonly ClientService _clientService;
-        private readonly CharacterService _characterService;
         private readonly InventoryService _inventoryService;
 
         public Guid Id => Guid.NewGuid();
         public DateTime LastTriggered { get; set; }
-        public TimeSpan Recurring => new TimeSpan(0, 0, 5);
+        public TimeSpan Recurring => new TimeSpan(0, 1, 0);
         public JobState State { get; set; }
         public Func<bool> StartCondition => OnStartCondition;
         public Func<bool> StopCondition => OnStopCondition;
 
-        public InventoryJob(ClientService clientService, CharacterService characterService, InventoryService inventoryService)
+        public InventoryJob(ClientService clientService, InventoryService inventoryService)
         {
             _clientService = clientService;
-            _characterService = characterService;
             _inventoryService = inventoryService;
         }
 
@@ -66,12 +62,10 @@ namespace Average.Server.Jobs
                     var inventoryData = _inventoryService.GetLocalStorage(client);
                     if (inventoryData == null) continue;
 
-                    Logger.Debug("inventory data: " + inventoryData.ToJson());
-
                     await _inventoryService.Update(inventoryData);
                 }
 
-                Logger.Info($"[{GetType().Name}] job executed successfully.");
+                //Logger.Info($"[{GetType().Name}] job executed successfully.");
             }
             catch (Exception ex)
             {

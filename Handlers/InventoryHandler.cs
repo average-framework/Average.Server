@@ -5,6 +5,7 @@ using Average.Server.Framework.Model;
 using Average.Server.Services;
 using Average.Shared.Attributes;
 using Average.Shared.DataModels;
+using CitizenFX.Core;
 using System;
 using System.Collections.Generic;
 using static Average.Server.Services.RpcService;
@@ -14,10 +15,12 @@ namespace Average.Server.Handlers
     internal class InventoryHandler : IHandler
     {
         private readonly InventoryService _inventoryService;
+        private readonly WorldService _worldService;
 
-        public InventoryHandler(InventoryService inventoryService)
+        public InventoryHandler(InventoryService inventoryService, WorldService worldService)
         {
             _inventoryService = inventoryService;
+            _worldService = worldService;
         }
 
         [ServerEvent("character:character_created")]
@@ -27,7 +30,7 @@ namespace Average.Server.Handlers
             {
                 StorageId = characterId,
                 MaxWeight = InventoryService.DefaultMaxInventoryWeight,
-                Type = StorageDataType.PlayerInventory,
+                Type = StorageDataType.Player,
                 Items = new()
             };
 
@@ -47,17 +50,44 @@ namespace Average.Server.Handlers
         }
 
         [UICallback("frame_ready")]
-        private void OnFrameReady(Client client, Dictionary<string, object> args, RpcCallback cb)
+        private async void OnFrameReady(Client client, Dictionary<string, object> args, RpcCallback cb)
         {
             if (args.TryGetValue("frame", out object frame))
             {
                 if ((string)frame == "storage")
                 {
-                    _inventoryService.InitSlots(client, StorageDataType.PlayerInventory);
+                    _inventoryService.InitSlots(client, StorageDataType.Player, InventoryService.InventorySlotCount);
                     //_inventoryService.InitSlots(client, StorageDataType.VehicleInventory);
                     //_inventoryService.InitSlots(client, StorageDataType.Chest);
+
+                    await BaseScript.Delay(1000);
+
+                    var storage = _inventoryService.GetLocalStorage(client);
+                    if (storage == null) return;
+
+                    _inventoryService.LoadInventory(client, storage);
+                    _inventoryService.SetTime(client, _worldService.World.Time);
                 }
             }
+        }
+
+        [UICallback("storage/inv/item_info")]
+        private void OnInventoryItemInfo(Client client, Dictionary<string, object> args, RpcCallback cb)
+        {
+            var slotId = int.Parse(args["slotId"].ToString());
+            var storage = _inventoryService.GetLocalStorage(client);
+            if (storage == null) return;
+
+            var item = _inventoryService.GetItemOnSlot(slotId, storage);
+            if (item == null) return;
+
+            var info = _inventoryService.GetItemInfo(item.Name);
+
+            cb(new
+            {
+                title = info.Title,
+                description = info.Description
+            });
         }
 
         [UICallback("storage/inv/drop_slot")]
@@ -67,6 +97,7 @@ namespace Average.Server.Handlers
             var targetSlotId = int.Parse(args["targetSlotId"].ToString());
 
             var storage = _inventoryService.GetLocalStorage(client);
+            if (storage == null) return;
 
             _inventoryService.SetItemOnSlot(client, storage, slotId, targetSlotId);
         }

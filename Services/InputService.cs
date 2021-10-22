@@ -49,23 +49,30 @@ namespace Average.Server.Services
         {
             if (_inputs.Count > 0)
             {
-                for(int i = 0; i < _clientService.Clients.Count; i++)
+                try
                 {
-                    var client = _clientService.Clients[i];
-
-                    for(int o = 0; o < _inputs.Count; o++)
+                    for (int i = 0; i < _clientService.Clients.Count; i++)
                     {
-                        var input = _inputs[o];
-                        var isValidate = input.Condition.Invoke(client);
+                        var client = _clientService.Clients[i];
 
-                        if (input.LastConditionState != isValidate)
+                        for (int o = 0; o < _inputs.Count; o++)
                         {
-                            input.LastConditionState = isValidate;
-                            input.OnStateChanged?.Invoke(client, isValidate);
+                            var input = _inputs[o];
+                            var isValidate = input.Condition.Invoke(client);
 
-                            _eventService.EmitClient(client, "input:set_state", input.Id, isValidate);
+                            if (input.LastConditionState != isValidate)
+                            {
+                                input.LastConditionState = isValidate;
+                                input.OnStateChanged?.Invoke(client, isValidate);
+
+                                _eventService.EmitClient(client, "input:set_state", input.Id, isValidate);
+                            }
                         }
                     }
+                }
+                catch
+                {
+
                 }
 
                 await BaseScript.Delay(250);

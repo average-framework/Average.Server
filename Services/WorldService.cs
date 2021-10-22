@@ -20,6 +20,7 @@ namespace Average.Server.Services
         private readonly EventService _eventManager;
         private readonly WorldRepository _repository;
         private readonly RpcService _rpcService;
+        private readonly ClientService _clientService;
 
         private readonly int _minTransitionTime;
         private readonly int _maxTransitionTime;
@@ -29,8 +30,32 @@ namespace Average.Server.Services
 
         public WorldData World { get; private set; }
 
-        public WorldService(RpcService rpcService, WorldRepository repository, ThreadService threadManager, EventService eventManager)
+        public class WorldTimeEventArgs : EventArgs
         {
+            public TimeSpan Time { get; set; }
+
+            public WorldTimeEventArgs(TimeSpan time)
+            {
+                Time = time;
+            }
+        }
+
+        public class WorldWeatherEventArgs : EventArgs
+        {
+            public Weather Weather { get; set; }
+
+            public WorldWeatherEventArgs(Weather weather)
+            {
+                Weather = weather;
+            }
+        }
+
+        public event EventHandler<WorldTimeEventArgs> TimeChanged;
+        public event EventHandler<WorldWeatherEventArgs> WeatherChanged;
+
+        public WorldService(ClientService clientService, RpcService rpcService, WorldRepository repository, ThreadService threadManager, EventService eventManager)
+        {
+            _clientService = clientService;
             _rpcService = rpcService;
             _threadManager = threadManager;
             _eventManager = eventManager;
@@ -73,10 +98,15 @@ namespace Average.Server.Services
         private async Task TimeUpdate()
         {
             World.Time += TimeSpan.FromSeconds(120);
+            //World.Time += TimeSpan.FromSeconds(720);
 
             _eventManager.EmitClients("world:set_time", World.Time.Hours, World.Time.Minutes, World.Time.Seconds);
+
+            TimeChanged?.Invoke(this, new WorldTimeEventArgs(World.Time));
+
+            Update(World);
             await BaseScript.Delay(10000);
-            await Update(World);
+            //await BaseScript.Delay(60000);
         }
 
         private async Task WeatherUpdate()
@@ -91,9 +121,11 @@ namespace Average.Server.Services
             Logger.Info($"Changing weather from {World.Weather} to {nextWeather}, waiting time: {rndTimeToWait}, transition time: {rndTransitionTime} seconds.");
 
             World.Weather = nextWeather;
-            await Update(World);
-
+            WeatherChanged?.Invoke(this, new WorldWeatherEventArgs(World.Weather));
+            
             _eventManager.EmitClients("world:set_weather", nextWeather, rndTransitionTime);
+
+            await Update(World);
         }
 
         private Weather GetNextWeather()

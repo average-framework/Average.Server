@@ -1,5 +1,4 @@
 ﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Models;
@@ -21,6 +20,7 @@ namespace Average.Server.Services
         private readonly UIService _uiService;
         private readonly InputService _inputService;
         private readonly WorldService _worldService;
+        private readonly ClientService _clientService;
 
         private readonly List<StorageItemInfo> _items = new();
         private readonly Dictionary<string, Dictionary<string, object>> _clients = new();
@@ -28,15 +28,25 @@ namespace Average.Server.Services
         public const double DefaultMaxInventoryWeight = 20.0;
         public const double DefaultMaxChestWeight = 100.0;
 
-        private const int SlotCount = 20;
+        public const int InventorySlotCount = 20;
+        public const int VehicleSlotCount = 20;
+        public const int ChestSlotCount = 20;
+        public const int BankSlotCount = 20;
+        public const int TradeSlotCount = 20;
 
-        public InventoryService(WorldService worldService, RpcService rpcService, InventoryRepository repository, UIService uiService, InputService inputService)
+        private const bool SaveOnChanged = true;
+
+        public InventoryService(ClientService clientService, WorldService worldService, RpcService rpcService, InventoryRepository repository, UIService uiService, InputService inputService)
         {
             _worldService = worldService;
             _rpcService = rpcService;
             _repository = repository;
             _uiService = uiService;
             _inputService = inputService;
+            _clientService = clientService;
+
+            // Events
+            _worldService.TimeChanged += OnTimeChanged;
 
             // Inputs
             _inputService.RegisterKey(new Input((Control)0xC1989F95,
@@ -57,19 +67,38 @@ namespace Average.Server.Services
             Logger.Write("InventoryService", "Initialized successfully");
         }
 
+        private void OnTimeChanged(object sender, WorldService.WorldTimeEventArgs e)
+        {
+            try
+            {
+                for (int i = 0; i < _clientService.ClientCount; i++)
+                {
+                    var client = _clientService[i];
+                    SetTime(client, e.Time);
+                }
+            }
+            catch
+            {
+                Logger.Error("[InventoryService] Unable to set time for clients.");
+            }
+        }
+
         internal async void OnClientInitialized(Client client, string characterId)
         {
             if (!_clients.ContainsKey(client.License))
             {
-                var dict = new Dictionary<string, object>();
                 var storage = await Get(characterId);
+
+                if (storage == null) return;
+
+                var dict = new Dictionary<string, object>();
 
                 dict.Add("Storage", storage ?? new StorageData
                 {
                     //StorageId = client.License,
                     StorageId = characterId,
                     MaxWeight = DefaultMaxInventoryWeight,
-                    Type = StorageDataType.PlayerInventory
+                    Type = StorageDataType.Player
                 });
                 //dict.Add("CharacterId", characterId);
                 dict.Add("IsOpen", false);
@@ -89,13 +118,13 @@ namespace Average.Server.Services
             _items.Add(itemInfo);
         }
 
-        internal void InitSlots(Client client, StorageDataType storageType)
+        internal void InitSlots(Client client, StorageDataType storageType, int slotCount)
         {
             var type = GetStorageTypeString(storageType);
 
             _uiService.SendMessage(client, "storage", "init", new
             {
-                slotCount = SlotCount,
+                slotCount,
 
                 type
             });
@@ -107,6 +136,14 @@ namespace Average.Server.Services
             if (storage == null) return false;
 
             return await Update(storage);
+        }
+
+        internal void LoadInventory(Client client, StorageData storageData)
+        {
+            foreach (var item in storageData.Items)
+            {
+                SetItemOnEmptySlot(client, storageData, item);
+            }
         }
 
         private Dictionary<string, object> GetLocal(Client client)
@@ -161,29 +198,20 @@ namespace Average.Server.Services
             }
         }
 
-        private async Task<StorageData> LoadStorage(Client client, string storageId)
+        internal async void Open(Client client)
         {
-            var storage = await Get(storageId);
-
-            foreach (var item in storage.Items)
+            if (!GetData<bool>(client, "IsOpen"))
             {
-                var info = GetItemInfo(item.Name);
+                SetData(client, "IsOpen", true);
 
-                switch (storage.Type)
+                if (!await _rpcService.NativeCall<bool>(client, 0x4A123E85D7C4CA0B, PostEffect.PauseMenuIn))
                 {
-                    case StorageDataType.PlayerInventory:
-                        info?.OnInventoryLoading?.Invoke();
-                        break;
-                    case StorageDataType.VehicleInventory:
-                    case StorageDataType.Chest:
-                        info?.OnChestLoading?.Invoke();
-                        SetData(client, "CurrentChestData", storageId);
-                        break;
+                    _rpcService.NativeCall(client, 0x4102732DF6B4005F, PostEffect.PauseMenuIn);
                 }
-            }
 
-            SetLocalStorage(client, storage);
-            return storage;
+                _uiService.SendMessage(client, "storage", "open");
+                _uiService.Focus(client);
+            }
         }
 
         internal async void Close(Client client)
@@ -199,22 +227,6 @@ namespace Average.Server.Services
 
                 _uiService.SendMessage(client, "storage", "close");
                 _uiService.Unfocus(client);
-            }
-        }
-
-        internal async void Open(Client client)
-        {
-            if (!GetData<bool>(client, "IsOpen"))
-            {
-                SetData(client, "IsOpen", true);
-
-                if (!await _rpcService.NativeCall<bool>(client, 0x4A123E85D7C4CA0B, PostEffect.PauseMenuIn))
-                {
-                    _rpcService.NativeCall(client, 0x4102732DF6B4005F, PostEffect.PauseMenuIn);
-                }
-
-                _uiService.SendMessage(client, "storage", "open");
-                _uiService.Focus(client);
             }
         }
 
@@ -237,6 +249,35 @@ namespace Average.Server.Services
         internal StorageItemInfo GetItemInfo(string itemName)
         {
             return _items.Find(x => x.Name == itemName);
+        }
+
+        internal void SetInventoryWeight(Client client, StorageData storageData)
+        {
+            var type = GetStorageTypeString(storageData.Type);
+
+            _uiService.SendMessage(client, "storage", "setWeight", new
+            {
+                weight = CalculateWeight(storageData).ToString("0.00"),
+                maxWeight = storageData.MaxWeight.ToString("0.00"),
+
+                type
+            });
+        }
+
+        internal void SetTime(Client client, TimeSpan time)
+        {
+            _uiService.SendMessage(client, "storage", "setTime", new
+            {
+                time = string.Format($"{(time.Hours < 10 ? "0" + time.Hours : time.Hours)}h{(time.Minutes < 10 ? "0" + time.Minutes : time.Minutes)}", time)
+            });
+        }
+
+        internal void SetTemperature(Client client, int temperature)
+        {
+            _uiService.SendMessage(client, "storage", "setTemperature", new
+            {
+                temperature = temperature + "°C"
+            });
         }
 
         internal double CalculateWeight(StorageData storageData)
@@ -276,12 +317,6 @@ namespace Average.Server.Services
             return storageData.Items.Find(x => x.Name == itemName);
         }
 
-        internal async Task Reset(StorageData storageData)
-        {
-            storageData = new StorageData();
-            await Update(storageData);
-        }
-
         internal bool IsSlotAvailable(Client client, int slotIndex)
         {
             var storage = GetLocalStorage(client);
@@ -303,7 +338,29 @@ namespace Average.Server.Services
             var storage = GetLocalStorage(client);
             if (storage == null) return -1;
 
-            for (int i = 0; i < SlotCount; i++)
+            var slotCount = 0;
+
+            switch (storage.Type)
+            {
+                case StorageDataType.Player:
+                    slotCount = InventorySlotCount;
+                    break;
+                case StorageDataType.Vehicle:
+                    slotCount = VehicleSlotCount;
+                    break;
+                case StorageDataType.Chest:
+                    slotCount = ChestSlotCount;
+                    break;
+                case StorageDataType.Bank:
+                    slotCount = BankSlotCount;
+                    break;
+                case StorageDataType.Trade:
+                    slotCount = TradeSlotCount;
+                    break;
+            }
+
+
+            for (int i = 0; i < slotCount; i++)
             {
                 if (!storage.Items.Exists(x => x.SlotId == i))
                 {
@@ -321,10 +378,10 @@ namespace Average.Server.Services
 
             switch (storageType)
             {
-                case StorageDataType.PlayerInventory:
+                case StorageDataType.Player:
                     type = "inv";
                     break;
-                case StorageDataType.VehicleInventory:
+                case StorageDataType.Vehicle:
                     type = "veh";
                     break;
                 case StorageDataType.Chest:
@@ -367,18 +424,12 @@ namespace Average.Server.Services
             maxValue = Convert.ChangeType(maxValue, info.SplitValueType);
             value = Convert.ChangeType(value, info.SplitValueType);
 
-            Logger.Debug("Values: " + minValue + ", " + maxValue + ", " + value + ", " + item.Count);
-
             switch (value)
             {
                 case int convertedValue:
-                    Logger.Debug("item value type: " + convertedValue.GetType() + ", " + convertedValue);
-
-                    if(item.Count == (int)minValue) return;
+                    if (item.Count == (int)minValue) return;
 
                     var valResult = 0;
-
-                    Logger.Debug("value if: " + (convertedValue == (int)minValue) + ", " + (convertedValue == (int)maxValue));
 
                     if (convertedValue == (int)minValue || convertedValue == (int)maxValue)
                     {
@@ -392,8 +443,6 @@ namespace Average.Server.Services
                         valResult = convertedValue;
                     }
 
-                    Logger.Debug("Split ???: " + (info.OnSplit != null));
-
                     if (info.OnSplit != null)
                     {
                         // Split custom
@@ -404,17 +453,11 @@ namespace Average.Server.Services
                     {
                         // Split par défaut
                         item.Count = valResult;
-
-                        Logger.Debug("item slot: " + item.SlotId + ", result: " + valResult);
                     }
 
                     // Appel l'action par defaut
-                    Logger.Debug("value: " + item.Count);
-
                     // Met à jour l'affichage du premier item
                     UpdateSlotRender(client, item, info, storageData);
-
-                    Logger.Debug("Slot count: " + item.Name + ", " + item.SlotId);
 
                     var newSlotId = GetAvailableSlot(client);
                     var newItem = new StorageItemData(item.Name, (int)maxValue - valResult);
@@ -423,23 +466,23 @@ namespace Average.Server.Services
                     var newDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
                     newItem.Data = newDictionary;
 
-                    Logger.Debug("before: " + item.ToJson(Newtonsoft.Json.Formatting.Indented) + "\n" + newItem.ToJson(Newtonsoft.Json.Formatting.Indented));
-
                     storageData = GetLocalStorage(client);
                     if (storageData == null) return;
 
                     storageData.Items.Add(newItem);
                     SetItemOnEmptySlot(client, storageData, newItem);
+
+                    if (SaveOnChanged)
+                    {
+                        Update(storageData);
+                    }
+
                     break;
                 case decimal convertedValue:
-                    Logger.Debug("item value type: " + convertedValue.GetType() + ", " + convertedValue);
-
                     var canSplit = info.SplitCondition != null && info.SplitCondition.Invoke(item);
                     if (!canSplit) return;
 
                     var valDecResult = 0m;
-
-                    Logger.Debug("value if: " + (convertedValue == (decimal)minValue) + ", " + (convertedValue == (decimal)maxValue));
 
                     if (convertedValue == (decimal)minValue || convertedValue == (decimal)maxValue)
                     {
@@ -453,22 +496,14 @@ namespace Average.Server.Services
                         valDecResult = convertedValue;
                     }
 
-                    Logger.Debug("Split ???: " + (info.OnSplit != null));
-
                     if (info.OnSplit != null)
                     {
-                        Logger.Debug("before split: " + item.Data["cash"]);
                         info.OnSplit.Invoke(item, valDecResult, StorageItemInfo.SplitType.BaseItem);
-                        Logger.Debug("after split: " + item.Data["cash"]);
                     }
 
                     // Appel l'action par defaut
-                    Logger.Debug("value: " + item.Count);
-
                     // Met à jour l'affichage du premier item
                     UpdateSlotRender(client, item, info, storageData);
-
-                    Logger.Debug("Slot count: " + item.Name + ", " + item.SlotId);
 
                     newSlotId = GetAvailableSlot(client);
                     newItem = new StorageItemData(item.Name, 1);
@@ -478,17 +513,19 @@ namespace Average.Server.Services
                     newDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
 
                     newItem.Data = newDictionary;
-                    Logger.Debug("before split: " + item.Data["cash"] + ", " + newItem.Data["cash"]);
                     info.OnSplit.Invoke(newItem, valDecResult, StorageItemInfo.SplitType.TargetItem);
-                    Logger.Debug("after split: " + item.Data["cash"] + ", " + newItem.Data["cash"]);
-
-                    Logger.Debug("before: " + item.ToJson(Newtonsoft.Json.Formatting.Indented) + "\n" + newItem.ToJson(Newtonsoft.Json.Formatting.Indented));
 
                     storageData = GetLocalStorage(client);
                     if (storageData == null) return;
 
                     storageData.Items.Add(newItem);
                     SetItemOnEmptySlot(client, storageData, newItem);
+
+                    if (SaveOnChanged)
+                    {
+                        Update(storageData);
+                    }
+
                     break;
             }
         }
@@ -525,8 +562,6 @@ namespace Average.Server.Services
                 newItem.Data["cash"] = 500m;
             }
 
-            Logger.Debug("Add item: " + info.Name + ", " + info.CanBeStacked);
-
             var availableSlot = -1;
 
             if (HasFreeSpaceForWeight(weight, storageData))
@@ -561,7 +596,7 @@ namespace Average.Server.Services
 
                         object itemStackValue = null;
 
-                        if(info.OnStacking != null)
+                        if (info.OnStacking != null)
                         {
                             newItem.Count = 1;
                         }
@@ -572,6 +607,11 @@ namespace Average.Server.Services
                         }
 
                         SetItemOnEmptySlot(client, storageData, newItem);
+
+                        if (SaveOnChanged)
+                        {
+                            Update(storageData);
+                        }
                     }
                     else
                     {
@@ -585,8 +625,6 @@ namespace Average.Server.Services
                                 newItem.Count = 1;
 
                                 // Appel une action définis
-                                Logger.Debug("Stack on slot: " + availableSlot);
-
                                 var targetItem = GetItemOnSlot(availableSlot, storageData);
                                 info.OnStacking.Invoke(newItem, targetItem);
                                 var itemIndex = storageData.Items.FindIndex(x => x.SlotId == targetItem.SlotId);
@@ -594,9 +632,12 @@ namespace Average.Server.Services
                                 storageData.Items.RemoveAt(itemIndex);
                                 storageData.Items.Add(targetItem);
 
-                                Logger.Debug("Stack result: " + newItem.Data["cash"] + ", " + targetItem.Data["cash"]);
-
                                 StackItemOnSlot(client, storageData, targetItem);
+
+                                if (SaveOnChanged)
+                                {
+                                    Update(storageData);
+                                }
                             }
                             else
                             {
@@ -606,9 +647,12 @@ namespace Average.Server.Services
                                     var itemInstance = storageData.Items.Find(x => x.SlotId == newItem.SlotId);
                                     itemInstance.Count += newItem.Count;
 
-                                    Logger.Debug("Slot count: " + newItem.Name + ", " + newItem.SlotId + ", " + itemInstance.SlotId);
-
                                     StackItemOnSlot(client, storageData, itemInstance);
+
+                                    if (SaveOnChanged)
+                                    {
+                                        Update(storageData);
+                                    }
                                 }
                             }
                         }
@@ -617,8 +661,13 @@ namespace Average.Server.Services
                             // Créer un nouvelle item dans un slot disponible
                             newItem.SlotId = availableSlot;
                             storageData.Items.Add(newItem);
-
+                            
                             SetItemOnEmptySlot(client, storageData, newItem);
+
+                            if (SaveOnChanged)
+                            {
+                                Update(storageData);
+                            }
                         }
                     }
                 }
@@ -658,6 +707,8 @@ namespace Average.Server.Services
 
                 type
             });
+
+            SetInventoryWeight(client, storageData);
         }
 
         internal void SetItemOnSlot(Client client, StorageData storageData, int currentSlotId, int targetSlotId)
@@ -670,8 +721,6 @@ namespace Average.Server.Services
             var targetItem = GetItemOnSlot(targetSlotId, storageData);
             var haveTarget = targetItem is not null;
 
-            Logger.Debug("current: " + currentSlotId + ", " + targetSlotId);
-
             var type = GetStorageTypeString(storageData.Type);
 
             // La cible peu soit être un slot d'item ou un slot vide
@@ -682,8 +731,6 @@ namespace Average.Server.Services
                 if (info.Name != targetInfo.Name)
                 {
                     // Les items n'ont pas le même nom
-                    Logger.Debug("Alternate items");
-
                     // On alterne le slotId des cibles pour inverser leur position dans l'interface
                     item.SlotId = targetSlotId;
                     targetItem.SlotId = currentSlotId;
@@ -702,21 +749,23 @@ namespace Average.Server.Services
                         targetCount = (targetInfo.CanBeStacked && targetInfo.OnRenderStacking != null) ? targetInfo.OnRenderStacking.Invoke(targetItem) : targetItem.Count,
                         targetImg = targetInfo.Img,
                         contextItems = GetItemContextMenu(targetItem.Name),
-                        
+
                         type
                     });
                 }
                 else
                 {
                     // Les deux items ont le même nom
-                    Logger.Debug("Combine items");
                     StackCombineItem(client, storageData, item, targetItem);
+                }
+
+                if (SaveOnChanged)
+                {
+                    Update(storageData);
                 }
             }
             else
             {
-                Logger.Debug("Move slots");
-
                 item.SlotId = targetSlotId;
 
                 // Déplace l'item vers une case vide, Item -> Slot vide
@@ -733,16 +782,11 @@ namespace Average.Server.Services
 
                     type
                 });
-            }
 
-            switch (storageData.Type)
-            {
-                case StorageDataType.PlayerInventory:
-                    
-                    break;
-                case StorageDataType.VehicleInventory:
-                case StorageDataType.Chest:
-                    break;
+                if (SaveOnChanged)
+                {
+                    Update(storageData);
+                }
             }
         }
 
@@ -770,20 +814,18 @@ namespace Average.Server.Services
                 if (targetInfo.OnStackCombine != null && targetInfo.OnRenderStacking != null)
                 {
                     // Action définis ex:(money)
-                    Logger.Debug("before combine: " + destination.ToJson());
                     targetInfo.OnStackCombine.Invoke(source, destination);
-                    Logger.Debug("after combine: " + destination.ToJson());
                 }
                 else
                 {
                     // Action par defaut ex:(apple)
-                    Logger.Debug("before combine: " + destination.ToJson());
                     destination.Count += source.Count;
-                    Logger.Debug("after combine: " + destination.ToJson());
                 }
 
                 UpdateSlotRender(client, destination, targetInfo, storageData);
                 RemoveItemOnSlot(client, storageData, source.SlotId);
+
+                SetInventoryWeight(client, storageData);
             }
         }
 
@@ -793,6 +835,11 @@ namespace Average.Server.Services
             if (item == null) return;
 
             item.Count = itemCount;
+
+            var info = GetItemInfo(item.Name);
+            UpdateSlotRender(client, item, info, storageData);
+
+            SetInventoryWeight(client, storageData);
         }
 
         internal void RemoveItemOnSlot(Client client, StorageData storageData, int slotId)
@@ -810,6 +857,8 @@ namespace Average.Server.Services
 
                 type
             });
+
+            SetInventoryWeight(client, storageData);
         }
 
         private void SetItemOnEmptySlot(Client client, StorageData storageData, StorageItemData storageItemData)
@@ -821,12 +870,13 @@ namespace Average.Server.Services
             {
                 slotId = storageItemData.SlotId,
                 count = (info.CanBeStacked && info.OnRenderStacking != null) ? info.OnRenderStacking.Invoke(storageItemData) : storageItemData.Count,
-                //count = storageItemData.Count,
                 img = info.Img,
                 contextItems = GetItemContextMenu(storageItemData.Name),
 
                 type
             });
+
+            SetInventoryWeight(client, storageData);
         }
 
         private List<object> GetItemContextMenu(string itemName)
