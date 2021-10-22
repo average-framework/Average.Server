@@ -86,7 +86,9 @@ namespace Average.Server.Handlers
             cb(new
             {
                 title = info.Title,
-                description = info.Description
+                description = info.Description,
+                weight = (info.Weight * item.Count).ToString("0.00"),
+                isSellable = info.IsSellable ? "Vendable" : "Invendable"
             });
         }
 

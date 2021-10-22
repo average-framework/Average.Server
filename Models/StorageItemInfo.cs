@@ -15,6 +15,7 @@ namespace Average.Server.Models
         public double Weight { get; set; }
         public bool CanBeStacked { get; set; }
         public bool RemoveOnGive { get; set; } = true;
+        public bool IsSellable { get; set; }
         public Type SplitValueType { get; set; } = typeof(int);
         public Dictionary<string, object> DefaultData { get; set; }
 
