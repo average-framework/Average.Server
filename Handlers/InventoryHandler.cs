@@ -57,8 +57,8 @@ namespace Average.Server.Handlers
                 if ((string)frame == "storage")
                 {
                     _inventoryService.InitSlots(client, StorageDataType.Player, InventoryService.InventorySlotCount);
+                    _inventoryService.InitSlots(client, StorageDataType.Chest, InventoryService.ChestSlotCount);
                     //_inventoryService.InitSlots(client, StorageDataType.VehicleInventory);
-                    //_inventoryService.InitSlots(client, StorageDataType.Chest);
 
                     await BaseScript.Delay(1000);
 
@@ -98,33 +98,45 @@ namespace Average.Server.Handlers
             var slotId = int.Parse(args["slotId"].ToString());
             var targetSlotId = int.Parse(args["targetSlotId"].ToString());
 
+            Logger.Debug("Drop slot target 1: " + string.Join(", ", slotId, targetSlotId));
+
             var storage = _inventoryService.GetLocalStorage(client);
             if (storage == null) return;
 
             _inventoryService.SetItemOnSlot(client, storage, slotId, targetSlotId);
         }
 
-        [UICallback("storage/veh/drop_slot")]
-        private void OnVehicleDropSlot(Client client, Dictionary<string, object> args, RpcCallback cb)
-        {
-            //var slotId = int.Parse(args["slotId"].ToString());
-            //var targetSlotId = int.Parse(args["targetSlotId"].ToString());
 
-            //var storage = _inventoryService.GetLocalStorage(client);
+        //[UICallback("storage/chest/drop_slot")]
+        //private void OnChestDropSlot(Client client, Dictionary<string, object> args, RpcCallback cb)
+        //{
+        //    var slotId = int.Parse(args["slotId"].ToString());
+        //    var targetSlotId = int.Parse(args["targetSlotId"].ToString());
+        //    var slotSourceType = (string)args["slotSourceType"];
 
-            //_inventoryService.SetItemOnSlot(client, storage, slotId, targetSlotId);
-        }
+        //    Logger.Debug("Drop slot target 2: " + string.Join(", ", slotId, targetSlotId, slotSourceType));
 
-        [UICallback("storage/chest/drop_slot")]
-        private void OnChestDropSlot(Client client, Dictionary<string, object> args, RpcCallback cb)
-        {
-            //var slotId = int.Parse(args["slotId"].ToString());
-            //var targetSlotId = int.Parse(args["targetSlotId"].ToString());
+        //    var storage = _inventoryService.GetLocalStorage(client);
+        //    if (storage == null) return;
 
-            //var storage = _inventoryService.GetLocalStorage(client);
+        //    var chestStorage = _inventoryService.GetData<StorageData>(client, "ChestData");
+        //    if (chestStorage == null) return;
 
-            //_inventoryService.SetItemOnSlot(client, storage, slotId, targetSlotId);
-        }
+        //    // Inventory Item
+        //    var item = _inventoryService.GetItemOnSlot(slotId, storage);
+        //    if(item == null) return;
+
+        //    switch (slotSourceType)
+        //    {
+        //        case "inv":
+        //            //_inventoryService.RemoveItemOnSlot(client, storage, slotId);
+        //            break;
+        //        case "chest":
+        //            break;
+        //    }
+
+        //    _inventoryService.AddItem(client, item, chestStorage);
+        //}
 
         [UICallback("storage/keydown")]
         private void OnKeydown(Client client, Dictionary<string, object> args, RpcCallback cb)

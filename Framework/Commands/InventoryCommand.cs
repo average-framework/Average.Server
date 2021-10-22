@@ -17,15 +17,29 @@ namespace Average.Server.Framework.Commands
         }
 
         [ServerCommand("storage.create")]
-        private async void CreateStorage(string license, float maxWeight, int type)
+        private async void CreateStorage(string storageId, float maxWeight, int type)
         {
             var storage = new StorageData();
-            storage.StorageId = license;
+            storage.StorageId = storageId;
             storage.Type = (StorageDataType)type;
             storage.MaxWeight = maxWeight;
 
             await _inventoryService.Create(storage);
         }
+
+        // DEBUG ------------------------------------
+        [ClientCommand("storage.open_chest")]
+        private async void OpenChest(Client client)
+        {
+            var chestId = "enterprise_bill&joe";
+
+            var storage = await _inventoryService.Get(chestId);
+            if (storage == null) return;
+
+            _inventoryService.Open(client);
+            _inventoryService.OpenChest(client, storage);
+        }
+        // ------------------------------------------
 
         [ClientCommand("storage.add_item")]
         private void AddItem(Client client, string itemName, int itemCount)

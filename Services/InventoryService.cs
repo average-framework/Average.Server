@@ -29,10 +29,10 @@ namespace Average.Server.Services
         public const double DefaultMaxChestWeight = 100.0;
 
         public const int InventorySlotCount = 20;
-        public const int VehicleSlotCount = 20;
-        public const int ChestSlotCount = 20;
-        public const int BankSlotCount = 20;
-        public const int TradeSlotCount = 20;
+        public const int VehicleSlotCount = 8;
+        public const int ChestSlotCount = 8;
+        public const int BankSlotCount = 8;
+        public const int TradeSlotCount = 16;
 
         private const bool SaveOnChanged = true;
 
@@ -61,6 +61,7 @@ namespace Average.Server.Services
             onKeyReleased: (client) =>
             {
                 Open(client);
+                OpenInventory(client);
                 Logger.Debug($"Client {client.Name} open inventory");
             }));
 
@@ -214,6 +215,27 @@ namespace Average.Server.Services
             }
         }
 
+        internal void OpenInventory(Client client)
+        {
+            if (!GetData<bool>(client, "IsInventoryOpen"))
+            {
+                SetData(client, "IsInventoryOpen", true);
+
+                _uiService.SendMessage(client, "storage", "inventory_open");
+            }
+        }
+
+        internal void OpenChest(Client client, StorageData storageData)
+        {
+            if (!GetData<bool>(client, "IsChestOpen"))
+            {
+                SetData(client, "IsChestOpen", true);
+                SetData(client, "ChestData", storageData);
+
+                _uiService.SendMessage(client, "storage", "chest_open");
+            }
+        }
+
         internal async void Close(Client client)
         {
             if (GetData<bool>(client, "IsOpen"))
@@ -227,6 +249,27 @@ namespace Average.Server.Services
 
                 _uiService.SendMessage(client, "storage", "close");
                 _uiService.Unfocus(client);
+            }
+        }
+
+        internal void CloseInventory(Client client)
+        {
+            if (GetData<bool>(client, "IsInventoryOpen"))
+            {
+                SetData(client, "IsInventoryOpen", false);
+
+                _uiService.SendMessage(client, "storage", "inventory_close");
+            }
+        }
+
+        internal void CloseChest(Client client)
+        {
+            if (GetData<bool>(client, "IsChestOpen"))
+            {
+                SetData(client, "IsChestOpen", false);
+                SetData(client, "CurrentChest", null);
+
+                _uiService.SendMessage(client, "storage", "chest_close");
             }
         }
 
