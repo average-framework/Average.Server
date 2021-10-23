@@ -1,4 +1,5 @@
 ﻿using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Models;
@@ -335,8 +336,8 @@ namespace Average.Server.Services
             var info = GetItemInfo(itemData.Name);
             var totalNeededWeight = CalculateWeight(storageData) + itemData.Count * info.Weight;
 
-            Logger.Error("Weight: " + totalNeededWeight + ", " + storageData.MaxWeight);
-            Logger.Error("Has Free Space: " + (totalNeededWeight <= storageData.MaxWeight));
+            Logger.Debug("Weight: " + totalNeededWeight + ", " + storageData.MaxWeight);
+            Logger.Debug("Has Free Space: " + (totalNeededWeight <= storageData.MaxWeight));
 
             if (totalNeededWeight > storageData.MaxWeight)
             {
@@ -346,16 +347,8 @@ namespace Average.Server.Services
                 }
             }
 
-            return CalculateWeight(storageData) + totalNeededWeight <= storageData.MaxWeight;
+            return totalNeededWeight <= storageData.MaxWeight;
         }
-
-        //internal bool HasFreeSpaceForWeight(double itemWeight, StorageData storageData)
-        //{
-        //    Logger.Error("Weight: " + (CalculateWeight(storageData) + itemWeight) + ", " + storageData.MaxWeight);
-        //    Logger.Error("Has Free Space: " + ((CalculateWeight(storageData) + itemWeight) <= storageData.MaxWeight));
-
-        //    return CalculateWeight(storageData) + itemWeight <= storageData.MaxWeight;
-        //}
 
         internal bool HasFreeSpace(StorageData storageData)
         {
@@ -450,6 +443,12 @@ namespace Average.Server.Services
                     break;
                 case StorageDataType.Chest:
                     type = "chest";
+                    break;
+                case StorageDataType.Bank:
+                    type = "bank";
+                    break;
+                case StorageDataType.Trade:
+                    type = "trade";
                     break;
             }
 
@@ -809,6 +808,153 @@ namespace Average.Server.Services
             });
 
             SetInventoryWeight(client, storageData);
+        }
+
+        internal void MoveItemOnStorage(Client client, int slotId, int targetSlotId, StorageData sourceStorage, StorageData destinationStorage)
+        {
+            //if (sourceStorage.Type == StorageDataType.Player && destinationStorage.Type == StorageDataType.Player)
+            //{
+            //    // Inventaire -> Inventaire
+
+            //    if (slotId == targetSlotId) return;
+
+            //    Logger.Error("Inventory 1");
+
+            //    // On déplace l'item sur un slot définis
+            //    SetItemOnSlot(client, destinationStorage, slotId, targetSlotId);
+            //}
+            //else if (sourceStorage.Type == StorageDataType.Chest && destinationStorage.Type == StorageDataType.Chest)
+            //{
+            //    // Coffre -> Coffre
+
+            //    if (slotId == targetSlotId) return;
+
+            //    // On déplace l'item sur un slot définis
+            //    SetItemOnSlot(client, destinationStorage, slotId, targetSlotId);
+            //}
+            if (sourceStorage.Type == destinationStorage.Type)
+            {
+                // Inventaire -> Inventaire
+
+                if (slotId == targetSlotId) return;
+
+                Logger.Error("Inventory 1");
+
+                // On déplace l'item sur un slot définis
+                SetItemOnSlot(client, destinationStorage, slotId, targetSlotId);
+            }
+            else/* if(sourceStorage.Type == StorageDataType.Player && destinationStorage.Type == StorageDataType.Chest)*/
+            {
+                // Inventaire -> Coffre
+
+                // Récupère l'item dans l'inventaire du joueur
+                var item = GetItemOnSlot(slotId, sourceStorage);
+                if (item == null) return;
+
+                // Besoin de créer une copie de l'item avant de l'ajouter dans le coffre
+                // pour éviter que l'instance de l'item dans le coffre soit la même que celle de l'inventaire
+                var newItem = new StorageItemData(item.Name, item.Count);
+                newItem.SlotId = targetSlotId;
+
+                // Créer une copie des données de l'item (sans l'instance) et les copies sur newItem
+                var newDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
+                newItem.Data = newDictionary;
+
+                if (IsSlotAvailable(newItem.SlotId, destinationStorage))
+                {
+                    // On vérifie que l'inventaire à assez de place pour recevoir l'item provenant du coffre
+                    if (!HasFreeSpaceForWeight(newItem, destinationStorage))
+                    {
+                        Logger.Error("Pas assez de place dans le coffre pour ajouter l'item de l'inventaire: " + newItem.Name + ", " + newItem.Count);
+                        return;
+                    }
+
+                    // Ajoute l'item dans le coffre sur un slot spécifique
+                    AddItem(client, newItem, destinationStorage, true, targetSlotId);
+
+                    // Supprime l'item de l'inventaire
+                    RemoveItemOnSlot(client, sourceStorage, slotId);
+
+                    // Met à jour l'inventaire et le coffre dans la base de donnée
+                    Update(sourceStorage);
+                    Update(destinationStorage);
+                }
+                else
+                {
+                    Logger.Error("Test 1");
+
+                    // Récupère l'instance de l'item dans le coffre
+                    var itemInstance = destinationStorage.Items.Find(x => x.SlotId == targetSlotId);
+                    if (itemInstance == null) return;
+
+                    if (itemInstance.Name == newItem.Name)
+                    {
+                        // Les items sont identique, on les stack
+                        Logger.Error("Test 2: " + itemInstance.Name + ", " + itemInstance.Count + ", " + newItem.Name + ", " + newItem.Count);
+
+                        // On vérifie que l'inventaire à assez de place pour recevoir l'item provenant du coffre
+                        if (!HasFreeSpaceForWeight(newItem, destinationStorage))
+                        {
+                            Logger.Error("Pas assez de place dans le coffre pour stack l'item de l'inventaire: " + itemInstance.Name + ", " + itemInstance.Count);
+                            return;
+                        }
+
+                        // Besoin de stack l'item dans le coffre
+                        StackItemOnSlot(client, destinationStorage, newItem, itemInstance);
+
+                        // Supprime l'item de l'inventaire
+                        RemoveItemOnSlot(client, sourceStorage, slotId);
+
+                        // Met à jour l'inventaire et le coffre dans la base de donnée
+                        Update(sourceStorage);
+                        Update(destinationStorage);
+                    }
+                    else
+                    {
+                        // Les items sont différent, on les alternes
+
+                        Logger.Error("Alternate");
+
+                        var sourceCopy = new StorageItemData(item.Name, item.Count);
+                        sourceCopy.SlotId = item.SlotId;
+                        var sourceDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
+                        sourceCopy.Data = sourceDictionary;
+
+                        var destinationCopy = new StorageItemData(itemInstance.Name, itemInstance.Count);
+                        destinationCopy.SlotId = itemInstance.SlotId;
+                        var destinationDictionary = itemInstance.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
+                        destinationCopy.Data = destinationDictionary;
+
+                        // On vérifie que l'inventaire à assez de place pour recevoir l'item provenant du coffre
+                        if (!HasFreeSpaceForWeight(destinationCopy, sourceStorage))
+                        {
+                            Logger.Error("Pas assez de place dans l'inventaire pour recevoir l'item du coffre: " + destinationCopy.Name + ", " + destinationCopy.Count);
+                            return;
+                        }
+
+                        // On vérifie que le coffre à assez de place pour recevoir l'item provenant de l'inventaire
+                        if (!HasFreeSpaceForWeight(sourceCopy, destinationStorage))
+                        {
+                            Logger.Error("Pas assez de place dans le coffre pour recevoir l'item de l'inventaire: " + sourceCopy.Name + ", " + sourceCopy.Count);
+                            return;
+                        }
+
+                        // On supprime l'item de l'inventaire ce trouvant sur le slotId définis avant d'ajouter le nouvelle item
+                        RemoveItemOnSlot(client, sourceStorage, slotId);
+
+                        // On supprime l'item du coffre ce trouvant sur le slotId définis avant d'ajouter le nouvelle item
+                        RemoveItemOnSlot(client, destinationStorage, targetSlotId);
+
+                        Logger.Error("Informations: " + slotId + ", " + targetSlotId + "\n" + sourceCopy.ToJson(Newtonsoft.Json.Formatting.Indented) + "\n" + destinationCopy.ToJson(Newtonsoft.Json.Formatting.Indented));
+
+                        // Ajoute l'item du coffre dans l'inventaire
+                        AddItem(client, destinationCopy, sourceStorage, true, slotId);
+
+                        // Ajoute l'item de l'inventaire dans le coffre
+                        AddItem(client, sourceCopy, destinationStorage, true, targetSlotId);
+                    }
+                }
+            }
         }
 
         internal void SetItemOnSlot(Client client, StorageData storageData, int currentSlotId, int targetSlotId)
