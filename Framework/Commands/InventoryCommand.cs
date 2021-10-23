@@ -36,6 +36,8 @@ namespace Average.Server.Framework.Commands
             var storage = await _inventoryService.Get(chestId);
             if (storage == null) return;
 
+            _inventoryService.LoadInventory(client, storage);
+
             _inventoryService.Open(client);
             _inventoryService.OpenChest(client, storage);
         }

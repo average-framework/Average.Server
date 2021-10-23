@@ -376,14 +376,14 @@ namespace Average.Server.Services
             return storage.Items.Exists(x => x.Name == itemName);
         }
 
-        internal int GetAvailableSlot(Client client)
+        internal int GetAvailableSlot(Client client, StorageData storageData)
         {
-            var storage = GetLocalStorage(client);
-            if (storage == null) return -1;
+            //var storage = GetLocalStorage(client);
+            if (storageData == null) return -1;
 
             var slotCount = 0;
 
-            switch (storage.Type)
+            switch (storageData.Type)
             {
                 case StorageDataType.Player:
                     slotCount = InventorySlotCount;
@@ -405,7 +405,7 @@ namespace Average.Server.Services
 
             for (int i = 0; i < slotCount; i++)
             {
-                if (!storage.Items.Exists(x => x.SlotId == i))
+                if (!storageData.Items.Exists(x => x.SlotId == i))
                 {
                     return i;
                 }
@@ -498,28 +498,42 @@ namespace Average.Server.Services
                         item.Count = valResult;
                     }
 
-                    // Appel l'action par defaut
-                    // Met à jour l'affichage du premier item
-                    UpdateSlotRender(client, item, info, storageData);
+                    //// Appel l'action par defaut
+                    //// Met à jour l'affichage du premier item
+                    //UpdateSlotRender(client, item, info, storageData);
 
-                    var newSlotId = GetAvailableSlot(client);
+                    var newSlotId = GetAvailableSlot(client, storageData);
                     var newItem = new StorageItemData(item.Name, (int)maxValue - valResult);
                     newItem.SlotId = newSlotId;
+
+                    Logger.Error("New slot id after split: " + slotId + ", " + newSlotId + ", " + storageData.Id + ", " + storageData.Type);
 
                     var newDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
                     newItem.Data = newDictionary;
 
-                    storageData = GetLocalStorage(client);
+                    //switch (storageData.Type)
+                    //{
+                    //    case StorageDataType.Player:
+                    //        storageData = GetLocalStorage(client);
+                    //        break;
+                    //    case StorageDataType.Chest:
+                    //        storageData = GetData<StorageData>(client, "ChestData");
+                    //        break;
+                    //}
+
                     if (storageData == null) return;
 
                     storageData.Items.Add(newItem);
                     SetItemOnEmptySlot(client, storageData, newItem);
 
+                    // Appel l'action par defaut
+                    // Met à jour l'affichage du premier item
+                    UpdateSlotRender(client, item, info, storageData);
+
                     if (SaveOnChanged)
                     {
                         Update(storageData);
                     }
-
                     break;
                 case decimal convertedValue:
                     var canSplit = info.SplitCondition != null && info.SplitCondition.Invoke(item);
@@ -544,11 +558,11 @@ namespace Average.Server.Services
                         info.OnSplit.Invoke(item, valDecResult, StorageItemInfo.SplitType.BaseItem);
                     }
 
-                    // Appel l'action par defaut
-                    // Met à jour l'affichage du premier item
-                    UpdateSlotRender(client, item, info, storageData);
+                    //// Appel l'action par defaut
+                    //// Met à jour l'affichage du premier item
+                    //UpdateSlotRender(client, item, info, storageData);
 
-                    newSlotId = GetAvailableSlot(client);
+                    newSlotId = GetAvailableSlot(client, storageData);
                     newItem = new StorageItemData(item.Name, 1);
                     newItem.SlotId = newSlotId;
 
@@ -558,17 +572,29 @@ namespace Average.Server.Services
                     newItem.Data = newDictionary;
                     info.OnSplit.Invoke(newItem, valDecResult, StorageItemInfo.SplitType.TargetItem);
 
-                    storageData = GetLocalStorage(client);
+                    //switch (storageData.Type)
+                    //{
+                    //    case StorageDataType.Player:
+                    //        storageData = GetLocalStorage(client);
+                    //        break;
+                    //    case StorageDataType.Chest:
+                    //        storageData = GetData<StorageData>(client, "ChestData");
+                    //        break;
+                    //}
+
                     if (storageData == null) return;
 
                     storageData.Items.Add(newItem);
                     SetItemOnEmptySlot(client, storageData, newItem);
 
+                    // Appel l'action par defaut
+                    // Met à jour l'affichage du premier item
+                    UpdateSlotRender(client, item, info, storageData);
+
                     if (SaveOnChanged)
                     {
                         Update(storageData);
                     }
-
                     break;
             }
         }
@@ -621,12 +647,12 @@ namespace Average.Server.Services
                     }
                     else
                     {
-                        availableSlot = GetAvailableSlot(client);
+                        availableSlot = GetAvailableSlot(client, storageData);
                     }
                 }
                 else
                 {
-                    availableSlot = GetAvailableSlot(client);
+                    availableSlot = GetAvailableSlot(client, storageData);
                 }
 
                 if (availableSlot != -1)

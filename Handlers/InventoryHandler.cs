@@ -1,5 +1,6 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
@@ -71,8 +72,8 @@ namespace Average.Server.Handlers
             }
         }
 
-        [UICallback("storage/inv/item_info")]
-        private void OnInventoryItemInfo(Client client, Dictionary<string, object> args, RpcCallback cb)
+        [UICallback("storage/item_info")]
+        private void OnItemInfo(Client client, Dictionary<string, object> args, RpcCallback cb)
         {
             var slotId = int.Parse(args["slotId"].ToString());
             var storage = _inventoryService.GetLocalStorage(client);
@@ -92,51 +93,60 @@ namespace Average.Server.Handlers
             });
         }
 
-        [UICallback("storage/inv/drop_slot")]
+        [UICallback("storage/drop_slot")]
         private void OnInventoryDropSlot(Client client, Dictionary<string, object> args, RpcCallback cb)
         {
             var slotId = int.Parse(args["slotId"].ToString());
             var targetSlotId = int.Parse(args["targetSlotId"].ToString());
+            var slotSourceType = (string)args["slotSourceType"];
+            var slotTargetType = (string)args["slotTargetType"];
 
-            Logger.Debug("Drop slot target 1: " + string.Join(", ", slotId, targetSlotId));
+            Logger.Error("Drop slot target 1: " + string.Join(", ", slotId, slotSourceType, targetSlotId, slotTargetType));
 
-            var storage = _inventoryService.GetLocalStorage(client);
-            if (storage == null) return;
+            // Récupère l'instance de l'item dans l'inventaire
+            //var item = _inventoryService.GetItemOnSlot(slotId, storage);
+            //if (item == null) return;
 
-            _inventoryService.SetItemOnSlot(client, storage, slotId, targetSlotId);
+            // Execute une action différente en fonction de la destination de l'item (inventaire, coffre, etc)
+            if(slotSourceType == "inv" && slotTargetType == "inv")
+            {
+                // Inventaire -> Inventaire
+
+                // Récupère l'inventaire du joueur
+                var storage = _inventoryService.GetLocalStorage(client);
+                if (storage == null) return;
+
+                Logger.Error("Inventory 1");
+                // On déplace l'item sur un slot définis
+                _inventoryService.SetItemOnSlot(client, storage, slotId, targetSlotId);
+            }
+            else if (slotSourceType == "chest" && slotTargetType == "chest")
+            {
+                // Coffre -> Coffre
+
+                Logger.Error("Chest 1");
+                var chestStorage = _inventoryService.GetData<StorageData>(client, "ChestData");
+                if (chestStorage == null) return;
+                Logger.Error("Chest 2");
+
+                // On déplace l'item sur un slot définis
+                _inventoryService.SetItemOnSlot(client, chestStorage, slotId, targetSlotId);
+            }
+            //else if (slotSourceType == "inv" && slotTargetType == "chest")
+            //{
+            //    // Inventaire -> Coffre
+            //    Logger.Error("Chest 1");
+            //    var chestStorage = _inventoryService.GetData<StorageData>(client, "ChestData");
+            //    if (chestStorage == null) return;
+            //    Logger.Error("Chest 2: " + chestStorage.ToJson());
+
+            //    // Ajoute l'item dans le coffre
+            //    _inventoryService.AddItem(client, item, chestStorage);
+
+            //    // Supprime l'item de l'inventaire
+            //    _inventoryService.RemoveItemOnSlot(client, storage, slotId);
+            //}
         }
-
-
-        //[UICallback("storage/chest/drop_slot")]
-        //private void OnChestDropSlot(Client client, Dictionary<string, object> args, RpcCallback cb)
-        //{
-        //    var slotId = int.Parse(args["slotId"].ToString());
-        //    var targetSlotId = int.Parse(args["targetSlotId"].ToString());
-        //    var slotSourceType = (string)args["slotSourceType"];
-
-        //    Logger.Debug("Drop slot target 2: " + string.Join(", ", slotId, targetSlotId, slotSourceType));
-
-        //    var storage = _inventoryService.GetLocalStorage(client);
-        //    if (storage == null) return;
-
-        //    var chestStorage = _inventoryService.GetData<StorageData>(client, "ChestData");
-        //    if (chestStorage == null) return;
-
-        //    // Inventory Item
-        //    var item = _inventoryService.GetItemOnSlot(slotId, storage);
-        //    if(item == null) return;
-
-        //    switch (slotSourceType)
-        //    {
-        //        case "inv":
-        //            //_inventoryService.RemoveItemOnSlot(client, storage, slotId);
-        //            break;
-        //        case "chest":
-        //            break;
-        //    }
-
-        //    _inventoryService.AddItem(client, item, chestStorage);
-        //}
 
         [UICallback("storage/keydown")]
         private void OnKeydown(Client client, Dictionary<string, object> args, RpcCallback cb)
@@ -156,99 +166,62 @@ namespace Average.Server.Handlers
             _inventoryService.Close(client);
         }
 
-        [UICallback("storage/inv/context_menu")]
-        private async void OnInventoryContextMenu(Client client, Dictionary<string, object> args, RpcCallback cb)
+        [UICallback("storage/context_menu")]
+        private async void OnContextMenu(Client client, Dictionary<string, object> args, RpcCallback cb)
         {
-            Logger.Error("storage/inv/context_menu triggered: " + string.Join(", ", args));
+            Logger.Error("storage/context_menu triggered: " + string.Join(", ", args));
 
             var slotId = int.Parse(args["slotId"].ToString());
+            var slotSourceType = (string)args["slotSourceType"];
             var eventName = (string)args["eventName"];
 
-            var storage = _inventoryService.GetLocalStorage(client);
-            if (storage == null) return;
+            if(slotSourceType == "inv")
+            {
+                var storage = _inventoryService.GetLocalStorage(client);
+                if (storage == null) return;
 
-            var item = _inventoryService.GetItemOnSlot(slotId, storage);
-            if(item == null) return;
+                var item = _inventoryService.GetItemOnSlot(slotId, storage);
+                if (item == null) return;
 
-            await _inventoryService.OnStorageContextMenu(client, item.Name, slotId, eventName, storage);
+                await _inventoryService.OnStorageContextMenu(client, item.Name, slotId, eventName, storage);
+            }
+            else if(slotSourceType == "chest")
+            {
+                var storage = _inventoryService.GetData<StorageData>(client, "ChestData");
+                if(storage == null) return;
+
+                var item = _inventoryService.GetItemOnSlot(slotId, storage);
+                if (item == null) return;
+
+                await _inventoryService.OnStorageContextMenu(client, item.Name, slotId, eventName, storage);
+            }
         }
 
-        [UICallback("storage/veh/context_menu")]
-        private async void OnVehicleContextMenu(Client client, Dictionary<string, object> args, RpcCallback cb)
-        {
-            //Logger.Error("storage/chest/context_menu triggered: " + string.Join(", ", args));
-
-            //var itemName = (string)args["name"];
-            //var slotId = int.Parse(args["slotId"].ToString());
-            //var eventName = (string)args["eventName"];
-
-            //var chestData = _inventoryService.GetData<StorageData>(client, "CurrentChestData");
-            //if (chestData == null) return;
-
-            //await _inventoryService.OnStorageContextMenu(client, itemName, slotId, eventName, chestData);
-        }
-
-        [UICallback("storage/chest/context_menu")]
-        private async void OnChestContextMenu(Client client, Dictionary<string, object> args, RpcCallback cb)
-        {
-            //Logger.Error("storage/chest/context_menu triggered: " + string.Join(", ", args));
-
-            //var itemName = (string)args["name"];
-            //var slotId = int.Parse(args["slotId"].ToString());
-            //var eventName = (string)args["eventName"];
-
-            //var chestData = _inventoryService.GetData<StorageData>(client, "CurrentChestData");
-            //if (chestData == null) return;
-
-            //await _inventoryService.OnStorageContextMenu(client, itemName, slotId, eventName, chestData);
-        }
-
-        [UICallback("storage/inv/split/result")]
-        private void OnInventorySplitResult(Client client, Dictionary<string, object> args, RpcCallback cb)
+        [UICallback("storage/split/result")]
+        private void OnSplitResult(Client client, Dictionary<string, object> args, RpcCallback cb)
         {
             var slotId = int.Parse(args["slotId"].ToString());
             var minValue = args["minValue"];
             var maxValue = args["maxValue"];
             var value = args["value"];
+            var slotType = (string)args["slotType"];
+            
+            if(slotType == "inv")
+            {
+                var storage = _inventoryService.GetLocalStorage(client);
+                if (storage == null) return;
 
-            var storage = _inventoryService.GetLocalStorage(client);
-            if (storage == null) return;
+                _inventoryService.OnSplitItem(client, slotId, minValue, maxValue, value, storage);
+            }
+            else if(slotType == "chest")
+            {
+                var storage = _inventoryService.GetData<StorageData>(client, "ChestData");
+                if (storage == null) return;
 
-            _inventoryService.OnSplitItem(client, slotId, minValue, maxValue, value, storage);
+                _inventoryService.OnSplitItem(client, slotId, minValue, maxValue, value, storage);
+            }
 
             Logger.Debug("Split result: " + slotId + ", " + minValue + ", " + maxValue + ", " + value);
-        }
-
-        [UICallback("storage/veh/split/result")]
-        private void OnVehicleSplitResult(Client client, Dictionary<string, object> args, RpcCallback cb)
-        {
-            //var slotId = int.Parse(args["slotId"].ToString());
-            //var minValue = args["minValue"];
-            //var maxValue = args["maxValue"];
-            //var value = args["value"];
-
-            //var storage = _inventoryService.GetLocalStorage(client);
-            //if (storage == null) return;
-
-            //_inventoryService.OnSplitItem(client, slotId, minValue, maxValue, value, storage);
-
-            //Logger.Debug("Split result: " + slotId + ", " + minValue + ", " + maxValue + ", " + value);
-        }
-
-        [UICallback("storage/chest/split/result")]
-        private void OnChestSplitResult(Client client, Dictionary<string, object> args, RpcCallback cb)
-        {
-            //var slotId = int.Parse(args["slotId"].ToString());
-            //var minValue = args["minValue"];
-            //var maxValue = args["maxValue"];
-            //var value = args["value"];
-
-            //var storage = _inventoryService.GetLocalStorage(client);
-            //if (storage == null) return;
-
-            //_inventoryService.OnSplitItem(client, slotId, minValue, maxValue, value, storage);
-
-            //Logger.Debug("Split result: " + slotId + ", " + minValue + ", " + maxValue + ", " + value);
         }
 
         //[UICallback("storage/inv/split/close")]
