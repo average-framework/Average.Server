@@ -95,7 +95,7 @@ namespace Average.Server.Handlers
         }
 
         [UICallback("storage/drop_slot")]
-        private void OnInventoryDropSlot(Client client, Dictionary<string, object> args, RpcCallback cb)
+        private async void OnInventoryDropSlot(Client client, Dictionary<string, object> args, RpcCallback cb)
         {
             var slotId = int.Parse(args["slotId"].ToString());
             var targetSlotId = int.Parse(args["targetSlotId"].ToString());
@@ -113,6 +113,8 @@ namespace Average.Server.Handlers
             {
                 // Inventaire -> Inventaire
 
+                if (slotId == targetSlotId) return;
+
                 // Récupère l'inventaire du joueur
                 var storage = _inventoryService.GetLocalStorage(client);
                 if (storage == null) return;
@@ -124,6 +126,8 @@ namespace Average.Server.Handlers
             else if (slotSourceType == "chest" && slotTargetType == "chest")
             {
                 // Coffre -> Coffre
+
+                if (slotId == targetSlotId) return;
 
                 Logger.Error("Chest 1");
                 var chestStorage = _inventoryService.GetData<StorageData>(client, "ChestData");
@@ -141,6 +145,7 @@ namespace Average.Server.Handlers
                 var storage = _inventoryService.GetLocalStorage(client);
                 if (storage == null) return;
 
+                // Récupèrte l'item dans l'inventaire du joueur
                 var item = _inventoryService.GetItemOnSlot(slotId, storage);
                 if (item == null) return;
 
@@ -160,7 +165,13 @@ namespace Average.Server.Handlers
 
                 if(_inventoryService.IsSlotAvailable(newItem.SlotId, chestStorage))
                 {
-                    // Avec les items stackable (money) L'argent est définis à 500 dollars au lieux du montant
+                    // On vérifie que l'inventaire à assez de place pour recevoir l'item provenant du coffre
+                    if (!_inventoryService.HasFreeSpaceForWeight(newItem, chestStorage))
+                    {
+                        Logger.Error("Pas assez de place dans le coffre pour ajouter l'item de l'inventaire: " + newItem.Name + ", " + newItem.Count);
+                        return;
+                    }
+
                     // Ajoute l'item dans le coffre sur un slot spécifique
                     _inventoryService.AddItem(client, newItem, chestStorage, true, targetSlotId);
 
@@ -184,6 +195,13 @@ namespace Average.Server.Handlers
                         // Les items sont identique, on les stack
                         Logger.Error("Test 2: " + itemInstance.Name + ", " + itemInstance.Count + ", " + newItem.Name + ", " + newItem.Count);
 
+                        // On vérifie que l'inventaire à assez de place pour recevoir l'item provenant du coffre
+                        if (!_inventoryService.HasFreeSpaceForWeight(newItem, chestStorage))
+                        {
+                            Logger.Error("Pas assez de place dans le coffre pour stack l'item de l'inventaire: " + itemInstance.Name + ", " + itemInstance.Count);
+                            return;
+                        }
+
                         // Besoin de stack l'item dans le coffre
                         _inventoryService.StackItemOnSlot(client, chestStorage, newItem, itemInstance);
 
@@ -197,6 +215,46 @@ namespace Average.Server.Handlers
                     else
                     {
                         // Les items sont différent, on les alternes
+
+                        Logger.Error("Alternate");
+
+                        var sourceCopy = new StorageItemData(item.Name, item.Count);
+                        sourceCopy.SlotId = item.SlotId;
+                        var sourceDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
+                        sourceCopy.Data = sourceDictionary;
+
+                        var destinationCopy = new StorageItemData(itemInstance.Name, itemInstance.Count);
+                        destinationCopy.SlotId = itemInstance.SlotId;
+                        var destinationDictionary = itemInstance.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
+                        destinationCopy.Data = destinationDictionary;
+
+                        // On vérifie que l'inventaire à assez de place pour recevoir l'item provenant du coffre
+                        if (!_inventoryService.HasFreeSpaceForWeight(destinationCopy, storage))
+                        {
+                            Logger.Error("Pas assez de place dans l'inventaire pour recevoir l'item du coffre: " + destinationCopy.Name + ", " + destinationCopy.Count);
+                            return;
+                        }
+
+                        // On vérifie que le coffre à assez de place pour recevoir l'item provenant de l'inventaire
+                        if (!_inventoryService.HasFreeSpaceForWeight(sourceCopy, chestStorage))
+                        {
+                            Logger.Error("Pas assez de place dans le coffre pour recevoir l'item de l'inventaire: " + sourceCopy.Name + ", " + sourceCopy.Count);
+                            return;
+                        }
+
+                        // On supprime l'item de l'inventaire ce trouvant sur le slotId définis avant d'ajouter le nouvelle item
+                        _inventoryService.RemoveItemOnSlot(client, storage, slotId);
+
+                        // On supprime l'item du coffre ce trouvant sur le slotId définis avant d'ajouter le nouvelle item
+                        _inventoryService.RemoveItemOnSlot(client, chestStorage, targetSlotId);
+
+                        Logger.Error("Informations: " + slotId + ", " + targetSlotId + "\n" + sourceCopy.ToJson(Newtonsoft.Json.Formatting.Indented) + "\n" + destinationCopy.ToJson(Newtonsoft.Json.Formatting.Indented));
+
+                        // Ajoute l'item du coffre dans l'inventaire
+                        _inventoryService.AddItem(client, destinationCopy, storage, true, slotId);
+
+                        // Ajoute l'item de l'inventaire dans le coffre
+                        _inventoryService.AddItem(client, sourceCopy, chestStorage, true, targetSlotId);
                     }
                 }
             }

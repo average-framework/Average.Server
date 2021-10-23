@@ -330,10 +330,32 @@ namespace Average.Server.Services
             return weight;
         }
 
-        internal bool HasFreeSpaceForWeight(double itemWeight, StorageData storageData)
+        internal bool HasFreeSpaceForWeight(StorageItemData itemData, StorageData storageData)
         {
-            return CalculateWeight(storageData) + itemWeight <= storageData.MaxWeight;
+            var info = GetItemInfo(itemData.Name);
+            var totalNeededWeight = CalculateWeight(storageData) + itemData.Count * info.Weight;
+
+            Logger.Error("Weight: " + totalNeededWeight + ", " + storageData.MaxWeight);
+            Logger.Error("Has Free Space: " + (totalNeededWeight <= storageData.MaxWeight));
+
+            if (totalNeededWeight > storageData.MaxWeight)
+            {
+                if(info.CanBeStacked && info.OnStacking != null)
+                {
+                    return true;
+                }
+            }
+
+            return CalculateWeight(storageData) + totalNeededWeight <= storageData.MaxWeight;
         }
+
+        //internal bool HasFreeSpaceForWeight(double itemWeight, StorageData storageData)
+        //{
+        //    Logger.Error("Weight: " + (CalculateWeight(storageData) + itemWeight) + ", " + storageData.MaxWeight);
+        //    Logger.Error("Has Free Space: " + ((CalculateWeight(storageData) + itemWeight) <= storageData.MaxWeight));
+
+        //    return CalculateWeight(storageData) + itemWeight <= storageData.MaxWeight;
+        //}
 
         internal bool HasFreeSpace(StorageData storageData)
         {
@@ -368,12 +390,12 @@ namespace Average.Server.Services
             return storage.Items.Exists(x => x.SlotId == slotIndex);
         }
 
-        internal bool IsSlotExistsWithItemName(Client client, string itemName)
+        internal bool IsSlotExistsWithItemName(Client client, StorageData storageData, string itemName)
         {
-            var storage = GetLocalStorage(client);
-            if (storage == null) return false;
+            //var storage = GetLocalStorage(client);
+            if (storageData == null) return false;
 
-            return storage.Items.Exists(x => x.Name == itemName);
+            return storageData.Items.Exists(x => x.Name == itemName);
         }
 
         internal int GetAvailableSlot(StorageData storageData)
@@ -497,10 +519,6 @@ namespace Average.Server.Services
                         item.Count = valResult;
                     }
 
-                    //// Appel l'action par defaut
-                    //// Met à jour l'affichage du premier item
-                    //UpdateSlotRender(client, item, info, storageData);
-
                     var newSlotId = GetAvailableSlot(storageData);
                     var newItem = new StorageItemData(item.Name, (int)maxValue - valResult);
                     newItem.SlotId = newSlotId;
@@ -509,16 +527,6 @@ namespace Average.Server.Services
 
                     var newDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
                     newItem.Data = newDictionary;
-
-                    //switch (storageData.Type)
-                    //{
-                    //    case StorageDataType.Player:
-                    //        storageData = GetLocalStorage(client);
-                    //        break;
-                    //    case StorageDataType.Chest:
-                    //        storageData = GetData<StorageData>(client, "ChestData");
-                    //        break;
-                    //}
 
                     if (storageData == null) return;
 
@@ -557,10 +565,6 @@ namespace Average.Server.Services
                         info.OnSplit.Invoke(item, valDecResult, StorageItemInfo.SplitType.BaseItem);
                     }
 
-                    //// Appel l'action par defaut
-                    //// Met à jour l'affichage du premier item
-                    //UpdateSlotRender(client, item, info, storageData);
-
                     newSlotId = GetAvailableSlot(storageData);
                     newItem = new StorageItemData(item.Name, 1);
                     newItem.SlotId = newSlotId;
@@ -570,16 +574,6 @@ namespace Average.Server.Services
 
                     newItem.Data = newDictionary;
                     info.OnSplit.Invoke(newItem, valDecResult, StorageItemInfo.SplitType.TargetItem);
-
-                    //switch (storageData.Type)
-                    //{
-                    //    case StorageDataType.Player:
-                    //        storageData = GetLocalStorage(client);
-                    //        break;
-                    //    case StorageDataType.Chest:
-                    //        storageData = GetData<StorageData>(client, "ChestData");
-                    //        break;
-                    //}
 
                     if (storageData == null) return;
 
@@ -611,8 +605,6 @@ namespace Average.Server.Services
             newItem.Count = (newItem.Count > 0 ? newItem.Count : newItem.Count = 1);
             newItem.Data ??= new Dictionary<string, object>();
 
-            var weight = info.Weight * newItem.Count;
-
             if (info.DefaultData != null)
             {
                 foreach (var d in info.DefaultData)
@@ -626,13 +618,15 @@ namespace Average.Server.Services
 
             var availableSlot = -1;
 
-            if (HasFreeSpaceForWeight(weight, storageData))
+            if (HasFreeSpaceForWeight(newItem, storageData))
             {
                 if (info.CanBeStacked)
                 {
-                    if (IsSlotExistsWithItemName(client, newItem.Name))
+                    if (IsSlotExistsWithItemName(client, storageData, newItem.Name))
                     {
                         var slot = GetItemByName(newItem.Name, storageData);
+                        if (slot == null) return;
+
                         availableSlot = slot.SlotId;
 
                         // Besoin d'assigner a newItem le SlotId existant
@@ -659,24 +653,6 @@ namespace Average.Server.Services
 
                     if (IsSlotAvailable(availableSlot, storageData))
                     {
-                        //// Créer un nouvelle item dans un slot disponible
-                        //newItem.SlotId = availableSlot;
-                        //storageData.Items.Add(newItem);
-
-                        //object itemStackValue = null;
-
-                        //if (info.OnStacking != null)
-                        //{
-                        //    newItem.Count = 1;
-                        //}
-
-                        //if (info.CanBeStacked && info.OnRenderStacking != null)
-                        //{
-                        //    itemStackValue = info.OnRenderStacking.Invoke(newItem);
-                        //}
-
-                        //SetItemOnEmptySlot(client, storageData, newItem);
-
                         if (!createInNewSlot)
                         {
                             Logger.Debug("Slot -> 0");
@@ -755,12 +731,10 @@ namespace Average.Server.Services
                                         Update(storageData);
                                     }
                                 }
-                                else
-                                {
-                                    Logger.Debug("Slot -> 3");
-
-                                    //newItem.SlotId = createInSlotId;
-                                }
+                                //else
+                                //{
+                                //    Logger.Debug("Slot -> 3");
+                                //}
                             }
                         }
                         else
