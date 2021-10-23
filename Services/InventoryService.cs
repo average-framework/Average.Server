@@ -32,7 +32,7 @@ namespace Average.Server.Services
         public const int InventorySlotCount = 20;
         public const int VehicleSlotCount = 8;
         public const int ChestSlotCount = 8;
-        public const int BankSlotCount = 8;
+        public const int BankSlotCount = 4;
         public const int TradeSlotCount = 16;
 
         private const bool SaveOnChanged = true;
@@ -812,26 +812,6 @@ namespace Average.Server.Services
 
         internal void MoveItemOnStorage(Client client, int slotId, int targetSlotId, StorageData sourceStorage, StorageData destinationStorage)
         {
-            //if (sourceStorage.Type == StorageDataType.Player && destinationStorage.Type == StorageDataType.Player)
-            //{
-            //    // Inventaire -> Inventaire
-
-            //    if (slotId == targetSlotId) return;
-
-            //    Logger.Error("Inventory 1");
-
-            //    // On déplace l'item sur un slot définis
-            //    SetItemOnSlot(client, destinationStorage, slotId, targetSlotId);
-            //}
-            //else if (sourceStorage.Type == StorageDataType.Chest && destinationStorage.Type == StorageDataType.Chest)
-            //{
-            //    // Coffre -> Coffre
-
-            //    if (slotId == targetSlotId) return;
-
-            //    // On déplace l'item sur un slot définis
-            //    SetItemOnSlot(client, destinationStorage, slotId, targetSlotId);
-            //}
             if (sourceStorage.Type == destinationStorage.Type)
             {
                 // Inventaire -> Inventaire
@@ -843,7 +823,7 @@ namespace Average.Server.Services
                 // On déplace l'item sur un slot définis
                 SetItemOnSlot(client, destinationStorage, slotId, targetSlotId);
             }
-            else/* if(sourceStorage.Type == StorageDataType.Player && destinationStorage.Type == StorageDataType.Chest)*/
+            else
             {
                 // Inventaire -> Coffre
 

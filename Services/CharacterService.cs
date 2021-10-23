@@ -83,47 +83,5 @@ namespace Average.Server.Services
         {
             _eventManager.EmitClient(client, "character:teleport", position);
         }
-
-        internal async void OnSetMoney(Client client, decimal amount)
-        {
-            var data = await Get(client);
-            data.Economy.Money = amount;
-            await Update(data);
-        }
-
-        internal async void OnSetBank(Client client, decimal amount)
-        {
-            var data = await Get(client);
-            data.Economy.Bank = amount;
-            await Update(data);
-        }
-
-        internal async void OnAddMoney(Client client, decimal amount)
-        {
-            var data = await Get(client);
-            data.Economy.Money += amount;
-            await Update(data);
-        }
-
-        internal async void OnAddBank(Client client, decimal amount)
-        {
-            var data = await Get(client);
-            data.Economy.Bank += amount;
-            await Update(data);
-        }
-
-        internal async void OnRemoveMoney(Client client, decimal amount)
-        {
-            var data = await Get(client);
-            data.Economy.Money -= amount;
-            await Update(data);
-        }
-
-        internal async void OnRemoveBank(Client client, decimal amount)
-        {
-            var data = await Get(client);
-            data.Economy.Bank -= amount;
-            await Update(data);
-        }
     }
 }
