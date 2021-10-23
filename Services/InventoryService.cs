@@ -624,12 +624,6 @@ namespace Average.Server.Services
                 }
             }
 
-            // Temporaire
-            if (newItem.Name == "money")
-            {
-                newItem.Data["cash"] = 500m;
-            }
-
             var availableSlot = -1;
 
             if (HasFreeSpaceForWeight(weight, storageData))

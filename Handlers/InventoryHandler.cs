@@ -150,21 +150,26 @@ namespace Average.Server.Handlers
                 Logger.Error("Inv -> Chest 2: " + chestStorage.ToJson());
 
                 // Besoin de créer une copie de l'item avant de l'ajouter dans le coffre
-                // pour éviter que l'instance de l'itel soit la même que celle de l'inventaire
+                // pour éviter que l'instance de l'item dans le coffre soit la même que celle de l'inventaire
                 var newItem = new StorageItemData(item.Name, item.Count);
-                //newItem.SlotId = item.SlotId;
                 newItem.SlotId = targetSlotId;
 
+                // Créer une copie des données de l'item (sans l'instance) et les copies sur newItem
                 var newDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
                 newItem.Data = newDictionary;
 
                 if(_inventoryService.IsSlotAvailable(newItem.SlotId, chestStorage))
                 {
-                    // Besoin de créer l'item
-
-                    // Ajoute l'item dans le coffre
-                    // Solution de simplicité
+                    // Avec les items stackable (money) L'argent est définis à 500 dollars au lieux du montant
+                    // Ajoute l'item dans le coffre sur un slot spécifique
                     _inventoryService.AddItem(client, newItem, chestStorage, true, targetSlotId);
+
+                    // Supprime l'item de l'inventaire
+                    _inventoryService.RemoveItemOnSlot(client, storage, slotId);
+
+                    // Met à jour l'inventaire et le coffre dans la base de donnée
+                    _inventoryService.Update(storage);
+                    _inventoryService.Update(chestStorage);
                 }
                 else
                 {
@@ -174,18 +179,26 @@ namespace Average.Server.Handlers
                     var itemInstance = chestStorage.Items.Find(x => x.SlotId == targetSlotId);
                     if (itemInstance == null) return;
 
-                    Logger.Error("Test 2: " + itemInstance.Name + ", " + itemInstance.Count + ", " + newItem.Name + ", " + newItem.Count);
+                    if (itemInstance.Name == newItem.Name)
+                    {
+                        // Les items sont identique, on les stack
+                        Logger.Error("Test 2: " + itemInstance.Name + ", " + itemInstance.Count + ", " + newItem.Name + ", " + newItem.Count);
 
-                    // Besoin de stack l'item
-                    _inventoryService.StackItemOnSlot(client, chestStorage, newItem, itemInstance);
+                        // Besoin de stack l'item dans le coffre
+                        _inventoryService.StackItemOnSlot(client, chestStorage, newItem, itemInstance);
+
+                        // Supprime l'item de l'inventaire
+                        _inventoryService.RemoveItemOnSlot(client, storage, slotId);
+
+                        // Met à jour l'inventaire et le coffre dans la base de donnée
+                        _inventoryService.Update(storage);
+                        _inventoryService.Update(chestStorage);
+                    }
+                    else
+                    {
+                        // Les items sont différent, on les alternes
+                    }
                 }
-
-                // Supprime l'item de l'inventaire
-                _inventoryService.RemoveItemOnSlot(client, storage, slotId);
-
-                // Met à jour l'inventaire et le coffre dans la base de donnée
-                _inventoryService.Update(storage);
-                _inventoryService.Update(chestStorage);
             }
         }
 
