@@ -9,6 +9,7 @@ using Average.Shared.DataModels;
 using CitizenFX.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static Average.Server.Services.RpcService;
 
 namespace Average.Server.Handlers
@@ -132,20 +133,60 @@ namespace Average.Server.Handlers
                 // On déplace l'item sur un slot définis
                 _inventoryService.SetItemOnSlot(client, chestStorage, slotId, targetSlotId);
             }
-            //else if (slotSourceType == "inv" && slotTargetType == "chest")
-            //{
-            //    // Inventaire -> Coffre
-            //    Logger.Error("Chest 1");
-            //    var chestStorage = _inventoryService.GetData<StorageData>(client, "ChestData");
-            //    if (chestStorage == null) return;
-            //    Logger.Error("Chest 2: " + chestStorage.ToJson());
+            else if (slotSourceType == "inv" && slotTargetType == "chest")
+            {
+                // Inventaire -> Coffre
 
-            //    // Ajoute l'item dans le coffre
-            //    _inventoryService.AddItem(client, item, chestStorage);
+                // Récupère l'inventaire du joueur
+                var storage = _inventoryService.GetLocalStorage(client);
+                if (storage == null) return;
 
-            //    // Supprime l'item de l'inventaire
-            //    _inventoryService.RemoveItemOnSlot(client, storage, slotId);
-            //}
+                var item = _inventoryService.GetItemOnSlot(slotId, storage);
+                if (item == null) return;
+
+                Logger.Error("Inv -> Chest 1");
+                var chestStorage = _inventoryService.GetData<StorageData>(client, "ChestData");
+                if (chestStorage == null) return;
+                Logger.Error("Inv -> Chest 2: " + chestStorage.ToJson());
+
+                // Besoin de créer une copie de l'item avant de l'ajouter dans le coffre
+                // pour éviter que l'instance de l'itel soit la même que celle de l'inventaire
+                var newItem = new StorageItemData(item.Name, item.Count);
+                //newItem.SlotId = item.SlotId;
+                newItem.SlotId = targetSlotId;
+
+                var newDictionary = item.Data.ToDictionary(entry => entry.Key, entry => entry.Value);
+                newItem.Data = newDictionary;
+
+                if(_inventoryService.IsSlotAvailable(newItem.SlotId, chestStorage))
+                {
+                    // Besoin de créer l'item
+
+                    // Ajoute l'item dans le coffre
+                    // Solution de simplicité
+                    _inventoryService.AddItem(client, newItem, chestStorage, true, targetSlotId);
+                }
+                else
+                {
+                    Logger.Error("Test 1");
+
+                    // Récupère l'instance de l'item dans le coffre
+                    var itemInstance = chestStorage.Items.Find(x => x.SlotId == targetSlotId);
+                    if (itemInstance == null) return;
+
+                    Logger.Error("Test 2: " + itemInstance.Name + ", " + itemInstance.Count + ", " + newItem.Name + ", " + newItem.Count);
+
+                    // Besoin de stack l'item
+                    _inventoryService.StackItemOnSlot(client, chestStorage, newItem, itemInstance);
+                }
+
+                // Supprime l'item de l'inventaire
+                _inventoryService.RemoveItemOnSlot(client, storage, slotId);
+
+                // Met à jour l'inventaire et le coffre dans la base de donnée
+                _inventoryService.Update(storage);
+                _inventoryService.Update(chestStorage);
+            }
         }
 
         [UICallback("storage/keydown")]

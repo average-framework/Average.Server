@@ -376,9 +376,8 @@ namespace Average.Server.Services
             return storage.Items.Exists(x => x.Name == itemName);
         }
 
-        internal int GetAvailableSlot(Client client, StorageData storageData)
+        internal int GetAvailableSlot(StorageData storageData)
         {
-            //var storage = GetLocalStorage(client);
             if (storageData == null) return -1;
 
             var slotCount = 0;
@@ -502,7 +501,7 @@ namespace Average.Server.Services
                     //// Met à jour l'affichage du premier item
                     //UpdateSlotRender(client, item, info, storageData);
 
-                    var newSlotId = GetAvailableSlot(client, storageData);
+                    var newSlotId = GetAvailableSlot(storageData);
                     var newItem = new StorageItemData(item.Name, (int)maxValue - valResult);
                     newItem.SlotId = newSlotId;
 
@@ -562,7 +561,7 @@ namespace Average.Server.Services
                     //// Met à jour l'affichage du premier item
                     //UpdateSlotRender(client, item, info, storageData);
 
-                    newSlotId = GetAvailableSlot(client, storageData);
+                    newSlotId = GetAvailableSlot(storageData);
                     newItem = new StorageItemData(item.Name, 1);
                     newItem.SlotId = newSlotId;
 
@@ -599,7 +598,7 @@ namespace Average.Server.Services
             }
         }
 
-        internal void AddItem(Client client, StorageItemData newItem, StorageData storageData, bool createInNewSlot = false)
+        internal void AddItem(Client client, StorageItemData newItem, StorageData storageData, bool createInNewSlot = false, int createInSlotId = 0)
         {
             var info = GetItemInfo(newItem.Name);
 
@@ -647,35 +646,72 @@ namespace Average.Server.Services
                     }
                     else
                     {
-                        availableSlot = GetAvailableSlot(client, storageData);
+                        availableSlot = GetAvailableSlot(storageData);
                     }
                 }
                 else
                 {
-                    availableSlot = GetAvailableSlot(client, storageData);
+                    availableSlot = GetAvailableSlot(storageData);
                 }
 
-                if (availableSlot != -1)
+                if (availableSlot != -1 || createInNewSlot)
                 {
+                    Logger.Debug("available ? " + availableSlot + ", " + storageData.StorageId);
+
+                    if (createInNewSlot)
+                    {
+                        availableSlot = createInSlotId;
+                    }
+
                     if (IsSlotAvailable(availableSlot, storageData))
                     {
-                        // Créer un nouvelle item dans un slot disponible
-                        newItem.SlotId = availableSlot;
-                        storageData.Items.Add(newItem);
+                        //// Créer un nouvelle item dans un slot disponible
+                        //newItem.SlotId = availableSlot;
+                        //storageData.Items.Add(newItem);
 
-                        object itemStackValue = null;
+                        //object itemStackValue = null;
 
-                        if (info.OnStacking != null)
+                        //if (info.OnStacking != null)
+                        //{
+                        //    newItem.Count = 1;
+                        //}
+
+                        //if (info.CanBeStacked && info.OnRenderStacking != null)
+                        //{
+                        //    itemStackValue = info.OnRenderStacking.Invoke(newItem);
+                        //}
+
+                        //SetItemOnEmptySlot(client, storageData, newItem);
+
+                        if (!createInNewSlot)
                         {
-                            newItem.Count = 1;
-                        }
+                            Logger.Debug("Slot -> 0");
 
-                        if (info.CanBeStacked && info.OnRenderStacking != null)
+                            // Créer un nouvelle item dans un slot disponible
+                            newItem.SlotId = availableSlot;
+                            storageData.Items.Add(newItem);
+
+                            if (info.OnStacking != null)
+                            {
+                                newItem.Count = 1;
+                            }
+
+                            SetItemOnEmptySlot(client, storageData, newItem);
+                        }
+                        else
                         {
-                            itemStackValue = info.OnRenderStacking.Invoke(newItem);
-                        }
+                            Logger.Debug("Slot -> 1");
 
-                        SetItemOnEmptySlot(client, storageData, newItem);
+                            newItem.SlotId = createInSlotId;
+                            storageData.Items.Add(newItem);
+
+                            if (info.OnStacking != null)
+                            {
+                                newItem.Count = 1;
+                            }
+
+                            SetItemOnEmptySlot(client, storageData, newItem);
+                        }
 
                         if (SaveOnChanged)
                         {
@@ -695,13 +731,13 @@ namespace Average.Server.Services
 
                                 // Appel une action définis
                                 var targetItem = GetItemOnSlot(availableSlot, storageData);
-                                info.OnStacking.Invoke(newItem, targetItem);
+                                //info.OnStacking.Invoke(newItem, targetItem);
                                 var itemIndex = storageData.Items.FindIndex(x => x.SlotId == targetItem.SlotId);
 
                                 storageData.Items.RemoveAt(itemIndex);
                                 storageData.Items.Add(targetItem);
 
-                                StackItemOnSlot(client, storageData, targetItem);
+                                StackItemOnSlot(client, storageData, newItem, targetItem);
 
                                 if (SaveOnChanged)
                                 {
@@ -712,16 +748,24 @@ namespace Average.Server.Services
                             {
                                 if (!createInNewSlot)
                                 {
+                                    Logger.Debug("Slot -> 2");
+
                                     // Appel l'action par defaut
                                     var itemInstance = storageData.Items.Find(x => x.SlotId == newItem.SlotId);
-                                    itemInstance.Count += newItem.Count;
+                                    //itemInstance.Count += newItem.Count;
 
-                                    StackItemOnSlot(client, storageData, itemInstance);
+                                    StackItemOnSlot(client, storageData, newItem, itemInstance);
 
                                     if (SaveOnChanged)
                                     {
                                         Update(storageData);
                                     }
+                                }
+                                else
+                                {
+                                    Logger.Debug("Slot -> 3");
+
+                                    //newItem.SlotId = createInSlotId;
                                 }
                             }
                         }
@@ -751,26 +795,45 @@ namespace Average.Server.Services
             }
         }
 
-        private void StackItemOnSlot(Client client, StorageData storageData, StorageItemData itemResult)
+        internal void StackItemOnSlot(Client client, StorageData storageData, StorageItemData source, StorageItemData destination)
         {
-            var info = GetItemInfo(itemResult.Name);
+            var info = GetItemInfo(destination.Name);
 
             object itemStackValue = null;
 
-            if (info.CanBeStacked && info.OnRenderStacking != null)
+            if (info.CanBeStacked)
             {
-                itemStackValue = info.OnRenderStacking.Invoke(itemResult);
+                if (info.OnStacking != null)
+                {
+                    // Modifie le nombre d'item sur l'instance de l'item
+                    info.OnStacking.Invoke(source, destination);
+                }
+                else
+                {
+                    // Modifie le nombre d'item sur l'instance de l'item
+                    destination.Count += source.Count;
+                }
             }
             else
             {
-                itemStackValue = itemResult.Count;
+                // Modifie le nombre d'item sur l'instance de l'item
+                destination.Count += source.Count;
+            }
+
+            if (info.CanBeStacked && info.OnRenderStacking != null)
+            {
+                itemStackValue = info.OnRenderStacking.Invoke(destination);
+            }
+            else
+            {
+                itemStackValue = destination.Count;
             }
 
             var type = GetStorageTypeString(storageData.Type);
 
             _uiService.SendMessage(client, "storage", "stackItemOnSlot", new
             {
-                slotId = itemResult.SlotId,
+                slotId = destination.SlotId,
                 count = itemStackValue,
                 img = info.Img,
 
@@ -930,7 +993,7 @@ namespace Average.Server.Services
             SetInventoryWeight(client, storageData);
         }
 
-        private void SetItemOnEmptySlot(Client client, StorageData storageData, StorageItemData storageItemData)
+        internal void SetItemOnEmptySlot(Client client, StorageData storageData, StorageItemData storageItemData)
         {
             var info = GetItemInfo(storageItemData.Name);
             var type = GetStorageTypeString(storageData.Type);
