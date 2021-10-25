@@ -1,6 +1,5 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
@@ -9,7 +8,6 @@ using Average.Shared.DataModels;
 using CitizenFX.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using static Average.Server.Services.RpcService;
 
 namespace Average.Server.Handlers
@@ -46,7 +44,7 @@ namespace Average.Server.Handlers
         [UICallback("window_ready")]
         private void OnWindowReady(Client client, Dictionary<string, object> args, RpcCallback cb)
         {
-            Logger.Error("Window ready");
+            Logger.Error("Window Ready 1");
 
             _inventoryService.OnClientWindowInitialized(client);
         }
@@ -160,7 +158,7 @@ namespace Average.Server.Handlers
             var slotSourceType = (string)args["slotSourceType"];
             var eventName = (string)args["eventName"];
 
-            if(slotSourceType == "inv")
+            if (slotSourceType == "inv")
             {
                 var storage = _inventoryService.GetLocalStorage(client);
                 if (storage == null) return;
@@ -170,10 +168,10 @@ namespace Average.Server.Handlers
 
                 await _inventoryService.OnStorageContextMenu(client, item.Name, slotId, eventName, storage);
             }
-            else if(slotSourceType == "chest")
+            else if (slotSourceType == "chest")
             {
                 var storage = _inventoryService.GetData<StorageData>(client, "ChestData");
-                if(storage == null) return;
+                if (storage == null) return;
 
                 var item = _inventoryService.GetItemOnSlot(slotId, storage);
                 if (item == null) return;
@@ -190,15 +188,15 @@ namespace Average.Server.Handlers
             var maxValue = args["maxValue"];
             var value = args["value"];
             var slotType = (string)args["slotType"];
-            
-            if(slotType == "inv")
+
+            if (slotType == "inv")
             {
                 var storage = _inventoryService.GetLocalStorage(client);
                 if (storage == null) return;
 
                 _inventoryService.OnSplitItem(client, slotId, minValue, maxValue, value, storage);
             }
-            else if(slotType == "chest")
+            else if (slotType == "chest")
             {
                 var storage = _inventoryService.GetData<StorageData>(client, "ChestData");
                 if (storage == null) return;

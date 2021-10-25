@@ -2,10 +2,10 @@
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
-using Average.Server.Models;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
 using Average.Shared.Enums;
+using Average.Shared.Models;
 using CitizenFX.Core;
 using Newtonsoft.Json.Linq;
 using System;
@@ -68,7 +68,7 @@ namespace Average.Server.Services
             _minTimeBetweenWeatherChanging = _baseConfig["MinTimeBetweenWeatherChanging"].Convert<int>();
             _maxTimeBetweenWeatherChanging = _baseConfig["MaxTimeBetweenWeatherChanging"].Convert<int>();
 
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
                 if (!await Exists(0))
                 {
@@ -122,7 +122,7 @@ namespace Average.Server.Services
 
             World.Weather = nextWeather;
             WeatherChanged?.Invoke(this, new WorldWeatherEventArgs(World.Weather));
-            
+
             _eventManager.EmitClients("world:set_weather", nextWeather, rndTransitionTime);
 
             await Update(World);

@@ -19,9 +19,11 @@ namespace Average.Server.Handlers
         private readonly UIService _uiService;
         private readonly InventoryService _inventoryService;
         private readonly UserService _userService;
+        private readonly RayService _rayService;
 
-        public ClientHandler(UserService userService, InventoryService inventoryService, UIService uiService, GameService gameService, InputService inputService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
+        public ClientHandler(RayService rayService, UserService userService, InventoryService inventoryService, UIService uiService, GameService gameService, InputService inputService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
         {
+            _rayService = rayService;
             _userService = userService;
             _gameService = gameService;
             _inputService = inputService;
@@ -51,6 +53,9 @@ namespace Average.Server.Handlers
             // Game
             _gameService.Init(client);
 
+            // Ray
+            _rayService.OnClientInitialized(client);
+
             if (await _characterService.Exists(client))
             {
                 // Spawn character
@@ -74,6 +79,18 @@ namespace Average.Server.Handlers
             }
 
             Logger.Write("Client", $"%{client.Name}({client.ServerId}) is initialized%", new Logger.TextColor(foreground: ConsoleColor.Green));
+        }
+
+        [ServerEvent("client:share_data")]
+        private void OnShareData(Client client, string key, object value, bool @override)
+        {
+            _clientService.OnShareData(client, key, value, @override);
+        }
+
+        [ServerEvent("client:unshare_data")]
+        private void OnUnshareData(Client client, string key)
+        {
+            _clientService.OnUnshareData(client, key);
         }
     }
 }

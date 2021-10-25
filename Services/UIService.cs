@@ -18,7 +18,7 @@ namespace Average.Server.Services
         private readonly RpcService _rpcService;
         private readonly EventService _eventService;
 
-        private readonly List<string> _nuiEvents = new();
+        private readonly Dictionary<string, List<Tuple<object, MethodInfo>>> _nuiEvents = new();
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
         public UIService(IContainer container, RpcService rpcService, EventService eventService)
@@ -60,35 +60,48 @@ namespace Average.Server.Services
 
         internal void OnClientInitialized(Client client)
         {
-            _eventService.EmitClient(client, "ui:register_nui_events", _nuiEvents);
+            var events = new List<string>();
+            
+            foreach(var @event in _nuiEvents)
+            {
+                events.Add(@event.Key);
+            }
+
+            _eventService.EmitClient(client, "ui:register_nui_events", events);
         }
 
         private void RegisterInternalUICallbackEvent(UICallbackAttribute eventAttr, object classObj, MethodInfo method)
         {
             var redirectName = eventAttr.Name;
 
-            _rpcService.OnRequest<Dictionary<string, object>>(redirectName, (client, cb, dict) =>
+            if (!_nuiEvents.ContainsKey(redirectName))
             {
-                Logger.Debug("Receive ui callback from client: " + client.Name);
-
-                foreach (var val in dict)
-                {
-                    Logger.Debug("Dict: " + val.Key + ", " + val.Value);
-                }
-
-                method.Invoke(classObj, new object[] { client, dict, new RpcCallback(args =>
-                {
-                    cb(args.ToList());
-                    return cb;
-                })});
-            });
-
-            if (!_nuiEvents.Contains(redirectName))
+                _nuiEvents.Add(redirectName, new List<Tuple<object, MethodInfo>> { new Tuple<object, MethodInfo>(classObj, method) });
+            }
+            else
             {
-                _nuiEvents.Add(redirectName);
+                _nuiEvents[redirectName].Add(new Tuple<object, MethodInfo>(classObj, method));
             }
 
-            Logger.Write("UI", $"Registering [UICallback]: %{redirectName}% on method: {method.Name}.", new Logger.TextColor(foreground: ConsoleColor.DarkYellow));
+            _rpcService.OnRequest<Dictionary<string, object>>(redirectName, (client, cb, dict) =>
+            {
+                if (!_nuiEvents.ContainsKey(redirectName)) return;
+
+                var events = _nuiEvents[redirectName];
+
+                foreach(var @event in events)
+                {
+                    Logger.Debug("Receive ui callback from client: " + client.Name + ", method: " + (@event.Item2.DeclaringType.Name + ":" + @event.Item2.Name) + ", event name: " + redirectName + ", dict: " + dict.ToJson());
+
+                    @event.Item2.Invoke(@event.Item1, new object[] { client, dict, new RpcCallback(args =>
+                    {
+                        cb(args.ToList());
+                        return cb;
+                    })});
+                }
+            });
+
+            Logger.Write("UI", $"Registering [UICallback]: %{redirectName}% on method: {method.DeclaringType.Name + ":" + method.Name} ({classObj.GetType()}).", new Logger.TextColor(foreground: ConsoleColor.DarkYellow));
         }
 
         internal async void Emit(Client client, object message)

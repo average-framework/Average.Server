@@ -1,5 +1,6 @@
 ﻿using Average.Server.Framework.Model;
 using Average.Shared.DataModels;
+using Average.Shared.Models;
 using Newtonsoft.Json;
 using System;
 

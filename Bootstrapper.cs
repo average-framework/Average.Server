@@ -80,6 +80,7 @@ namespace Average.Server
             _container.Register<InventoryService>();
             _container.Register<InventoryItemsService>();
             _container.Register<BankService>();
+            _container.Register<RayService>();
 
             // Jobs
             _container.Register<CharacterJob>();
@@ -93,6 +94,7 @@ namespace Average.Server
             _container.Register<InputHandler>();
             _container.Register<RpcHandler>();
             _container.Register<InventoryHandler>();
+            _container.Register<RayHandler>();
 
             // Commands
             _container.Register<ServerJobCommand>();

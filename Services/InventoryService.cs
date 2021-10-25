@@ -90,20 +90,21 @@ namespace Average.Server.Services
             if (!_clients.ContainsKey(client.License))
             {
                 var storage = await Get(characterId);
-
                 if (storage == null) return;
 
-                var dict = new Dictionary<string, object>();
-
-                dict.Add("Storage", storage ?? new StorageData
+                var dict = new Dictionary<string, object>
                 {
-                    //StorageId = client.License,
-                    StorageId = characterId,
-                    MaxWeight = DefaultMaxInventoryWeight,
-                    Type = StorageDataType.Player
-                });
-                //dict.Add("CharacterId", characterId);
-                dict.Add("IsOpen", false);
+                    {
+                        "Storage",
+                        storage ?? new StorageData
+                        {
+                            StorageId = characterId,
+                            MaxWeight = DefaultMaxInventoryWeight,
+                            Type = StorageDataType.Player
+                        }
+                    },
+                    { "IsOpen", false }
+                };
 
                 _clients.Add(client.License, dict);
             }
@@ -341,7 +342,7 @@ namespace Average.Server.Services
 
             if (totalNeededWeight > storageData.MaxWeight)
             {
-                if(info.CanBeStacked && info.OnStacking != null)
+                if (info.CanBeStacked && info.OnStacking != null)
                 {
                     return true;
                 }
@@ -741,7 +742,7 @@ namespace Average.Server.Services
                             // Créer un nouvelle item dans un slot disponible
                             newItem.SlotId = availableSlot;
                             storageData.Items.Add(newItem);
-                            
+
                             SetItemOnEmptySlot(client, storageData, newItem);
 
                             if (SaveOnChanged)
