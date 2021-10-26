@@ -32,8 +32,6 @@ namespace Average.Server.Services
             _inputService = inputService;
             _clientService = clientService;
 
-            //_clientService.DataOverrided += OnClientDataOverrided;
-
             var testGroup = new RayGroup("testGroup");
 
             _mainGroup.AddItem(new RayItem("Debug 1", "", false,
@@ -86,16 +84,6 @@ namespace Average.Server.Services
 
             Logger.Write("RayService", "Initialized successfully");
         }
-
-        //private void OnClientDataOverrided(object sender, ClientDataEventArgs e)
-        //{
-        //    switch (e.Key)
-        //    {
-        //        case "Character:CurrentRaycast":
-        //            SetCrossairVisibility(e.Client, )
-        //            break;
-        //    }
-        //}
 
         internal void OnClientWindowInitialized(Client client)
         {
