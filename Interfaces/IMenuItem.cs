@@ -1,4 +1,6 @@
-﻿namespace Average.Server.Interfaces
+﻿using Average.Server.Menu;
+
+namespace Average.Server.Interfaces
 {
     internal interface IMenuItem
     {
