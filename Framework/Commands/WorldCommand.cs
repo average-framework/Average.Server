@@ -4,9 +4,7 @@ using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
 using Average.Server.Services;
 using Average.Shared.Enums;
-using ImTools;
 using System;
-using System.Linq;
 
 namespace Average.Server.Framework.Commands
 {
@@ -28,7 +26,7 @@ namespace Average.Server.Framework.Commands
         [ClientCommand("world:set_weather")]
         private void SetWeather(Client client, string weatherName, float transitionTimeInSeconds)
         {
-            if(Enum.TryParse(weatherName, true, out Weather weather))
+            if (Enum.TryParse(weatherName, true, out Weather weather))
             {
                 _worldService.SetWeather(weather, transitionTimeInSeconds);
             }

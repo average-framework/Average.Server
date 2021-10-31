@@ -5,7 +5,7 @@ using Average.Server.Framework.Model;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
 using Average.Shared.Enums;
-using Average.Shared.Models;
+using Average.Shared.Events;
 using CitizenFX.Core;
 using Newtonsoft.Json.Linq;
 using System;
@@ -29,26 +29,6 @@ namespace Average.Server.Services
         private readonly JObject _baseConfig;
 
         public WorldData World { get; private set; }
-
-        public class WorldTimeEventArgs : EventArgs
-        {
-            public TimeSpan Time { get; set; }
-
-            public WorldTimeEventArgs(TimeSpan time)
-            {
-                Time = time;
-            }
-        }
-
-        public class WorldWeatherEventArgs : EventArgs
-        {
-            public Weather Weather { get; set; }
-
-            public WorldWeatherEventArgs(Weather weather)
-            {
-                Weather = weather;
-            }
-        }
 
         public event EventHandler<WorldTimeEventArgs> TimeChanged;
         public event EventHandler<WorldWeatherEventArgs> WeatherChanged;
@@ -98,15 +78,11 @@ namespace Average.Server.Services
         private async Task TimeUpdate()
         {
             World.Time += TimeSpan.FromSeconds(120);
-            //World.Time += TimeSpan.FromSeconds(720);
 
-            _eventManager.EmitClients("world:set_time", World.Time.Hours, World.Time.Minutes, World.Time.Seconds);
-
-            TimeChanged?.Invoke(this, new WorldTimeEventArgs(World.Time));
-
+            SetTime(World.Time, 10000);
             Update(World);
+
             await BaseScript.Delay(10000);
-            //await BaseScript.Delay(60000);
         }
 
         private async Task WeatherUpdate()
@@ -120,10 +96,7 @@ namespace Average.Server.Services
 
             Logger.Info($"Changing weather from {World.Weather} to {nextWeather}, waiting time: {rndTimeToWait}, transition time: {rndTransitionTime} seconds.");
 
-            World.Weather = nextWeather;
-            WeatherChanged?.Invoke(this, new WorldWeatherEventArgs(World.Weather));
-
-            _eventManager.EmitClients("world:set_weather", nextWeather, rndTransitionTime);
+            SetWeather(nextWeather, rndTransitionTime);
 
             await Update(World);
         }
@@ -204,7 +177,7 @@ namespace Average.Server.Services
             }
         }
 
-        internal void OnSetWorldForClient(Client client)
+        internal void OnClientInitialized(Client client)
         {
             _rpcService.NativeCall(client, 0x59174F1AFE095B5A, (uint)World.Weather, true, true, true, 0f, false);
             _rpcService.NativeCall(client, 0x669E223E64B1903C, World.Time.Hours, World.Time.Minutes, World.Time.Seconds, 5000, true);
@@ -217,39 +190,38 @@ namespace Average.Server.Services
                 transitionTime = 0;
             }
 
-            _rpcService.GlobalNativeCall(0x669E223E64B1903C, time.Hours, time.Minutes, time.Seconds, transitionTime, true);
-            Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime} second(s).");
+            _eventManager.EmitClients("world:set_time", time.Hours, time.Minutes, time.Seconds, transitionTime);
 
             World.Time = time;
+            TimeChanged?.Invoke(this, new WorldTimeEventArgs(World.Time, transitionTime));
+
             await Update(World);
+
+            Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime} second(s).");
         }
 
         internal async void SetWeather(Weather weather, float transitionTime)
         {
-            _rpcService.GlobalNativeCall(0xD74ACDF7DB8114AF, false);
-            _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)weather, true, true, true, transitionTime, false);
-
-            Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
+            _eventManager.EmitClients("world:set_weather", (uint)weather, transitionTime);
 
             World.Weather = weather;
+            WeatherChanged?.Invoke(this, new WorldWeatherEventArgs(World.Weather, transitionTime));
+
             await Update(World);
+
+            Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
         }
 
         internal async void SetNextWeather(float transitionTime)
         {
             var nextWeather = GetNextWeather();
 
-            _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)nextWeather, true, true, true, transitionTime, false);
-            Logger.Debug($"[World] Set next weather from {World.Weather} to {nextWeather} in {transitionTime} second(s).");
+            _eventManager.EmitClients("world:set_weather", (uint)nextWeather, transitionTime);
 
             World.Weather = nextWeather;
             await Update(World);
-        }
 
-        internal async Task<RaycastHit> GetEntityFrontOfPlayer(Client client, float range)
-        {
-            var result = await _rpcService.Request<RaycastHit>(client, "world:get_entity_front_of_player", range);
-            return result.Item1;
+            Logger.Debug($"[World] Set next weather from {World.Weather} to {nextWeather} in {transitionTime} second(s).");
         }
 
         #region Repository

@@ -22,15 +22,15 @@ namespace Average.Server.Services
             _repository = repository;
             _doorService = doorService;
 
-            _doorService.Add(new DoorModel(new Vector3(-3666.02f, -2620.88f, -14.57f), 2f, false,
-            nearAction: (client, door, isNear) =>
-            {
-                Logger.Debug($"Player {client.Name} is near of door ?? " + isNear);
-            },
-            openAction: (client, door) =>
-            {
-                Logger.Debug($"Player {client.Name} open the door at position: " + door.Position);
-            }));
+            //_doorService.Add(new DoorModel(new Vector3(-3666.02f, -2620.88f, -14.57f), 2f, false,
+            //nearAction: (client, door, isNear) =>
+            //{
+            //    Logger.Debug($"Player {client.Name} is near of door ?? " + isNear);
+            //},
+            //openAction: (client, door) =>
+            //{
+            //    Logger.Debug($"Player {client.Name} open the door at position: " + door.Position);
+            //}));
 
             Logger.Write("BankService", "Initialized successfully");
         }

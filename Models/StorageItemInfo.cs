@@ -16,39 +16,9 @@ namespace Average.Server.Models
         public bool CanBeStacked { get; set; }
         public bool RemoveOnGive { get; set; } = true;
         public bool IsSellable { get; set; }
+        public Dictionary<string, object> DefaultData { get; set; } = new();
+
+        [JsonIgnore]
         public Type SplitValueType { get; set; } = typeof(int);
-        public Dictionary<string, object> DefaultData { get; set; }
-
-        [JsonIgnore]
-        public StorageContextMenu ContextMenu { get; set; }
-
-        [JsonIgnore]
-        public Action<StorageItemData, StorageItemData> OnStacking { get; set; }
-
-        [JsonIgnore]
-        public Func<StorageItemData, object> OnRenderStacking { get; set; }
-
-        [JsonIgnore]
-        public Action<StorageItemData, StorageItemData> OnStackCombine { get; set; }
-
-        internal enum SplitType
-        {
-            BaseItem, TargetItem
-        }
-
-        [JsonIgnore]
-        public Action<StorageItemData, object, SplitType> OnSplit { get; set; }
-
-        [JsonIgnore]
-        public Func<StorageItemData, bool> SplitCondition { get; set; }
-
-        [JsonIgnore]
-        public Func<StorageItemData, object> OnRenderSplit { get; set; }
-
-        [JsonIgnore]
-        public Action OnInventoryLoading { get; set; }
-
-        [JsonIgnore]
-        public Action OnChestLoading { get; set; }
     }
 }

@@ -52,12 +52,10 @@ namespace Average.Server
             _container.Register<UIService>();
             _container.Register<CommandService>();
             _container.Register<ThreadService>();
-            _container.Register<ReplicateStateService>();
             _container.Register<RequestInternalService>();
             _container.Register<RequestService>();
             _container.Register<ServerJobService>();
             _container.Register<ClientService>();
-            _container.Register<InputService>();
 
             // Repositories
             _container.Register<UserRepository>();
@@ -76,27 +74,21 @@ namespace Average.Server
             _container.Register<CharacterCreatorService>();
             _container.Register<WorldService>();
             _container.Register<DoorService>();
-            _container.Register<GameService>();
             _container.Register<InventoryService>();
             _container.Register<InventoryItemsService>();
             _container.Register<BankService>();
-            _container.Register<RayService>();
-            _container.Register<MenuService>();
 
             // Jobs
             _container.Register<CharacterJob>();
             _container.Register<InventoryJob>();
 
             // Handlers
-            _container.Register<CommandHandler>();
-            _container.Register<UserHandler>();
             _container.Register<ClientHandler>();
             _container.Register<CharacterHandler>();
-            _container.Register<InputHandler>();
             _container.Register<RpcHandler>();
             _container.Register<InventoryHandler>();
-            _container.Register<RayHandler>();
-            _container.Register<MenuHandler>();
+            _container.Register<DoorHandler>();
+            _container.Register<WorldHandler>();
 
             // Commands
             _container.Register<ServerJobCommand>();
@@ -107,7 +99,6 @@ namespace Average.Server
 
             // Reflections
             _container.GetService<ThreadService>().Reflect();
-            _container.GetService<ReplicateStateService>().Reflect();
             _container.GetService<EventService>().Reflect();
             _container.GetService<UIService>().Reflect();
             _container.GetService<CommandService>().Reflect();

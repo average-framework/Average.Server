@@ -1,7 +1,5 @@
-﻿using Average.Server.Framework.Diagnostics;
-using Average.Server.Framework.Interfaces;
+﻿using Average.Server.Framework.Interfaces;
 using Average.Server.Models;
-using static Average.Server.Models.StorageItemInfo;
 
 namespace Average.Server.Services
 {
@@ -37,43 +35,7 @@ namespace Average.Server.Services
             DefaultData = new()
             {
                 { "cash", 0m }
-            },
-            OnStacking = (source, destination) =>
-            {
-                var cash = decimal.Parse(source.Data["cash"].ToString());
-                var destCash = decimal.Parse(destination.Data["cash"].ToString());
-                destination.Data["cash"] = cash + destCash;
-            },
-            OnRenderStacking = (item) =>
-            {
-                return "$" + item.Data["cash"];
-            },
-            OnSplit = (item, splitValue, splitType) =>
-            {
-                var cash = (decimal)item.Data["cash"];
-
-                switch (splitType)
-                {
-                    case SplitType.BaseItem:
-                        cash -= (decimal)splitValue;
-                        item.Data["cash"] = cash;
-                        break;
-                    case SplitType.TargetItem:
-                        item.Data["cash"] = splitValue;
-                        break;
-                }
-            },
-            SplitCondition = (item) =>
-            {
-                return (decimal)item.Data["cash"] != 1;
-            },
-            OnStackCombine = (source, destination) =>
-            {
-                var cash = decimal.Parse(source.Data["cash"].ToString());
-                var destCash = decimal.Parse(destination.Data["cash"].ToString());
-                destination.Data["cash"] = cash + destCash;
-            },
-            ContextMenu = GetMoneyContextMenu()
+            }
         };
 
         private StorageItemInfo GetAppleItemInfo() => new()
@@ -85,74 +47,7 @@ namespace Average.Server.Services
             Description = "Une petite pomme",
             Weight = 1.0,
             CanBeStacked = true,
-            SplitValueType = typeof(int),
-            ContextMenu = GetAppleContextMenu()
-        };
-
-        #endregion
-
-        #region Context Menu
-
-        internal StorageContextMenu GetMoneyContextMenu() => new(new StorageContextItem
-        {
-            EventName = "drop",
-            Emoji = "",
-            Text = "Jeter",
-            Action = (client, storageData, itemData, raycast) =>
-            {
-                Logger.Debug("item: " + itemData.Name + ", " + raycast.EntityHit);
-            }
-        },
-        GetMoneySplitContextItem());
-
-        internal StorageContextMenu GetAppleContextMenu() => new(new StorageContextItem
-        {
-            EventName = "drop",
-            Emoji = "",
-            Text = "Jeter",
-            Action = (client, storageData, itemData, raycast) =>
-            {
-                Logger.Debug("item: " + itemData.Name + ", " + raycast.EntityHit);
-            }
-        },
-        GetDefaultSplitContextItem());
-
-        #endregion
-
-        #region Context Items
-
-        internal StorageContextItem GetMoneySplitContextItem() => new()
-        {
-            EventName = "split",
-            Emoji = "✂️",
-            Text = "Séparer",
-            Action = (client, storageData, itemData, raycast) =>
-            {
-                Logger.Debug("Split decimal item: " + itemData.Name);
-
-                var info = _inventoryService.GetItemInfo(itemData.Name);
-                var minValue = 1m;
-                var maxValue = decimal.Parse(itemData.Data["cash"].ToString());
-
-                _inventoryService.ShowSplitMenu(client, storageData.Type, info, itemData.SlotId, minValue, maxValue, minValue);
-            }
-        };
-
-        internal StorageContextItem GetDefaultSplitContextItem() => new()
-        {
-            EventName = "split",
-            Emoji = "✂️",
-            Text = "Séparer",
-            Action = (client, storageData, itemData, raycast) =>
-            {
-                Logger.Debug("Split int item: " + itemData.Name);
-
-                var info = _inventoryService.GetItemInfo(itemData.Name);
-                var minValue = 1;
-                var maxValue = itemData.Count;
-
-                _inventoryService.ShowSplitMenu(client, storageData.Type, info, itemData.SlotId, minValue, maxValue, minValue);
-            }
+            SplitValueType = typeof(int)
         };
 
         #endregion

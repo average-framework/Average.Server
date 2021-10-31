@@ -112,14 +112,11 @@ namespace Average.Server.Services
 
         public void EmitClient(Client client, string eventName, params object[] args)
         {
-            //Logger.Debug("trigger server event on client: " + client.Name + ", " + eventName + ", " + args.Count());
             client.Player.TriggerEvent("server-event:triggered", eventName, args);
         }
 
         public void EmitClients(string eventName, params object[] args)
         {
-            //Logger.Debug("trigger server event on clients: " + eventName + ", " + args.Count());
-
             var clientService = _container.Resolve<ClientService>();
 
             for (int i = 0; i < clientService.Clients.Count; i++)

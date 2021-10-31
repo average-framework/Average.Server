@@ -39,7 +39,6 @@
   <ItemGroup>
     <Folder Include="Commands\" />
     <Folder Include="Framework\Managers\" />
-    <Folder Include="Framework\Rpc\" />
   </ItemGroup>
 
   <ItemGroup>
