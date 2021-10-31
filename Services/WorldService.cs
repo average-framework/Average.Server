@@ -197,7 +197,7 @@ namespace Average.Server.Services
 
             await Update(World);
 
-            Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime} second(s).");
+            Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime / 1000} second(s).");
         }
 
         internal async void SetWeather(Weather weather, float transitionTime)
