@@ -77,9 +77,7 @@ namespace Average.Server.Services
 
         private async Task TimeUpdate()
         {
-            World.Time += TimeSpan.FromSeconds(120);
-
-            SetTime(World.Time, 10000);
+            SetTime(TimeSpan.FromSeconds(120), 10000);
             Update(World);
 
             await BaseScript.Delay(10000);
@@ -192,24 +190,24 @@ namespace Average.Server.Services
 
             _eventManager.EmitClients("world:set_time", time.Hours, time.Minutes, time.Seconds, transitionTime);
 
-            World.Time = time;
+            Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime / 1000} second(s).");
+
+            World.Time += time;
             TimeChanged?.Invoke(this, new WorldTimeEventArgs(World.Time, transitionTime));
 
             await Update(World);
-
-            Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime / 1000} second(s).");
         }
 
         internal async void SetWeather(Weather weather, float transitionTime)
         {
             _eventManager.EmitClients("world:set_weather", (uint)weather, transitionTime);
 
+            Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
+
             World.Weather = weather;
             WeatherChanged?.Invoke(this, new WorldWeatherEventArgs(World.Weather, transitionTime));
 
             await Update(World);
-
-            Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
         }
 
         internal async void SetNextWeather(float transitionTime)

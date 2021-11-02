@@ -91,7 +91,7 @@ namespace Average.Server.Services
                 var name = API.GetPlayerName(player.Handle);
                 var userData = await _userService.Get(player);
 
-                if(userData != null)
+                if (userData != null)
                 {
                     _userService.UpdateConnectionState(userData, false);
                     await _userService.Update(userData);

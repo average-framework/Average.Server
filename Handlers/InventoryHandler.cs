@@ -13,11 +13,13 @@ namespace Average.Server.Handlers
     {
         private readonly InventoryService _inventoryService;
         private readonly RpcService _rpcService;
+        private readonly UserService _userService;
 
-        public InventoryHandler(InventoryService inventoryService, RpcService rpcService)
+        public InventoryHandler(InventoryService inventoryService, RpcService rpcService, UserService userService)
         {
             _inventoryService = inventoryService;
             _rpcService = rpcService;
+            _userService = userService;
 
             _rpcService.OnRequest<string>("inventory:get", (client, cb, storageId) =>
             {
@@ -46,7 +48,11 @@ namespace Average.Server.Handlers
                     Items = new()
                 };
 
-                await _inventoryService.Create(storage);
+                var userData = await _userService.Get(client);
+                userData.SelectedCharacterId = characterId;
+
+                _userService.Update(userData);
+                _inventoryService.Create(storage);
 
                 Logger.Write("Inventory", $"Inventory created for {client.License} with storage id: %{characterId}% of type %{storage.Type}%",
                     new Logger.TextColor(foreground: ConsoleColor.DarkYellow),
