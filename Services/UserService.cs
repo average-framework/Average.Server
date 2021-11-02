@@ -1,6 +1,7 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
+using Average.Server.Framework.Model;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
 using CitizenFX.Core;
@@ -16,12 +17,20 @@ namespace Average.Server.Services
     internal class UserService : IService
     {
         private readonly UserRepository _repository;
+        private readonly EventService _eventService;
 
-        public UserService(UserRepository repository)
+        public UserService(UserRepository repository, EventService eventService)
         {
             _repository = repository;
+            _eventService = eventService;
 
             Logger.Write("UserService", "Initialized successfully");
+        }
+
+        internal async void OnClientInitialized(Client client)
+        {
+            var userData = await Get(client);
+            _eventService.EmitClient(client, "User:Initialize", userData.ToJson(Newtonsoft.Json.Formatting.Indented));
         }
 
         public async Task<List<UserData>> GetAllAsync() => await _repository.GetAllAsync();

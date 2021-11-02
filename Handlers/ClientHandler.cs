@@ -36,6 +36,9 @@ namespace Average.Server.Handlers
             // UI Events
             _uiService.OnClientInitialized(client);
 
+            // User
+            _userService.OnClientInitialized(client);
+
             if (await _characterService.Exists(client))
             {
                 // Spawn character
