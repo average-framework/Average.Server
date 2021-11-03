@@ -2,6 +2,7 @@
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Interfaces;
+using Average.Shared.Enums;
 using CitizenFX.Core;
 using DryIoc;
 using System;

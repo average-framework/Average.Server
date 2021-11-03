@@ -3,6 +3,7 @@ using Average.Server.Framework.Diagnostics;
 using Average.Server.Interfaces;
 using Average.Server.Services;
 using Average.Shared.DataModels;
+using Average.Shared.Enums;
 using System;
 
 namespace Average.Server.Jobs
