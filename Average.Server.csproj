@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-      <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServerMongo\resources\avg</OutputPath>
+    <OutputPath>C:\AverageFrameworkServerMongo\resources\avg</OutputPath>
 	  <BaseOutputPath>C:\AverageFrameworkServerMongo\resources\avg\</BaseOutputPath>
 	  <AssemblyName>Average.Server.net</AssemblyName>
 	  <RootNamespace>Average.Server</RootNamespace>
