@@ -7,7 +7,7 @@
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
       <OutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServerMongo\resources\avg</OutputPath>
-	  <BaseOutputPath>C:\Users\bub.bl\Desktop\AverageFrameworkServerMongo\resources\avg</BaseOutputPath>
+	  <BaseOutputPath>C:\AverageFrameworkServerMongo\resources\avg\</BaseOutputPath>
 	  <AssemblyName>Average.Server.net</AssemblyName>
 	  <RootNamespace>Average.Server</RootNamespace>
 	  <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
@@ -41,10 +41,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Average.Shared\Average.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Reference Include="Average.Shared.net">
+      <HintPath>..\..\..\..\..\AverageFrameworkServerMongo\resources\avg\libs\Average.Shared.net.dll</HintPath>
+    </Reference>
     <Reference Include="CitizenFX.Core">
       <HintPath>..\..\AverageFrameworkServerMongo\resources\avg\libs\CitizenFX.Server.Core.dll</HintPath>
     </Reference>

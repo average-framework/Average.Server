@@ -25,3 +25,4 @@ C:\Users\bub.bl\Desktop\AverageFrameworkServerMongo\resources\avg\libzstd.dll
 C:\Users\bub.bl\Desktop\AverageFrameworkServerMongo\resources\avg\Average.Server.net.deps.json
 C:\Users\bub.bl\Desktop\AverageFrameworkServerMongo\resources\avg\Average.Server.net.dll
 C:\Users\bub.bl\Desktop\AverageFrameworkServerMongo\resources\avg\Average.Server.net.pdb
+C:\Users\bub.bl\Desktop\Average Framework MongoDB\Average.Server\obj\Debug\Average.Server.csproj.CopyComplete

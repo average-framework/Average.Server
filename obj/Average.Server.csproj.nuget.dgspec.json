@@ -28,11 +28,7 @@
         "frameworks": {
           "netstandard2.1": {
             "targetAlias": "netstandard2.1",
-            "projectReferences": {
-              "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj": {
-                "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj"
-              }
-            }
+            "projectReferences": {}
           }
         },
         "warningProperties": {
@@ -111,21 +107,6 @@
           },
           "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.100-rc.2.21505.57\\RuntimeIdentifierGraph.json"
         }
-      }
-    },
-    "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj": {
-      "restore": {
-        "projectUniqueName": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj",
-        "projectName": "Average.Shared",
-        "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj",
-        "frameworks": {
-          "net48": {
-            "projectReferences": {}
-          }
-        }
-      },
-      "frameworks": {
-        "net48": {}
       }
     }
   }

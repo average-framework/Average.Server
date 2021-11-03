@@ -563,15 +563,6 @@
         "runtime": {
           "lib/netstandard2.0/System.Threading.Tasks.Extensions.dll": {}
         }
-      },
-      "Average.Shared/1.0.0": {
-        "type": "project",
-        "compile": {
-          "bin/placeholder/Average.Shared.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Average.Shared.dll": {}
-        }
       }
     }
   },
@@ -2487,16 +2478,10 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
-    },
-    "Average.Shared/1.0.0": {
-      "type": "project",
-      "path": "../Average.Shared/Average.Shared.csproj",
-      "msbuildProject": "../Average.Shared/Average.Shared.csproj"
     }
   },
   "projectFileDependencyGroups": {
     ".NETStandard,Version=v2.1": [
-      "Average.Shared >= 1.0.0",
       "DryIoc >= 4.8.1",
       "MemBus >= 4.0.1",
       "Microsoft.CSharp >= 4.7.0",
@@ -2538,11 +2523,7 @@
       "frameworks": {
         "netstandard2.1": {
           "targetAlias": "netstandard2.1",
-          "projectReferences": {
-            "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj": {
-              "projectPath": "C:\\Users\\bub.bl\\Desktop\\Average Framework MongoDB\\Average.Shared\\Average.Shared.csproj"
-            }
-          }
+          "projectReferences": {}
         }
       },
       "warningProperties": {
