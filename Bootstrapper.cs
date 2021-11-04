@@ -9,8 +9,6 @@ using Average.Server.Repositories;
 using Average.Server.Services;
 using CitizenFX.Core;
 using DryIoc;
-using MemBus;
-using MemBus.Configurators;
 using Newtonsoft.Json.Linq;
 
 namespace Average.Server
@@ -37,7 +35,7 @@ namespace Average.Server
 
         internal void Register()
         {
-            _container.RegisterDelegate(() => BusSetup.StartWith<Fast>().Construct(), Reuse.Singleton);
+            //_container.RegisterDelegate(() => BusSetup.StartWith<Fast>().Construct(), Reuse.Singleton);
 
             // Cfx
             _container.RegisterInstance(_eventHandlers);

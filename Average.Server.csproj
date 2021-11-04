@@ -1,67 +1,263 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\DryIoc.4.8.4\build\DryIoc.props" Condition="Exists('..\packages\DryIoc.4.8.4\build\DryIoc.props')" />
+  <Import Project="..\packages\DryIoc.4.8.1\build\DryIoc.props" Condition="Exists('..\packages\DryIoc.4.8.1\build\DryIoc.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
-	  <LangVersion>10.0</LangVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{49401F44-9896-4FF6-BD9C-9CE633C2E628}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Average.Server</RootNamespace>
+    <AssemblyName>Average.Server.net</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
-	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <OutputPath>C:\AverageFrameworkServerMongo\resources\avg</OutputPath>
-	  <BaseOutputPath>C:\AverageFrameworkServerMongo\resources\avg\</BaseOutputPath>
-	  <AssemblyName>Average.Server.net</AssemblyName>
-	  <RootNamespace>Average.Server</RootNamespace>
-	  <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\AverageFrameworkServerMongo\resources\avg\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <PlatformTarget>AnyCPU</PlatformTarget>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="DryIoc" Version="4.8.1" />
-    <PackageReference Include="MemBus" Version="4.0.1" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="mongocsharpdriver" Version="2.13.1" />
-    <PackageReference Include="MongoDB.Bson" Version="2.13.1" />
-    <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
-    <PackageReference Include="MongoDB.Driver.Core" Version="2.13.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="System.Dynamic.Runtime" Version="4.3.0" />
-    <PackageReference Include="System.Threading" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    <Reference Include="Average.Shared.net, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\AverageFrameworkServerMongo\resources\avg\libs\Average.Shared.net.dll</HintPath>
+    </Reference>
+    <Reference Include="CitizenFX.Server.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\AverageFrameworkServerMongo\resources\avg\libs\CitizenFX.Server.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DnsClient, Version=1.4.0.0, Culture=neutral, PublicKeyToken=4574bb5573c51424, processorArchitecture=MSIL">
+      <HintPath>..\packages\DnsClient.1.4.0\lib\net471\DnsClient.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Bson, Version=2.13.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Bson.2.13.2\lib\net452\MongoDB.Bson.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Driver, Version=2.13.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Driver.2.13.2\lib\net452\MongoDB.Driver.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Driver.Core, Version=2.13.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Driver.Core.2.13.2\lib\net452\MongoDB.Driver.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MongoDB.Libmongocrypt, Version=1.2.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MongoDB.Libmongocrypt.1.2.2\lib\net452\MongoDB.Libmongocrypt.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\AverageFrameworkServerMongo\resources\avg\libs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpCompress, Version=0.23.0.0, Culture=neutral, PublicKeyToken=afb0a02973931d96, processorArchitecture=MSIL">
+      <HintPath>..\packages\SharpCompress.0.23.0\lib\net45\SharpCompress.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.IO.4.3.0\lib\net462\System.IO.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Net.Http, Version=4.1.1.3, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Net.Http.4.3.4\lib\net46\System.Net.Http.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.4.3.0\lib\net462\System.Runtime.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.5.0.0\lib\net45\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Algorithms, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Algorithms.4.3.0\lib\net463\System.Security.Cryptography.Algorithms.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Encoding, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Encoding.4.3.0\lib\net46\System.Security.Cryptography.Encoding.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.Primitives, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.Primitives.4.3.0\lib\net46\System.Security.Cryptography.Primitives.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Security.Cryptography.X509Certificates, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Security.Cryptography.X509Certificates.4.3.0\lib\net461\System.Security.Cryptography.X509Certificates.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
-
+  <ItemGroup>
+    <Compile Include="Bootstrapper.cs" />
+    <Compile Include="Configuration.cs" />
+    <Compile Include="DryIoc\Container.cs" />
+    <Compile Include="DryIoc\Expression.cs" />
+    <Compile Include="DryIoc\FastExpressionCompiler.cs" />
+    <Compile Include="DryIoc\ImTools.cs" />
+    <Compile Include="Enums\ServerEvent.cs" />
+    <Compile Include="Enums\StorageDataType.cs" />
+    <Compile Include="Framework\Areas\BlipArea.cs" />
+    <Compile Include="Framework\Areas\InteractionArea.cs" />
+    <Compile Include="Framework\Areas\NpcArea.cs" />
+    <Compile Include="Framework\Attributes\ClientCommandAttribute.cs" />
+    <Compile Include="Framework\Attributes\CommandAliasAttribute.cs" />
+    <Compile Include="Framework\Attributes\ExportAttribute.cs" />
+    <Compile Include="Framework\Attributes\ServerCommandAttribute.cs" />
+    <Compile Include="Framework\Attributes\ServerEventAttribute.cs" />
+    <Compile Include="Framework\Attributes\ServerJobAttribute.cs" />
+    <Compile Include="Framework\Attributes\SyncAttribute.cs" />
+    <Compile Include="Framework\Attributes\ThreadAttribute.cs" />
+    <Compile Include="Framework\Commands\CharacterCommand.cs" />
+    <Compile Include="Framework\Commands\DebugCommand.cs" />
+    <Compile Include="Framework\Commands\InventoryCommand.cs" />
+    <Compile Include="Framework\Commands\ServerJobCommand.cs" />
+    <Compile Include="Framework\Commands\WorldCommand.cs" />
+    <Compile Include="Framework\Diagnostics\Logger.cs" />
+    <Compile Include="Framework\Diagnostics\LogInfo.cs" />
+    <Compile Include="Framework\Diagnostics\LogLevel.cs" />
+    <Compile Include="Framework\Events\ClientDataEventArgs.cs" />
+    <Compile Include="Framework\Events\ClientEventArgs.cs" />
+    <Compile Include="Framework\Events\EntityCreatedEventArgs.cs" />
+    <Compile Include="Framework\Events\EntityCreatingEventArgs.cs" />
+    <Compile Include="Framework\Events\EntityRemovedEventArgs.cs" />
+    <Compile Include="Framework\Events\HttpResponseEventArgs.cs" />
+    <Compile Include="Framework\Events\PlayerConnectingEventArgs.cs" />
+    <Compile Include="Framework\Events\PlayerDisconnectingEventArgs.cs" />
+    <Compile Include="Framework\Events\PlayerEnteredScopeEventArgs.cs" />
+    <Compile Include="Framework\Events\PlayerJoiningEventArgs.cs" />
+    <Compile Include="Framework\Events\PlayerLeftScopeEventArgs.cs" />
+    <Compile Include="Framework\Events\ResourceStartEventArgs.cs" />
+    <Compile Include="Framework\Events\ResourceStartingEventArgs.cs" />
+    <Compile Include="Framework\Events\ResourceStopEventArgs.cs" />
+    <Compile Include="Framework\Events\ServerResourceStartEventArgs.cs" />
+    <Compile Include="Framework\Events\ServerResourceStopEventArgs.cs" />
+    <Compile Include="Framework\Extensions\ContainerExtensions.cs" />
+    <Compile Include="Framework\Extensions\JArrayExtensions.cs" />
+    <Compile Include="Framework\Extensions\MembusExtensions.cs" />
+    <Compile Include="Framework\Extensions\ObjectExtensions.cs" />
+    <Compile Include="Framework\Extensions\PlayerExtensions.cs" />
+    <Compile Include="Framework\Extensions\StringExtensions.cs" />
+    <Compile Include="Framework\Helpers\ConversionHelpers.cs" />
+    <Compile Include="Framework\Interfaces\ICommand.cs" />
+    <Compile Include="Framework\Interfaces\IHandler.cs" />
+    <Compile Include="Framework\Interfaces\ILogInfo.cs" />
+    <Compile Include="Framework\Interfaces\IRepository.cs" />
+    <Compile Include="Framework\Interfaces\IService.cs" />
+    <Compile Include="Framework\Model\Client.cs" />
+    <Compile Include="Framework\Model\EntityBase.cs" />
+    <Compile Include="Framework\Model\NpcAreaBase.cs" />
+    <Compile Include="Framework\Mongo\DatabaseContextFactory.cs" />
+    <Compile Include="Framework\Mongo\DatabaseRepoBase.cs" />
+    <Compile Include="Framework\Request\RequestDataInternal.cs" />
+    <Compile Include="Framework\Request\RequestResponse.cs" />
+    <Compile Include="Framework\ServerAPI.cs" />
+    <Compile Include="Framework\Utilities\DirectoryUtility.cs" />
+    <Compile Include="Framework\Utilities\FileUtility.cs" />
+    <Compile Include="Handlers\CharacterHandler.cs" />
+    <Compile Include="Handlers\ClientHandler.cs" />
+    <Compile Include="Handlers\DoorHandler.cs" />
+    <Compile Include="Handlers\InventoryHandler.cs" />
+    <Compile Include="Handlers\RpcHandler.cs" />
+    <Compile Include="Handlers\WorldHandler.cs" />
+    <Compile Include="Interfaces\IServerJob.cs" />
+    <Compile Include="Jobs\CharacterJob.cs" />
+    <Compile Include="Jobs\InventoryJob.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="Models\DoorInfo.cs" />
+    <Compile Include="Models\StorageItemInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositories\BankRepository.cs" />
+    <Compile Include="Repositories\CharacterRepository.cs" />
+    <Compile Include="Repositories\InventoryRepository.cs" />
+    <Compile Include="Repositories\UserRepository.cs" />
+    <Compile Include="Repositories\WorldRepository.cs" />
+    <Compile Include="Services\AreaService.cs" />
+    <Compile Include="Services\BankService.cs" />
+    <Compile Include="Services\CharacterCreatorService.cs" />
+    <Compile Include="Services\CharacterService.cs" />
+    <Compile Include="Services\ClientService.cs" />
+    <Compile Include="Services\CommandService.cs" />
+    <Compile Include="Services\DoorService.cs" />
+    <Compile Include="Services\EnterpriseManager.cs" />
+    <Compile Include="Services\EventService.cs" />
+    <Compile Include="Services\InventoryItemsService.cs" />
+    <Compile Include="Services\InventoryService.cs" />
+    <Compile Include="Services\JobService.cs" />
+    <Compile Include="Services\PermissionService.cs" />
+    <Compile Include="Services\RequestInternalService.cs" />
+    <Compile Include="Services\RequestService.cs" />
+    <Compile Include="Services\RpcService.cs" />
+    <Compile Include="Services\ServerJobService.cs" />
+    <Compile Include="Services\ThreadService.cs" />
+    <Compile Include="Services\UIService.cs" />
+    <Compile Include="Services\UserService.cs" />
+    <Compile Include="Services\UserStateService.cs" />
+    <Compile Include="Services\WorldService.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Folder Include="Framework\Managers\" />
   </ItemGroup>
-
   <ItemGroup>
-    <Reference Include="Average.Shared.net">
-      <HintPath>..\..\..\..\..\AverageFrameworkServerMongo\resources\avg\libs\Average.Shared.net.dll</HintPath>
-    </Reference>
-    <Reference Include="CitizenFX.Core">
-      <HintPath>..\..\AverageFrameworkServerMongo\resources\avg\libs\CitizenFX.Server.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\..\..\..\Desktop\AverageFrameworkServerMongo\resources\avg\libs\Newtonsoft.Json.dll</HintPath>
-    </Reference>
+    <None Include="libmongocrypt.dylib" />
+    <None Include="libmongocrypt.so" />
+    <None Include="packages.config" />
   </ItemGroup>
-
   <ItemGroup>
-    <Content Remove="C:\Users\bub.bl\.nuget\packages\mongodb.driver.core\2.13.1\build\../runtimes/win/native/snappy32.dll" />
+    <Content Include="Core\Compression\Snappy\lib\win\snappy32.dll" />
+    <Content Include="Core\Compression\Snappy\lib\win\snappy64.dll" />
+    <Content Include="Core\Compression\Zstandard\lib\win\libzstd.dll" />
+    <Content Include="mongocrypt.dll" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="C:\Users\bub.bl\.nuget\packages\mongodb.driver.core\2.13.1\build\../runtimes/win/native/snappy32.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Remove="C:\Users\bub.bl\.nuget\packages\mongodb.driver.core\2.13.1\build\../runtimes/win/native/snappy32.dll" />
-  </ItemGroup>
-
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Ce projet fait référence à des packages NuGet qui sont manquants sur cet ordinateur. Utilisez l'option de restauration des packages NuGet pour les télécharger. Pour plus d'informations, consultez http://go.microsoft.com/fwlink/?LinkID=322105. Le fichier manquant est : {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\DryIoc.4.8.1\build\DryIoc.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\DryIoc.4.8.1\build\DryIoc.props'))" />
+    <Error Condition="!Exists('..\packages\MongoDB.Libmongocrypt.1.2.2\build\MongoDB.Libmongocrypt.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MongoDB.Libmongocrypt.1.2.2\build\MongoDB.Libmongocrypt.targets'))" />
+    <Error Condition="!Exists('..\packages\MongoDB.Driver.Core.2.13.2\build\MongoDB.Driver.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MongoDB.Driver.Core.2.13.2\build\MongoDB.Driver.Core.targets'))" />
+    <Error Condition="!Exists('..\packages\DryIoc.4.8.4\build\DryIoc.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\DryIoc.4.8.4\build\DryIoc.props'))" />
+  </Target>
+  <Import Project="..\packages\MongoDB.Libmongocrypt.1.2.2\build\MongoDB.Libmongocrypt.targets" Condition="Exists('..\packages\MongoDB.Libmongocrypt.1.2.2\build\MongoDB.Libmongocrypt.targets')" />
+  <Import Project="..\packages\MongoDB.Driver.Core.2.13.2\build\MongoDB.Driver.Core.targets" Condition="Exists('..\packages\MongoDB.Driver.Core.2.13.2\build\MongoDB.Driver.Core.targets')" />
 </Project>
