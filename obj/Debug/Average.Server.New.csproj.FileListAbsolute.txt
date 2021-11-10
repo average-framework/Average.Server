@@ -1,0 +1,11 @@
+C:\Average Framework MongoDB\Average.Server.New\obj\Debug\Average.Server.New.csproj.AssemblyReference.cache
+C:\Average Framework MongoDB\Average.Server.New\obj\Debug\Average.Server.New.csproj.CoreCompileInputs.cache
+C:\AverageFrameworkServerMongo\resources\avg\snappy32.dll
+C:\AverageFrameworkServerMongo\resources\avg\snappy64.dll
+C:\AverageFrameworkServerMongo\resources\avg\libzstd.dll
+C:\AverageFrameworkServerMongo\resources\avg\mongocrypt.dll
+C:\AverageFrameworkServerMongo\resources\avg\Average.Server.New.dll
+C:\AverageFrameworkServerMongo\resources\avg\Average.Server.New.pdb
+C:\Average Framework MongoDB\Average.Server.New\obj\Debug\Average.Server.New.csproj.CopyComplete
+C:\Average Framework MongoDB\Average.Server.New\obj\Debug\Average.Server.New.dll
+C:\Average Framework MongoDB\Average.Server.New\obj\Debug\Average.Server.New.pdb

@@ -1,13 +1,8 @@
-﻿using System;
+﻿using Average.Shared.Enums;
+using System;
 
 namespace Average.Server.Interfaces
 {
-    public enum JobState
-    {
-        Started,
-        Stopped
-    }
-
     internal interface IServerJob : IDisposable
     {
         Guid Id { get; }

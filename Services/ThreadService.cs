@@ -31,7 +31,7 @@ namespace Average.Server.Services
         }
         
         private readonly IContainer _container;
-        private readonly List<Thread> _threads = new();
+        private readonly List<Thread> _threads = new List<Thread>();
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
         public ThreadService(IContainer container)

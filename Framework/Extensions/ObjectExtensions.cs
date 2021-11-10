@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Average.Server.Framework.Diagnostics;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 
@@ -22,15 +23,17 @@ namespace Average.Server.Framework.Extensions
             {
                 return JsonConvert.DeserializeObject<T>(source.ToString());
             }
-            catch
+            catch (Exception ex)
             {
                 try
                 {
+                    Logger.Error("r1");
+
                     return (T)System.Convert.ChangeType(source, typeof(T));
                 }
                 catch
                 {
-
+                    Logger.Error("r2");
                 }
             }
 

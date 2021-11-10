@@ -1,37 +1,48 @@
 ﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
+using Average.Server.Framework.Model;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
 using CitizenFX.Core;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace Average.Server.Services
 {
-    public class UserService : IService
+    internal class UserService : IService
     {
         private readonly UserRepository _repository;
+        private readonly EventService _eventService;
 
-        public UserService(UserRepository repository)
+        public UserService(UserRepository repository, EventService eventService)
         {
             _repository = repository;
+            _eventService = eventService;
 
             Logger.Write("UserService", "Initialized successfully");
         }
 
-        public async Task<IEnumerable<UserData>> GetAll() => _repository.GetAll();
-        public async Task<UserData> Get(long userId) => _repository.GetAll().FirstOrDefault(x => x.Id == userId);
-        public async Task<UserData> Get(Player player) => _repository.GetAll().FirstOrDefault(x => x.License == player.License());
-        public async Task<UserData> Get(string license) => _repository.GetAll().FirstOrDefault(x => x.License == license);
-        public async void Update(UserData data) => await _repository.Update(data);
-        public async void Delete(UserData data) => await _repository.Delete(data.Id);
-        public async Task<bool> Exists(Player player) => await Get(player) != null;
-        public async Task<bool> Exists(long userId) => await Get(userId) != null;
+        internal async void OnClientInitialized(Client client)
+        {
+            var userData = await Get(client);
+            _eventService.EmitClient(client, "User:Initialize", userData.ToJson(Newtonsoft.Json.Formatting.Indented));
+        }
 
-        public async void Create(Player player) => await _repository.Add(new UserData
+        public async Task<List<UserData>> GetAllAsync() => await _repository.GetAllAsync();
+        public async Task<UserData> Get(Player player) => await _repository.GetAsync(x => x.License == player.License());
+        public async Task<UserData> Get(string license) => await _repository.GetAsync(x => x.License == license);
+        public async Task<bool> Update(UserData data) => await _repository.ReplaceOneAsync(x => x.Id, data.Id, data);
+        public async Task<bool> Update(Expression<Func<UserData, bool>> expression, params UpdateDefinition<UserData>[] definitions) => await _repository.UpdateOneAsync(expression, definitions);
+        public async Task<bool> Delete(UserData data) => await _repository.DeleteOneAsync(x => x.Id == data.Id);
+        public async Task<bool> Exists(Player player) => await _repository.ExistsAsync(x => x.License == player.License());
+        public async Task<bool> Exists(string license) => await _repository.ExistsAsync(x => x.License == license);
+
+        public async Task<bool> Create(Player player) => await _repository.AddAsync(new UserData
         {
             License = player.License(),
             IsBanned = false,
@@ -42,8 +53,14 @@ namespace Average.Server.Services
             PermissionLevel = 0
         });
 
-        public void UpdateLastConnectionTime(UserData user) => user.LastConnection = DateTime.Now;
-        public void UpdateConnectionState(UserData user, bool isConnected) => user.IsConnected = isConnected;
+        public async void UpdateLastConnectionTime(UserData user)
+        {
+            await Update(x => x.Id == user.Id, _repository.USet(x => x.LastConnection, DateTime.Now));
+        }
+        public async void UpdateConnectionState(UserData user, bool isConnected)
+        {
+            await Update(x => x.Id == user.Id, _repository.USet(x => x.IsConnected, isConnected));
+        }
 
         public async Task<DateTime> GetLastConnectionTime(Player player)
         {

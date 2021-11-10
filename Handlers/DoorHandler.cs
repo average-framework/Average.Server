@@ -15,10 +15,10 @@ namespace Average.Server.Handlers
             _doorService = doorService;
         }
 
-        [ServerEvent("door:set_door_state")]
+        [ServerEvent("door:set_state")]
         private void SetDoorStateEvent(Client client, Vector3 position)
         {
-            _doorService.OnSetDoorState(position);
+            _doorService.OnSetDoorState(client, position);
         }
     }
 }

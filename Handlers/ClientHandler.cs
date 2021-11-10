@@ -9,21 +9,23 @@ namespace Average.Server.Handlers
 {
     internal class ClientHandler : IHandler
     {
-        private readonly InputService _inputService;
         private readonly ClientService _clientService;
         private readonly CharacterService _characterService;
         private readonly CharacterCreatorService _characterCreatorService;
-        private readonly CommandHandler _commandHandler;
         private readonly WorldService _worldService;
+        private readonly UIService _uiService;
+        private readonly InventoryService _inventoryService;
+        private readonly UserService _userService;
 
-        public ClientHandler(InputService inputService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, CommandHandler commandHandler, WorldService worldService)
+        public ClientHandler(UserService userService, InventoryService inventoryService, UIService uiService, CharacterCreatorService characterCreatorService, ClientService clientService, CharacterService characterService, WorldService worldService)
         {
-            _inputService = inputService;
+            _userService = userService;
             _characterCreatorService = characterCreatorService;
             _clientService = clientService;
             _characterService = characterService;
-            _commandHandler = commandHandler;
             _worldService = worldService;
+            _uiService = uiService;
+            _inventoryService = inventoryService;
         }
 
         [ServerEvent("client:initialized")]
@@ -31,11 +33,11 @@ namespace Average.Server.Handlers
         {
             _clientService.AddClient(client);
 
-            // Commands
-            _commandHandler.OnClientInitialized(client);
+            // UI Events
+            _uiService.OnClientInitialized(client);
 
-            // Inputs
-            _inputService.OnRegisteringInputs(client);
+            // User
+            _userService.OnClientInitialized(client);
 
             if (await _characterService.Exists(client))
             {
@@ -44,7 +46,12 @@ namespace Average.Server.Handlers
                 Logger.Debug($"[ClientHandler] Spawn character for client: {client.Name}.");
 
                 _characterService.OnSpawnPed(client);
-                _worldService.OnSetWorldForClient(client);
+                _worldService.OnClientInitialized(client);
+
+                var userData = await _userService.Get(client);
+
+                // Inventory
+                _inventoryService.OnClientInitialized(client, userData.SelectedCharacterId);
             }
             else
             {
@@ -55,6 +62,18 @@ namespace Average.Server.Handlers
             }
 
             Logger.Write("Client", $"%{client.Name}({client.ServerId}) is initialized%", new Logger.TextColor(foreground: ConsoleColor.Green));
+        }
+
+        [ServerEvent("client:share_data")]
+        private void OnShareData(Client client, string key, object value, bool @override)
+        {
+            _clientService.OnShareData(client, key, value, @override);
+        }
+
+        [ServerEvent("client:unshare_data")]
+        private void OnUnshareData(Client client, string key)
+        {
+            _clientService.OnUnshareData(client, key);
         }
     }
 }

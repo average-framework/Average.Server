@@ -1,7 +1,6 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Model;
 using CitizenFX.Core.Native;
 using DryIoc;
 using System;
@@ -18,21 +17,6 @@ namespace Average.Server.Services
         private const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
 
         private readonly List<Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate>> _serverCommands = new List<Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate>>();
-        private readonly List<Command> _clientCommands = new List<Command>();
-
-        internal class Command
-        {
-            public ClientCommandAttribute Attribute { get; }
-            public CommandAliasAttribute Alias { get; }
-            public Delegate Action { get; }
-
-            public Command(ClientCommandAttribute attribute, CommandAliasAttribute alias, Delegate action)
-            {
-                Attribute = attribute;
-                Alias = alias;
-                Action = action;
-            }
-        }
 
         public CommandService(IContainer container)
         {
@@ -68,29 +52,6 @@ namespace Average.Server.Services
                     }
                 }
             }
-
-            // Register client commands
-            foreach (var serviceType in types)
-            {
-                if (_container.IsRegistered(serviceType))
-                {
-                    // Continue if the service have the same type of this class
-                    if (serviceType == GetType()) continue;
-
-                    // Get service instance
-                    var service = _container.GetService(serviceType);
-                    var methods = serviceType.GetMethods(flags);
-
-                    foreach (var method in methods)
-                    {
-                        var attr = method.GetCustomAttribute<ClientCommandAttribute>();
-                        if (attr == null) continue;
-                        var aliasAttr = method.GetCustomAttribute<CommandAliasAttribute>();
-
-                        RegisterInternalClientCommand(attr, aliasAttr, service, method);
-                    }
-                }
-            }
         }
 
         private void RegisterServerCommand(string commandName, Delegate action)
@@ -123,7 +84,7 @@ namespace Average.Server.Services
             Logger.Write("Command", $"Registering [ServerCommand]: %{commandName}% on method: {action.Method.Name}.", new Logger.TextColor(foreground: ConsoleColor.DarkYellow));
         }
 
-        internal void RegisterInternalServerCommand(ServerCommandAttribute cmdAttr, CommandAliasAttribute aliasAttr, object classObj, MethodInfo method)
+        private void RegisterInternalServerCommand(ServerCommandAttribute cmdAttr, CommandAliasAttribute aliasAttr, object classObj, MethodInfo method)
         {
             var methodParams = method.GetParameters();
             var action = Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
@@ -140,37 +101,5 @@ namespace Average.Server.Services
 
             _serverCommands.Add(new Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate>(cmdAttr, aliasAttr, action));
         }
-
-        internal void RegisterInternalClientCommand(ClientCommandAttribute commandAttr, CommandAliasAttribute aliasAttr, object classObj, MethodInfo method)
-        {
-            var action = Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method);
-            _clientCommands.Add(new Command(commandAttr, aliasAttr, action));
-
-            Logger.Write("Command", $"Registering [ClientCommand]: %{commandAttr.Command}% on method: {action.Method.Name}.", new Logger.TextColor(foreground: ConsoleColor.DarkYellow));
-        }
-
-        internal void ExecuteClientCommand(Client client, string commandName, List<object> args)
-        {
-            var command = GetCommand(commandName);
-
-            if (command != null)
-            {
-                // Need to cast args to the paramaters type of command.Action
-                var newArgs = new List<object> { client };
-
-                for (int i = 0; i < args.Count; i++)
-                {
-                    // Need to skip client arg "Skip(1)" for convert args correctly
-                    newArgs.Add(Convert.ChangeType(args[i], command.Action.Method.GetParameters().Skip(1).ToList()[i].ParameterType));
-                }
-
-                command.Action.DynamicInvoke(newArgs.ToArray());
-            }
-        }
-
-        public IEnumerable<Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate>> GetServerCommands() => _serverCommands.AsEnumerable();
-        public Tuple<ServerCommandAttribute, CommandAliasAttribute, Delegate> GetServerCommand(string command) => _serverCommands.Find(x => x.Item1.Command == command);
-        public IEnumerable<Command> GetCommands() => _clientCommands.AsEnumerable();
-        public Command GetCommand(string command) => _clientCommands.Find(x => x.Attribute.Command == command);
     }
 }

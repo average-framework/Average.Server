@@ -1,9 +1,10 @@
-﻿using Average.Server.Framework.Attributes;
-using Average.Server.Framework.Diagnostics;
+﻿using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
+using Average.Server.Framework.Model;
+using Average.Server.Models;
 using CitizenFX.Core;
-using SDK.Server.Models;
-using System.Collections;
+using System;
+using System.Collections.Generic;
 
 namespace Average.Server.Services
 {
@@ -11,138 +12,78 @@ namespace Average.Server.Services
     {
         private readonly EventService _eventService;
         private readonly ClientService _clientService;
+        private readonly RpcService _rpcService;
+
         private readonly List<DoorInfo> _infos = new();
-        private readonly DoorList _doors = new();
-
-        internal class DoorList : IEnumerable<DoorModel>
-        {
-            private readonly List<DoorModel> _doors = new();
-
-            internal DoorModel GetDoor(Vector3 doorPosition) => _doors.Find(x =>
-              Math.Round(x.Position.X) == Math.Round(doorPosition.X) &&
-              Math.Round(x.Position.Y) == Math.Round(doorPosition.Y) &&
-              Math.Round(x.Position.Z) == Math.Round(doorPosition.Z));
-
-            public DoorModel this[int index] => _doors[index];
-
-            public DoorList AddDoor(DoorModel door)
-            {
-                _doors.Add(door);
-                return this;
-            }
-
-            internal DoorList RemoveDoor(DoorModel door)
-            {
-                _doors.Remove(door);
-                return this;
-            }
-
-            public IEnumerator<DoorModel> GetEnumerator()
-            {
-                for (int i = 0; i < _doors.Count; i++)
-                {
-                    yield return _doors[i];
-                }
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-        }
+        private readonly List<DoorModel> _doors = new();
 
         public class DoorModel
         {
             public Vector3 Position { get; set; }
+            public float Range { get; set; }
             public bool IsLocked { get; set; }
-            public Action<DoorModel> OpenAction { get; set; }
-            public Action<DoorModel> NearAction { get; set; }
 
-            public DoorModel(Vector3 position, bool isLocked, Action<DoorModel> nearAction, Action<DoorModel> openAction)
+            public DoorModel(Vector3 position, float range, bool isLocked)
             {
                 Position = position;
+                Range = range;
                 IsLocked = isLocked;
-                NearAction = nearAction;
-                OpenAction = openAction;
             }
         }
 
-        public DoorService(EventService eventService, ClientService clientService)
+        public DoorService(EventService eventService, ClientService clientService, RpcService rpcService)
         {
             _eventService = eventService;
             _clientService = clientService;
+            _rpcService = rpcService;
 
             // Get list of doors
             _infos = Configuration.Parse<List<DoorInfo>>("utilities/doors.json");
 
-            //Add(new DoorModel());
+            // Doors
+            Add(new DoorModel(new Vector3(-276.02f, 802.59f, 118.41f), 2f, true));
 
             Logger.Write("DoorService", "Initialized successfully");
         }
 
-        private Vector3 _position;
-
-        [Thread]
-        private async Task Update()
+        internal void OnClientInitialized(Client client)
         {
-            for (int i = 0; i < _clientService.ClientCount; i++)
-            {
-                var client = _clientService[i];
-
-                if (client != null && client.Player != null && client.Player.Character != null)
-                {
-                    if (_position != client.Player.Character.Position)
-                    {
-                        _position = client.Player.Character.Position;
-
-                        var door = _doors.ToList().Find(x => Vector3.Distance(client.Player.Character.Position, x.Position) < 5f);
-
-                        if (door != null)
-                        {
-                            _eventService.EmitClient(client, "door:is_near", true);
-                            Logger.Debug("Door is near !");
-                        }
-
-                        //for (int z = 0; z < _doors.Count; z++)
-                        //{
-                        //    var door = _doors[z];
-                        //    var pedPos = client.Player.Character.Position;
-                        //    var doorPos = door.Position;
-                        //    var distance = Vector3.Distance(pedPos, doorPos);
-                        //}
-
-                        //_eventService.EmitClient(client, )
-                        //Logger.Debug("Player position: " + client.Player.Character.Position);
-                    }
-                }
-            }
-
-            await BaseScript.Delay(1000);
+            _eventService.EmitClient(client, "door:init", _doors);
         }
 
-        internal DoorList Add(DoorModel door)
+        internal void Add(DoorModel door)
         {
-            return _doors.AddDoor(door);
+            _doors.Add(door);
         }
 
-        internal DoorList Remove(DoorModel door)
+        internal void Remove(DoorModel door)
         {
-            return _doors.RemoveDoor(door);
+            _doors.Remove(door);
         }
+
+        private DoorModel GetDoor(Vector3 position) => _doors.Find(x =>
+               Math.Round(x.Position.X) == Math.Round(position.X) &&
+               Math.Round(x.Position.Y) == Math.Round(position.Y) &&
+               Math.Round(x.Position.Z) == Math.Round(position.Z));
 
         private DoorInfo GetDoorInfo(Vector3 position) => _infos.Find(x =>
                 Math.Round(x.Position.X) == Math.Round(position.X) &&
                 Math.Round(x.Position.Y) == Math.Round(position.Y) &&
                 Math.Round(x.Position.Z) == Math.Round(position.Z));
 
-        internal void OnSetDoorState(Vector3 doorPosition)
+        internal void OnSetDoorState(Client client, Vector3 doorPosition)
         {
-            var door = _doors.GetDoor(doorPosition);
+            Logger.Error($"Client: {client.Name} try to open door: " + doorPosition);
+
+            var door = GetDoor(doorPosition);
 
             if (door != null)
             {
+                var info = GetDoorInfo(doorPosition);
+                if (info == null) return;
+
                 door.IsLocked = !door.IsLocked;
-                _eventService.EmitClients("door:set_door_state", door.Position, door.IsLocked);
+                _eventService.EmitClients("door:set_state", info.Hash, door.IsLocked ? 1 : 0);
             }
             else
             {

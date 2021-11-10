@@ -1,7 +1,7 @@
 ﻿using Average.Server.Framework.Commands;
-using Average.Server.Framework.Database;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Extensions;
+using Average.Server.Framework.Mongo;
 using Average.Server.Framework.Utilities;
 using Average.Server.Handlers;
 using Average.Server.Jobs;
@@ -9,11 +9,7 @@ using Average.Server.Repositories;
 using Average.Server.Services;
 using CitizenFX.Core;
 using DryIoc;
-using MemBus;
-using MemBus.Configurators;
-using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
-using System.Linq;
 
 namespace Average.Server
 {
@@ -23,7 +19,7 @@ namespace Average.Server
         private readonly EventHandlerDictionary _eventHandlers;
         private readonly PlayerList _players;
 
-        internal static JObject BaseConfig = null;
+        internal static JObject BaseConfig;
 
         public Bootstrapper(IContainer container, EventHandlerDictionary eventHandlers, PlayerList players)
         {
@@ -34,54 +30,37 @@ namespace Average.Server
             BaseConfig = FileUtility.ReadFileFromRootDir("config.json").ToJObject();
 
             Init();
-            MigrateDatabase();
             Register();
-        }
-
-        internal void MigrateDatabase()
-        {
-            var context = new DbContextFactory().CreateDbContext();
-            var pendingMigrations = context.Database.GetPendingMigrations().ToList();
-
-            if (pendingMigrations.Count != 0)
-            {
-                Logger.Warn("[Database] Appling pending migrations.. this may take a few moments.");
-                context.Database.Migrate();
-                Logger.Warn($"[Database] Successfully applied {pendingMigrations.Count} pending migrations.");
-            }
-            else
-            {
-                Logger.Warn("[Database] No pending database migrations.");
-            }
         }
 
         internal void Register()
         {
-            _container.RegisterDelegate(() => BusSetup.StartWith<Fast>().Construct(), Reuse.Singleton);
+            //_container.RegisterDelegate(() => BusSetup.StartWith<Fast>().Construct(), Reuse.Singleton);
 
             // Cfx
             _container.RegisterInstance(_eventHandlers);
             _container.RegisterInstance(_players);
 
             // Database
-            _container.Register<DbContextFactory>();
+            _container.Register<DatabaseContextFactory>();
 
             // Framework Services
             _container.Register<EventService>();
-            _container.Register<RpcService>(Reuse.Transient);
+            _container.Register<RpcService>();
+            _container.Register<UIService>();
             _container.Register<CommandService>();
             _container.Register<ThreadService>();
-            _container.Register<ReplicateStateService>();
             _container.Register<RequestInternalService>();
             _container.Register<RequestService>();
             _container.Register<ServerJobService>();
             _container.Register<ClientService>();
-            _container.Register<InputService>();
 
             // Repositories
             _container.Register<UserRepository>();
             _container.Register<CharacterRepository>();
             _container.Register<WorldRepository>();
+            _container.Register<InventoryRepository>();
+            _container.Register<BankRepository>();
 
             // Services
             _container.Register<UserService>();
@@ -93,25 +72,35 @@ namespace Average.Server
             _container.Register<CharacterCreatorService>();
             _container.Register<WorldService>();
             _container.Register<DoorService>();
+            _container.Register<InventoryService>();
+            _container.Register<InventoryItemsService>();
+            _container.Register<BankService>();
 
-            // Handlers
-            _container.Register<CommandHandler>();
-            _container.Register<UserHandler>();
-            _container.Register<ClientHandler>();
-            _container.Register<CharacterHandler>();
-            _container.Register<InputHandler>();
-
-            // Commands
-            _container.Register<CharacterCommand>();
-            _container.Register<WorldCommand>();
+            _container.Register<AIZombieScript>();
 
             // Jobs
             _container.Register<CharacterJob>();
+            _container.Register<InventoryJob>();
+
+            // Handlers
+            _container.Register<ClientHandler>();
+            _container.Register<CharacterHandler>();
+            _container.Register<RpcHandler>();
+            _container.Register<InventoryHandler>();
+            _container.Register<DoorHandler>();
+            _container.Register<WorldHandler>();
+
+            // Commands
+            _container.Register<ServerJobCommand>();
+            _container.Register<CharacterCommand>();
+            _container.Register<WorldCommand>();
+            _container.Register<DebugCommand>();
+            _container.Register<InventoryCommand>();
 
             // Reflections
             _container.GetService<ThreadService>().Reflect();
-            _container.GetService<ReplicateStateService>().Reflect();
             _container.GetService<EventService>().Reflect();
+            _container.GetService<UIService>().Reflect();
             _container.GetService<CommandService>().Reflect();
             _container.GetService<ServerJobService>().Reflect();
         }

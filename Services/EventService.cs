@@ -2,10 +2,13 @@
 using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Events;
+using Average.Server.Framework.Extensions;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
+using Average.Shared.Rpc;
 using CitizenFX.Core;
 using DryIoc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +35,7 @@ namespace Average.Server.Services
 
             // Internal events
             _eventHandlers["__cfx_internal:httpResponse"] += new Action<int, int, string, dynamic>(OnHttpResponse);
-            _eventHandlers["client-event:triggered"] += new Action<Player, string, List<object>>(OnTriggerEvent);
+            _eventHandlers["client-event:triggered"] += new Action<Player, string, List<object>>(OnTriggerClientEvent);
 
             // Custom events
             _eventHandlers["playerConnecting"] += new Action<Player, string, dynamic, dynamic>(OnPlayerConnecting);
@@ -109,14 +112,11 @@ namespace Average.Server.Services
 
         public void EmitClient(Client client, string eventName, params object[] args)
         {
-            //Logger.Debug("trigger server event on client: " + client.Name + ", " + eventName + ", " + args.Count());
             client.Player.TriggerEvent("server-event:triggered", eventName, args);
         }
 
         public void EmitClients(string eventName, params object[] args)
         {
-            //Logger.Debug("trigger server event on clients: " + eventName + ", " + args.Count());
-
             var clientService = _container.Resolve<ClientService>();
 
             for (int i = 0; i < clientService.Clients.Count; i++)
@@ -145,11 +145,11 @@ namespace Average.Server.Services
             {
                 _events.Remove(eventName);
 
-                Logger.Debug($"Removing [ServerEvent]: {eventName}");
+                Logger.Debug($"Removing [ServerEvent]: {eventName}.");
             }
             else
             {
-                Logger.Debug($"Unable to remove [ServerEvent]: {eventName}");
+                Logger.Debug($"Unable to remove [ServerEvent]: {eventName}.");
             }
         }
 
@@ -158,9 +158,9 @@ namespace Average.Server.Services
             RegisterEvent(eventAttr.Event, Delegate.CreateDelegate(Expression.GetDelegateType((from parameter in method.GetParameters() select parameter.ParameterType).Concat(new[] { method.ReturnType }).ToArray()), classObj, method));
         }
 
-        private void OnTriggerEvent([FromSource] Player player, string eventName, List<object> args)
+        private void OnTriggerClientEvent([FromSource] Player player, string eventName, List<object> args)
         {
-            Logger.Debug("Receive client event from client: " + player.Name + ", " + eventName);
+            Logger.Debug("Receive client event from client: " + player.Name + ", " + eventName + ", " + string.Join(", ", args));
 
             var client = _container.Resolve<ClientService>().Get(player);
             var newArgs = new List<object>();
@@ -189,8 +189,10 @@ namespace Average.Server.Services
 
         internal void OnPlayerDisconnecting([FromSource] Player player, string reason)
         {
-            PlayerDisconnecting?.Invoke(this, new PlayerDisconnectingEventArgs(player, reason));
-            Emit(ServerEvent.PlayerDisconnecting, new PlayerDisconnectingEventArgs(player, reason));
+            var p = player;
+
+            PlayerDisconnecting?.Invoke(this, new PlayerDisconnectingEventArgs(p, reason));
+            Emit(ServerEvent.PlayerDisconnecting, new PlayerDisconnectingEventArgs(p, reason));
         }
 
         internal void OnResourceStop(string resource)

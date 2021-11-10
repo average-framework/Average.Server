@@ -5,6 +5,7 @@ using Average.Server.Framework.Model;
 using Average.Server.Repositories;
 using Average.Shared.DataModels;
 using Average.Shared.Enums;
+using Average.Shared.Events;
 using CitizenFX.Core;
 using Newtonsoft.Json.Linq;
 using System;
@@ -19,17 +20,22 @@ namespace Average.Server.Services
         private readonly EventService _eventManager;
         private readonly WorldRepository _repository;
         private readonly RpcService _rpcService;
+        private readonly ClientService _clientService;
 
-        private int _minTransitionTime;
-        private int _maxTransitionTime;
-        private int _minTimeBetweenWeatherChanging;
-        private int _maxTimeBetweenWeatherChanging;
-        private JObject _baseConfig;
+        private readonly int _minTransitionTime;
+        private readonly int _maxTransitionTime;
+        private readonly int _minTimeBetweenWeatherChanging;
+        private readonly int _maxTimeBetweenWeatherChanging;
+        private readonly JObject _baseConfig;
 
         public WorldData World { get; private set; }
 
-        public WorldService(RpcService rpcService, WorldRepository repository, ThreadService threadManager, EventService eventManager)
+        public event EventHandler<WorldTimeEventArgs> TimeChanged;
+        public event EventHandler<WorldWeatherEventArgs> WeatherChanged;
+
+        public WorldService(ClientService clientService, RpcService rpcService, WorldRepository repository, ThreadService threadManager, EventService eventManager)
         {
+            _clientService = clientService;
             _rpcService = rpcService;
             _threadManager = threadManager;
             _eventManager = eventManager;
@@ -42,9 +48,9 @@ namespace Average.Server.Services
             _minTimeBetweenWeatherChanging = _baseConfig["MinTimeBetweenWeatherChanging"].Convert<int>();
             _maxTimeBetweenWeatherChanging = _baseConfig["MaxTimeBetweenWeatherChanging"].Convert<int>();
 
-            Task.Factory.StartNew(async () =>
+            Task.Run(async () =>
             {
-                if (!Exists(0))
+                if (!await Exists(0))
                 {
                     var world = new WorldData
                     {
@@ -54,12 +60,12 @@ namespace Average.Server.Services
                     };
 
                     World = world;
-                    await Add(world);
+                    await Create(world);
                 }
                 else
                 {
                     // Get default world
-                    World = Get(0);
+                    World = await Get(0);
                 }
 
                 _threadManager.StartThread(TimeUpdate);
@@ -72,11 +78,11 @@ namespace Average.Server.Services
         private async Task TimeUpdate()
         {
             World.Time += TimeSpan.FromSeconds(120);
-            
-            _eventManager.EmitClients("world:set_time", World.Time.Hours, World.Time.Minutes, World.Time.Seconds);
-            await BaseScript.Delay(10000);
 
+            SetTime(World.Time, 10000);
             Update(World);
+
+            await BaseScript.Delay(10000);
         }
 
         private async Task WeatherUpdate()
@@ -90,10 +96,9 @@ namespace Average.Server.Services
 
             Logger.Info($"Changing weather from {World.Weather} to {nextWeather}, waiting time: {rndTimeToWait}, transition time: {rndTransitionTime} seconds.");
 
-            World.Weather = nextWeather;
-            Update(World);
+            SetWeather(nextWeather, rndTransitionTime);
 
-            _eventManager.EmitClients("world:set_weather", nextWeather, rndTransitionTime);
+            await Update(World);
         }
 
         private Weather GetNextWeather()
@@ -172,57 +177,63 @@ namespace Average.Server.Services
             }
         }
 
-        internal void OnSetWorldForClient(Client client)
+        internal void OnClientInitialized(Client client)
         {
             _rpcService.NativeCall(client, 0x59174F1AFE095B5A, (uint)World.Weather, true, true, true, 0f, false);
             _rpcService.NativeCall(client, 0x669E223E64B1903C, World.Time.Hours, World.Time.Minutes, World.Time.Seconds, 5000, true);
         }
 
-        internal void SetTime(TimeSpan time, int transitionTime = 0)
+        internal async void SetTime(TimeSpan time, int transitionTime = 0)
         {
             if (time.Hours == 0)
             {
                 transitionTime = 0;
             }
 
-            _rpcService.GlobalNativeCall(0x669E223E64B1903C, time.Hours, time.Minutes, time.Seconds, transitionTime, true);
-            Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime} second(s).");
+            _eventManager.EmitClients("world:set_time", time.Hours, time.Minutes, time.Seconds, transitionTime);
+
+            //Logger.Debug($"[World] Set time from {World.Time} to {time} in {transitionTime / 1000} second(s).");
 
             World.Time = time;
-            Update(World);
+            TimeChanged?.Invoke(this, new WorldTimeEventArgs(World.Time, transitionTime));
+
+            await Update(World);
         }
 
-        internal void SetWeather(Weather weather, float transitionTime)
+        internal async void SetWeather(Weather weather, float transitionTime)
         {
-            _rpcService.GlobalNativeCall(0xD74ACDF7DB8114AF, false);
-            _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)weather, true, true, true, transitionTime, false);
+            _eventManager.EmitClients("world:set_weather", (uint)weather, transitionTime);
 
-            Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
+            //Logger.Debug($"[World] Set weather from {World.Weather} to {weather} in {transitionTime} second(s).");
 
             World.Weather = weather;
-            Update(World);
+            WeatherChanged?.Invoke(this, new WorldWeatherEventArgs(World.Weather, transitionTime));
+
+            await Update(World);
         }
 
-        internal void SetNextWeather(float transitionTime)
+        internal async void SetNextWeather(float transitionTime)
         {
             var nextWeather = GetNextWeather();
 
-            _rpcService.GlobalNativeCall(0x59174F1AFE095B5A, (uint)nextWeather, true, true, true, transitionTime, false);
-            Logger.Debug($"[World] Set next weather from {World.Weather} to {nextWeather} in {transitionTime} second(s).");
+            _eventManager.EmitClients("world:set_weather", (uint)nextWeather, transitionTime);
 
             World.Weather = nextWeather;
-            Update(World);
+            await Update(World);
+
+            Logger.Debug($"[World] Set next weather from {World.Weather} to {nextWeather} in {transitionTime} second(s).");
         }
 
         #region Repository
 
-        public async Task Add(WorldData data) => await _repository.Add(data);
-        public ICollection<WorldData> GetAll() => _repository.GetAll();
-        public WorldData Get(long worldId, bool includeChild = false) => _repository.GetAll(includeChild).Find(x => x.WorldId == worldId);
-        public async void Update(WorldData data) => await _repository.Update(data);
-        public async void Delete(WorldData data) => await _repository.Delete(data.Id);
-        public bool Exists(WorldData data) => Get(data.WorldId) != null;
-        public bool Exists(long worldId) => Get(worldId) != null;
+        public async Task<bool> Create(WorldData data) => await _repository.AddAsync(data);
+        public async Task<List<WorldData>> GetAll() => await _repository.GetAllAsync();
+        public async Task<WorldData> Get(long worldId) => await _repository.GetAsync(x => x.WorldId == worldId);
+        public async Task<bool> Update(WorldData data) => await _repository.ReplaceOneAsync(x => x.Id, data.Id, data);
+        public async Task<bool> Delete(WorldData data) => await _repository.DeleteOneAsync(x => x.Id == data.Id);
+        public async Task<bool> Delete(long worldId) => await _repository.DeleteOneAsync(x => x.WorldId == worldId);
+        public async Task<bool> Exists(WorldData data) => await _repository.ExistsAsync(x => x.Id == data.Id);
+        public async Task<bool> Exists(long worldId) => await _repository.ExistsAsync(x => x.WorldId == worldId);
 
         #endregion
     }

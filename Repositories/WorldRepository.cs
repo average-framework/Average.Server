@@ -1,19 +1,16 @@
-﻿using Average.Server.Framework.Database;
-using Average.Server.Framework.Interfaces;
+﻿using Average.Server.Framework.Interfaces;
+using Average.Server.Framework.Mongo;
 using Average.Shared.DataModels;
 
 namespace Average.Server.Repositories
 {
-    public class WorldRepository : DbRepoBase<WorldData>, IRepository
+    internal class WorldRepository : DatabaseRepoBase<WorldData>, IRepository
     {
-        public WorldRepository(DbContextFactory factory) : base(factory)
+        public override string CollectionName => "worlds";
+
+        public WorldRepository(DatabaseContextFactory databaseContextFactory) : base(databaseContextFactory)
         {
 
         }
-
-        //protected override IQueryable<WorldData> SetWithIncludes(DatabaseContext context)
-        //{
-        //    return context.Users.Include(a => a.Characters);
-        //}
     }
 }

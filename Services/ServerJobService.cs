@@ -2,6 +2,7 @@
 using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Interfaces;
+using Average.Shared.Enums;
 using CitizenFX.Core;
 using DryIoc;
 using System;
@@ -14,9 +15,11 @@ namespace Average.Server.Services
     internal class ServerJobService : IService
     {
         private readonly IContainer _container;
-        private readonly List<IServerJob> _jobs = new();
+        private readonly List<IServerJob> _jobs = new List<IServerJob>();
 
         private const int Delay = 1000;
+
+        public List<IServerJob> Jobs => _jobs;
 
         public ServerJobService(IContainer container)
         {
