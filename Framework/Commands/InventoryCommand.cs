@@ -1,8 +1,6 @@
 ﻿using Average.Server.Framework.Attributes;
-using Average.Server.Framework.Diagnostics;
 using Average.Server.Framework.Interfaces;
-using Average.Server.Framework.Model;
-using Average.Server.Services;
+using Average.Server.Framework.Services;
 using Average.Shared.DataModels;
 
 namespace Average.Server.Framework.Commands

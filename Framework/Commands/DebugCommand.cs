@@ -1,7 +1,7 @@
 ﻿using Average.Server.Framework.Attributes;
 using Average.Server.Framework.Interfaces;
 using Average.Server.Framework.Model;
-using Average.Server.Services;
+using Average.Server.Framework.Services;
 using CitizenFX.Core;
 
 namespace Average.Server.Framework.Commands
